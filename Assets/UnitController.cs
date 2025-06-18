@@ -5,44 +5,49 @@ using System.Linq;
 
 public class UnitController : MonoBehaviour
 {
+    private enum UnitActionState { IDLE, MOVING, ATTACKING, WAITING }
+    private UnitActionState currentState = UnitActionState.IDLE;
+    
     [SerializeField] private UnitStats baseStats;
     public int teamID;
     public int CurrentHealth { get; private set; }
-
     private GridManager gridManager;
 
     private UnitController currentTarget;
     private Node currentNode;
-    private Node destinationNode;
     private float attackCooldown;
-    private bool isExecutingAction = false;
+    private float waitingTimer;
 
-    void Start()
+    // Este método es llamado por el GridManager al instanciar la unidad
+    public void Initialize(GridManager manager, Node startingNode)
     {
-        CurrentHealth = baseStats.maxHealth;
-        gridManager = FindAnyObjectByType<GridManager>();
+        gridManager = manager;
+        currentNode = startingNode;
+        gridManager.SetUnitOnNode(this, currentNode);
         
+        CurrentHealth = baseStats.maxHealth;
         GameManager.Instance.RegisterUnit(this);
-
-        currentNode = gridManager.NodeFromWorldPoint(transform.position);
-        if (currentNode != null)
-        {
-            gridManager.SetUnitOnNode(this, currentNode);
-        }
     }
-
-    /// <summary>
-    /// El GameManager llama a este método cuando es el turno de la unidad para PENSAR.
-    /// </summary>
+    
     public void EvaluateAction()
     {
-        // Si ya estamos ejecutando una acción (moviéndonos o atacando), no evaluamos una nueva.
-        if (isExecutingAction) return;
+        if (currentState == UnitActionState.MOVING || currentState == UnitActionState.ATTACKING) return;
         
-        // Gestionamos el cooldown del ataque
-        if (attackCooldown > 0) attackCooldown -= Time.deltaTime;
+        if (attackCooldown > 0)
+        {
+            attackCooldown -= Time.deltaTime;
+        }
 
-        // 1. ADQUISICIÓN DE OBJETIVO
+        if (currentState == UnitActionState.WAITING)
+        {
+            waitingTimer -= Time.deltaTime;
+            if (waitingTimer <= 0)
+            {
+                currentState = UnitActionState.IDLE;
+            }
+            return;
+        }
+        
         if (currentTarget == null || currentTarget.CurrentHealth <= 0)
         {
             FindBestTarget();
@@ -50,99 +55,91 @@ public class UnitController : MonoBehaviour
 
         if (currentTarget != null)
         {
-            // 2. DECISIÓN DE ACCIÓN
             if (IsInAttackRange())
             {
-                if(attackCooldown <= 0) Attack();
+                if (attackCooldown <= 0) Attack();
             }
             else
             {
-                // Si ya tenemos un destino, no buscamos uno nuevo. Nos comprometemos.
-                if (destinationNode == null)
-                {
-                    destinationNode = FindBestAttackNode(currentTarget);
-                }
-
-                if (destinationNode != null)
-                {
-                    StartCoroutine(MoveToDestination());
-                }
-                else
-                {
-                    // No hay un camino, olvidamos el objetivo para reevaluarlo en el siguiente ciclo del GameManager
-                    currentTarget = null;
-                }
+                MoveTowardsTarget();
             }
         }
     }
 
-    IEnumerator MoveToDestination()
+    void MoveTowardsTarget()
     {
-        isExecutingAction = true;
-        gridManager.ReserveNode(destinationNode);
-
-        List<Node> path = gridManager.FindPath(transform.position, destinationNode.worldPosition);
-
-        if (path != null && path.Count > 0)
+        Node destinationNode = FindBestAttackNode(currentTarget) ?? FindSupportNode(currentTarget);
+        
+        if (destinationNode != null && destinationNode != currentNode)
         {
-            gridManager.ClearNode(currentNode);
-
-            // Moverse a lo largo de toda la ruta de forma fluida
-            foreach (Node step in path)
+            List<Node> path = gridManager.FindPath(transform.position, destinationNode.worldPosition);
+            if (path != null && path.Count > 0)
             {
-                Vector3 targetPosition = step.worldPosition;
-                transform.LookAt(new Vector3(targetPosition.x, transform.position.y, targetPosition.z));
-                
-                float timeToMove = Vector3.Distance(transform.position, targetPosition) / baseStats.moveSpeed;
-                float elapsedTime = 0;
-                
-                while(elapsedTime < timeToMove)
-                {
-                    transform.position = Vector3.Lerp(transform.position, targetPosition, elapsedTime / timeToMove);
-                    elapsedTime += Time.deltaTime;
-                    yield return null;
-                }
-                transform.position = targetPosition;
+                StartCoroutine(MoveAnimation(path[0]));
             }
+            else
+            {
+                // El camino está bloqueado, entrar en modo de espera
+                currentState = UnitActionState.WAITING;
+                waitingTimer = 0.5f;
+            }
+        }
+        else
+        {
+            // No hay destino válido, entrar en modo de espera
+            currentState = UnitActionState.WAITING;
+            waitingTimer = 0.5f;
+        }
+    }
 
-            currentNode = destinationNode;
-            gridManager.SetUnitOnNode(this, currentNode);
+    IEnumerator MoveAnimation(Node targetNode)
+    {
+        currentState = UnitActionState.MOVING;
+
+        // Reservar el nodo de destino para que otros no lo planeen
+        gridManager.ReserveNode(targetNode);
+
+        Vector3 startPos = transform.position;
+        Vector3 endPos = targetNode.worldPosition;
+        transform.LookAt(new Vector3(endPos.x, transform.position.y, endPos.z));
+        
+        float timeToMove = 1f / baseStats.moveSpeed;
+        float elapsedTime = 0f;
+        
+        while(elapsedTime < timeToMove)
+        {
+            transform.position = Vector3.Lerp(startPos, endPos, elapsedTime / timeToMove);
+            elapsedTime += Time.deltaTime;
+            yield return null;
         }
         
-        UnreserveCurrentDestination();
-        isExecutingAction = false;
+        // --- LA CORRECCIÓN CRÍTICA Y DEFINITIVA ---
+        transform.position = endPos;
+        gridManager.ClearNode(currentNode);
+        currentNode = targetNode;
+        gridManager.SetUnitOnNode(this, currentNode);
+        
+        gridManager.UnreserveNode(targetNode);
+        currentState = UnitActionState.IDLE;
     }
 
     void Attack()
     {
-        isExecutingAction = true;
+        currentState = UnitActionState.ATTACKING;
+        attackCooldown = 1f / baseStats.attackSpeed;
+        
         transform.LookAt(new Vector3(currentTarget.transform.position.x, transform.position.y, currentTarget.transform.position.z));
+        currentTarget.TakeDamage(baseStats.attackDamage);
         
-        // Aquí iría la animación de ataque
-        StartCoroutine(AttackAnimation());
+        StartCoroutine(AttackCooldown());
     }
 
-    IEnumerator AttackAnimation()
+    IEnumerator AttackCooldown()
     {
-        // Simula el tiempo que dura la animación de ataque
-        float animationTime = 1f / baseStats.attackSpeed;
-        attackCooldown = animationTime;
-
-        // A la mitad de la animación, aplicamos el daño
-        yield return new WaitForSeconds(animationTime / 2);
-        
-        if (currentTarget != null && currentTarget.CurrentHealth > 0)
-        {
-            currentTarget.TakeDamage(baseStats.attackDamage);
-            Debug.Log($"{name} ataca a {currentTarget.name}");
-        }
-
-        // Esperar el resto de la animación
-        yield return new WaitForSeconds(animationTime / 2);
-        isExecutingAction = false;
+        yield return new WaitForSeconds(attackCooldown);
+        currentState = UnitActionState.IDLE;
     }
 
-    // --- El resto de métodos de ayuda se mantienen sin cambios ---
     void FindBestTarget()
     {
         currentTarget = FindObjectsByType<UnitController>(FindObjectsSortMode.None)
@@ -161,15 +158,42 @@ public class UnitController : MonoBehaviour
         {
             if (neighbour.IsAvailable())
             {
-                if (gridManager.FindPath(transform.position, neighbour.worldPosition) != null)
+                if (gridManager.FindPath(transform.position, neighbour.worldPosition) != null) reachableNodes.Add(neighbour);
+            }
+        }
+        if (reachableNodes.Count == 0) return null;
+        return reachableNodes.OrderBy(n => Vector3.Distance(transform.position, n.worldPosition)).FirstOrDefault();
+    }
+
+    Node FindSupportNode(UnitController targetEnemy)
+    {
+        var frontlineAllies = FindObjectsByType<UnitController>(FindObjectsSortMode.None)
+            .Where(u => u.teamID == this.teamID && u != this && u.CurrentHealth > 0 && Vector3.Distance(u.transform.position, targetEnemy.transform.position) <= gridManager.TileSize * 1.5f)
+            .ToList();
+
+        if (frontlineAllies.Count == 0) return null;
+
+        List<Node> potentialSupportNodes = new List<Node>();
+
+        foreach (var ally in frontlineAllies)
+        {
+            Node allyNode = gridManager.NodeFromWorldPoint(ally.transform.position);
+            if (allyNode == null) continue;
+
+            foreach (var neighbour in gridManager.GetNeighbours(allyNode))
+            {
+                if (neighbour.IsAvailable() && gridManager.FindPath(transform.position, neighbour.worldPosition) != null)
                 {
-                    reachableNodes.Add(neighbour);
+                    potentialSupportNodes.Add(neighbour);
                 }
             }
         }
 
-        if (reachableNodes.Count == 0) return null;
-        return reachableNodes.OrderBy(n => Vector3.Distance(transform.position, n.worldPosition)).FirstOrDefault();
+        if (potentialSupportNodes.Count == 0) return null;
+        
+        return potentialSupportNodes
+            .OrderBy(n => Vector3.Distance(n.worldPosition, targetEnemy.transform.position))
+            .FirstOrDefault();
     }
     
     bool IsInAttackRange() => currentTarget != null && Vector3.Distance(transform.position, currentTarget.transform.position) <= baseStats.attackRange;
@@ -183,20 +207,9 @@ public class UnitController : MonoBehaviour
 
     void Die()
     {
-        isExecutingAction = true; // Evita más acciones
         GameManager.Instance.UnregisterUnit(this);
         StopAllCoroutines();
         if (currentNode != null) gridManager.ClearNode(currentNode);
-        UnreserveCurrentDestination();
         Destroy(gameObject);
-    }
-
-    void UnreserveCurrentDestination()
-    {
-        if (destinationNode != null)
-        {
-            gridManager.UnreserveNode(destinationNode);
-            destinationNode = null;
-        }
     }
 }
