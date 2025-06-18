@@ -12,4 +12,7 @@ public class UnitStats : ScriptableObject
     public int attackDamage = 10;
     public float attackSpeed = 1.0f; // Ataques por segundo
     public float attackRange = 1.5f;
+
+    [Header("Estadísticas de Movimiento")]
+    public float moveSpeed = 3f; // ¡ESTA ES LA LÍNEA NUEVA! Unidades por segundo
 }

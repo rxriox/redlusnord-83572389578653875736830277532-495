@@ -2,13 +2,21 @@ using UnityEngine;
 
 public class Node
 {
-    public int gridX, gridZ;
     public bool isWalkable;
-    public bool isReserved; // NUEVO: Para que otras unidades no elijan esta casilla como destino.
     public Vector3 worldPosition;
+    public int gridX;
+    public int gridZ;
 
-    public int gCost, hCost;
+    // --- Variables para A* ---
+    public int gCost;
+    public int hCost;
     public Node parent;
+
+    // --- NUEVAS VARIABLES ---
+    public bool isReserved; // True si una unidad ESTÁ YENDO hacia este nodo
+    public UnitController occupyingUnit; // La unidad que está PARADA en este nodo
+
+    public int fCost { get { return gCost + hCost; } }
 
     public Node(bool _isWalkable, Vector3 _worldPos, int _gridX, int _gridZ)
     {
@@ -16,8 +24,13 @@ public class Node
         worldPosition = _worldPos;
         gridX = _gridX;
         gridZ = _gridZ;
-        isReserved = false; // Por defecto, ninguna casilla está reservada.
+        isReserved = false;
+        occupyingUnit = null;
     }
 
-    public int fCost { get { return gCost + hCost; } }
+    // Un nodo está "disponible" si se puede caminar sobre él Y no hay una unidad parada Y no está reservado.
+    public bool IsAvailable()
+    {
+        return isWalkable && occupyingUnit == null && !isReserved;
+    }
 }
