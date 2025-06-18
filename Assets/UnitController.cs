@@ -10,9 +10,7 @@ public class UnitController : MonoBehaviour
     public int CurrentHealth { get; private set; }
 
     private GridManager gridManager;
-    private Coroutine combatCoroutine;
 
-    // --- Variables de Estado y Cooldown ---
     private UnitController currentTarget;
     private Node currentNode;
     private Node destinationNode;
@@ -22,108 +20,68 @@ public class UnitController : MonoBehaviour
     void Start()
     {
         CurrentHealth = baseStats.maxHealth;
-        gridManager = FindAnyObjectByType<GridManager>();
+        // CORREGIDO: Usando la función moderna recomendada por Unity.
+        gridManager = FindAnyObjectByType<GridManager>(); 
+        
+        if (GameManager.Instance != null) GameManager.Instance.RegisterUnit(this);
 
         currentNode = gridManager.NodeFromWorldPoint(transform.position);
-        if (currentNode != null)
+        if (currentNode != null) gridManager.SetUnitOnNode(this, currentNode);
+    }
+
+    public void TakeAction()
+    {
+        if (actionCooldown > 0)
         {
-            gridManager.SetUnitOnNode(this, currentNode);
+            actionCooldown -= Time.deltaTime;
+            return;
         }
-    }
+        if (isMoving) return;
 
-    private void OnEnable() => GameManager.OnCombatStart += StartCombat;
-    private void OnDisable() => GameManager.OnCombatStart -= StopCombat;
-
-    void StartCombat()
-    {
-        if (combatCoroutine != null) StopCoroutine(combatCoroutine);
-        combatCoroutine = StartCoroutine(CombatLoop());
-    }
-
-    void StopCombat()
-    {
-        if (combatCoroutine != null) StopCoroutine(combatCoroutine);
-        isMoving = false;
-    }
-
-    IEnumerator CombatLoop()
-    {
-        while (CurrentHealth > 0)
+        if (currentTarget == null || currentTarget.CurrentHealth <= 0)
         {
-            if (isMoving)
+            UnreserveCurrentDestination();
+            FindBestTarget();
+        }
+
+        if (currentTarget != null)
+        {
+            if (IsInAttackRange())
             {
-                yield return null;
-                continue;
+                Attack();
             }
-
-            if (actionCooldown > 0)
+            else
             {
-                actionCooldown -= Time.deltaTime;
-                yield return null;
-                continue;
-            }
-
-            // --- LÓGICA DE DECISIÓN REFACTORIZADA ---
-
-            // 1. ADQUISICIÓN DE OBJETIVO
-            if (currentTarget == null || currentTarget.CurrentHealth <= 0)
-            {
-                UnreserveCurrentDestination(); // Limpiamos planes viejos
-                FindBestTarget(); // Solo buscamos el mejor objetivo, sin pensar en la posición aún.
-            }
-
-            // Si tenemos un objetivo válido, decidimos qué hacer.
-            if (currentTarget != null)
-            {
-                // 2. DECISIÓN DE ACCIÓN
-                if (IsInAttackRange())
+                if (destinationNode == null)
                 {
-                    // Si ya está en rango (ej. al inicio del combate o si un enemigo se acerca), atacamos.
-                    Attack();
-                }
-                else // No está en rango, necesitamos movernos.
-                {
-                    // 3. PLANIFICACIÓN DE MOVIMIENTO
-                    if (destinationNode == null)
-                    {
-                        // Buscamos una posición solo si es necesario.
-                        destinationNode = FindBestAttackNode(currentTarget);
-                        if (destinationNode != null)
-                        {
-                            gridManager.ReserveNode(destinationNode);
-                        }
-                    }
-
-                    // 4. EJECUCIÓN DE MOVIMIENTO
+                    destinationNode = FindBestAttackNode(currentTarget);
                     if (destinationNode != null)
                     {
-                        MoveOneStep();
-                    }
-                    else
-                    {
-                        // Tenemos un objetivo, pero está lejos Y no hay casillas alcanzables a su alrededor.
-                        // En este caso, la unidad espera. No olvida a su objetivo, por si se abre un hueco.
+                        gridManager.ReserveNode(destinationNode);
                     }
                 }
-            }
 
-            yield return new WaitForSeconds(0.1f);
+                if (destinationNode != null)
+                {
+                    MoveOneStep();
+                }
+                else
+                {
+                    currentTarget = null;
+                }
+            }
         }
     }
-    
-    /// <summary>
-    /// NUEVO MÉTODO: Se enfoca únicamente en encontrar el enemigo más prometedor.
-    /// </summary>
+
     void FindBestTarget()
     {
-        currentTarget = FindObjectsByType<UnitController>(FindObjectsSortMode.None)
+        var allUnits = FindObjectsByType<UnitController>(FindObjectsSortMode.None);
+        currentTarget = allUnits
             .Where(u => u.teamID != this.teamID && u.CurrentHealth > 0)
             .OrderBy(u => Vector3.Distance(transform.position, u.transform.position))
             .FirstOrDefault();
     }
-
-    // --- El resto de métodos se mantienen igual ---
-
+    
     void MoveOneStep()
     {
         List<Node> path = gridManager.FindPath(transform.position, destinationNode.worldPosition);
@@ -150,7 +108,7 @@ public class UnitController : MonoBehaviour
         Vector3 targetPosition = nextNode.worldPosition;
         transform.LookAt(new Vector3(targetPosition.x, transform.position.y, targetPosition.z));
         
-        float journeyDuration = 1f / baseStats.moveSpeed;
+        float journeyDuration = (1f / baseStats.moveSpeed) * 0.9f;
         float elapsedTime = 0f;
 
         while (elapsedTime < journeyDuration)
@@ -197,7 +155,6 @@ public class UnitController : MonoBehaviour
         }
 
         if (reachableNodes.Count == 0) return null;
-
         return reachableNodes.OrderBy(n => Vector3.Distance(transform.position, n.worldPosition)).FirstOrDefault();
     }
     
@@ -220,6 +177,8 @@ public class UnitController : MonoBehaviour
     void Die()
     {
         StopAllCoroutines();
+        if (GameManager.Instance != null) GameManager.Instance.UnregisterUnit(this);
+
         if (currentNode != null)
         {
             gridManager.ClearNode(currentNode);
