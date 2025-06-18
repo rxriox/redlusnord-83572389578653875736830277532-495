@@ -6,6 +6,11 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Unit Stats", menuName = "Autobattler/Unit Stats")]
 public class UnitStats : ScriptableObject
 {
+    public enum UnitType { Melee, Ranged } // Nueva enumeración para el tipo de unidad
+
+    [Header("Configuración de Unidad")]
+    public UnitType unitType = UnitType.Melee; // Tipo de unidad (cuerpo a cuerpo por defecto)
+
     [Header("Estadísticas de Combate")]
     public string unitName = "New Unit";
     public int maxHealth = 100;
@@ -14,5 +19,5 @@ public class UnitStats : ScriptableObject
     public float attackRange = 1.5f;
 
     [Header("Estadísticas de Movimiento")]
-    public float moveSpeed = 3f; // ¡ESTA ES LA LÍNEA NUEVA! Unidades por segundo
+    public float moveSpeed = 3f; // Unidades por segundo
 }

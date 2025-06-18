@@ -72,8 +72,18 @@ public class UnitController : MonoBehaviour
 
     void MoveTowardsTarget()
     {
-        // MODIFICACIÓN CLAVE: Solo busca el mejor nodo de ataque y no intenta un nodo de apoyo si no hay uno.
-        Node destinationNode = FindBestAttackNode(currentTarget);
+        Node destinationNode = null;
+
+        // Decide el tipo de movimiento basado en el UnitType de la unidad
+        if (baseStats.unitType == UnitStats.UnitType.Melee)
+        {
+            destinationNode = FindBestMeleeAttackNode(currentTarget);
+        }
+        else if (baseStats.unitType == UnitStats.UnitType.Ranged)
+        {
+            // Para unidades a distancia, encontramos un nodo para movernos a su rango de ataque.
+            destinationNode = FindBestRangedMovementNode(currentTarget);
+        }
         
         if (destinationNode != null && destinationNode != currentNode)
         {
@@ -91,7 +101,7 @@ public class UnitController : MonoBehaviour
         }
         else
         {
-            // No hay destino válido para atacar directamente, entrar en modo de espera
+            // No hay destino válido para atacar directamente (o moverse a rango), entrar en modo de espera
             currentState = UnitActionState.WAITING;
             waitingTimer = 0.5f;
         }
@@ -160,7 +170,12 @@ public class UnitController : MonoBehaviour
         }
     }
     
-    Node FindBestAttackNode(UnitController target)
+    /// <summary>
+    /// Encuentra el mejor nodo de ataque adyacente para unidades cuerpo a cuerpo.
+    /// </summary>
+    /// <param name="target">La unidad objetivo.</param>
+    /// <returns>El nodo más cercano al que moverse para atacar, o null si no hay uno.</returns>
+    Node FindBestMeleeAttackNode(UnitController target)
     {
         List<Node> reachableNodes = new List<Node>();
         Node targetNode = gridManager.NodeFromWorldPoint(target.transform.position);
@@ -173,8 +188,6 @@ public class UnitController : MonoBehaviour
             // Y si hay un camino válido desde la posición actual de la unidad hasta ese vecino.
             if (neighbour.IsAvailable())
             {
-                // La distancia de ataque ya se maneja con el rango de ataque de la unidad.
-                // Aquí solo nos aseguramos de que el nodo esté en la cuadrícula y sea accesible.
                 if (gridManager.FindPath(transform.position, neighbour.worldPosition) != null) 
                 {
                     reachableNodes.Add(neighbour);
@@ -189,8 +202,61 @@ public class UnitController : MonoBehaviour
         return reachableNodes.OrderBy(n => Vector3.Distance(transform.position, n.worldPosition)).FirstOrDefault();
     }
 
-    // El método FindSupportNode ya no será llamado si solo quieres que se muevan a celdas de ataque directas.
-    // Lo mantenemos aquí por si decides reutilizarlo para otra lógica o para referencia.
+    /// <summary>
+    /// Encuentra el mejor nodo para que una unidad a distancia se mueva dentro de su rango de ataque.
+    /// Prioriza estar en rango y ser el nodo accesible más cercano.
+    /// </summary>
+    /// <param name="target">La unidad objetivo.</param>
+    /// <returns>El nodo más cercano al que moverse para estar en rango de ataque, o null si no hay uno.</returns>
+    Node FindBestRangedMovementNode(UnitController target)
+    {
+        List<Node> validMovementNodes = new List<Node>();
+        Node targetNode = gridManager.NodeFromWorldPoint(target.transform.position);
+        if (targetNode == null) return null;
+
+        // Define un radio de búsqueda basado en el rango de ataque.
+        // Se añade un margen para asegurar que el centro del nodo esté dentro del rango.
+        float searchRadiusTiles = baseStats.attackRange / gridManager.TileSize + 1.0f; 
+        
+        // Calcular los límites de la cuadrícula para la búsqueda
+        int startX = Mathf.Max(0, targetNode.gridX - Mathf.CeilToInt(searchRadiusTiles));
+        int endX = Mathf.Min(gridManager.gridWidth - 1, targetNode.gridX + Mathf.CeilToInt(searchRadiusTiles));
+        int startZ = Mathf.Max(0, targetNode.gridZ - Mathf.CeilToInt(searchRadiusTiles));
+        int endZ = Mathf.Min(gridManager.gridHeight - 1, targetNode.gridZ + Mathf.CeilToInt(searchRadiusTiles));
+
+        // Iterar sobre una sección de la cuadrícula alrededor del objetivo
+        for (int x = startX; x <= endX; x++)
+        {
+            for (int z = startZ; z <= endZ; z++)
+            {
+                Node potentialNode = gridManager.grid[x, z]; // Acceder al array de la cuadrícula directamente
+                
+                // Si el nodo está disponible y se puede caminar sobre él
+                if (potentialNode.IsAvailable())
+                {
+                    float distanceToTarget = Vector3.Distance(potentialNode.worldPosition, target.transform.position);
+                    
+                    // Comprobar si este nodo coloca al objetivo dentro del rango de ataque
+                    if (distanceToTarget <= baseStats.attackRange)
+                    {
+                        // Asegurarse de que haya un camino a este nodo
+                        if (gridManager.FindPath(transform.position, potentialNode.worldPosition) != null)
+                        {
+                            validMovementNodes.Add(potentialNode);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (validMovementNodes.Count == 0) return null;
+
+        // Ordena los nodos válidos por distancia a la unidad actual (el más cercano primero)
+        return validMovementNodes.OrderBy(n => Vector3.Distance(transform.position, n.worldPosition)).FirstOrDefault();
+    }
+
+
+    // El método FindSupportNode se mantiene como referencia pero no se utiliza en el flujo principal de movimiento si se prefiere solo ataque directo.
     Node FindSupportNode(UnitController targetEnemy)
     {
         var frontlineAllies = FindObjectsByType<UnitController>(FindObjectsSortMode.None)

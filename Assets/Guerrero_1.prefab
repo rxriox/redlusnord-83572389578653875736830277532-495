@@ -128,3 +128,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitController
   baseStats: {fileID: 11400000, guid: 27e999dd86eb97647885a829830464ec, type: 2}
   teamID: 0
+  targetPriority: 1

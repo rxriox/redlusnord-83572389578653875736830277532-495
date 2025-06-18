@@ -5,12 +5,12 @@ using System.Linq;
 public class GridManager : MonoBehaviour
 {
     [Header("Configuración del Tablero")]
-    [SerializeField] private int gridWidth = 8;
-    [SerializeField] private int gridHeight = 8;
+    [SerializeField] public int gridWidth = 8; // Cambiado a public
+    [SerializeField] public int gridHeight = 8; // Cambiado a public
     [SerializeField] private float tileSize = 1.0f;
     [SerializeField] private GameObject tilePrefab;
 
-    private Node[,] grid;
+    public Node[,] grid; // Cambiado a public
     
     public float TileSize => tileSize;
 
