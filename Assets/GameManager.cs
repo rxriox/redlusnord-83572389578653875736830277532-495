@@ -1,8 +1,7 @@
 using UnityEngine;
-using UnityEngine.Events;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -11,13 +10,19 @@ public class GameManager : MonoBehaviour
     public enum GameState { Placement, Combat, Result }
     public GameState CurrentState { get; private set; }
     
-    // Lista centralizada de todas las unidades en el campo
+    // El GameManager vuelve a necesitar la lista de unidades para dirigirlas
     private List<UnitController> allUnits = new List<UnitController>();
 
     private void Awake()
     {
-        if (Instance != null && Instance != this) Destroy(gameObject);
-        else Instance = this;
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
     }
 
     void Start()
@@ -25,7 +30,7 @@ public class GameManager : MonoBehaviour
         CurrentState = GameState.Placement;
     }
 
-    // Las unidades se registran y des-registran a sí mismas
+    // Las unidades se registran y des-registran
     public void RegisterUnit(UnitController unit)
     {
         if (!allUnits.Contains(unit)) allUnits.Add(unit);
@@ -46,48 +51,45 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// El nuevo bucle de combate centralizado.
-    /// </summary>
     IEnumerator CombatLoop()
     {
         while (CurrentState == GameState.Combat)
         {
-            // Filtramos las unidades que están vivas para la siguiente ronda de acciones
-            List<UnitController> activeUnits = allUnits.Where(u => u.CurrentHealth > 0).ToList();
+            // Obtenemos solo las unidades que siguen vivas
+            List<UnitController> activeUnits = allUnits.Where(u => u != null && u.CurrentHealth > 0).ToList();
 
+            // Comprobamos si el combate debe terminar
             if (activeUnits.Count(u => u.teamID == 0) == 0 || activeUnits.Count(u => u.teamID == 1) == 0)
             {
-                // Si un equipo ha sido eliminado, termina el combate.
                 CurrentState = GameState.Result;
                 Debug.Log("¡Combate terminado!");
                 break;
             }
 
-            // --- LÓGICA DE PRIORIDAD ---
-            // Ordenamos las unidades que pueden actuar por su proximidad al enemigo más cercano.
-            // La unidad más cercana a CUALQUIER enemigo actuará primero.
+            // --- LÓGICA DE PRIORIDAD CLAVE ---
+            // En cada ciclo, ordenamos las unidades que pueden actuar.
+            // La prioridad la tiene la unidad que esté más cerca de CUALQUIER enemigo.
             List<UnitController> orderedUnits = activeUnits
                 .OrderBy(u => {
-                    // Encontramos el enemigo más cercano a ESTA unidad 'u'
                     UnitController closestEnemy = activeUnits
                         .Where(e => e.teamID != u.teamID)
                         .OrderBy(e => Vector3.Distance(u.transform.position, e.transform.position))
                         .FirstOrDefault();
                     
-                    // Si no hay enemigos, la distancia es infinita.
                     return closestEnemy == null ? float.MaxValue : Vector3.Distance(u.transform.position, closestEnemy.transform.position);
                 })
                 .ToList();
 
-            // Damos turno a cada unidad en el orden de prioridad calculado
+            // Le damos "turno" a cada unidad en el orden de prioridad.
+            // La unidad más cercana tomará su decisión y reservará su casilla ANTES que una lejana.
             foreach (var unit in orderedUnits)
             {
-                unit.TakeAction();
+                if (unit != null) unit.EvaluateAction();
             }
 
-            // Esperamos un pequeño instante antes de la siguiente "ronda" de turnos.
-            yield return new WaitForSeconds(0.1f);
+            // Esperamos un pequeño instante antes del siguiente ciclo de decisiones.
+            // Este valor es clave para el "feeling" del juego.
+            yield return new WaitForSeconds(0.15f);
         }
     }
 }
