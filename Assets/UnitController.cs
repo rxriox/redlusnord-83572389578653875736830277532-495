@@ -18,6 +18,10 @@ public class UnitController : MonoBehaviour
     private float attackCooldown;
     private float waitingTimer;
 
+    public enum TargetPriority { Closest, LowestHealth }
+    [Header("Configuración de IA")]
+    public TargetPriority targetPriority = TargetPriority.Closest;
+
     // Este método es llamado por el GridManager al instanciar la unidad
     public void Initialize(GridManager manager, Node startingNode)
     {
@@ -68,7 +72,8 @@ public class UnitController : MonoBehaviour
 
     void MoveTowardsTarget()
     {
-        Node destinationNode = FindBestAttackNode(currentTarget) ?? FindSupportNode(currentTarget);
+        // MODIFICACIÓN CLAVE: Solo busca el mejor nodo de ataque y no intenta un nodo de apoyo si no hay uno.
+        Node destinationNode = FindBestAttackNode(currentTarget);
         
         if (destinationNode != null && destinationNode != currentNode)
         {
@@ -79,14 +84,14 @@ public class UnitController : MonoBehaviour
             }
             else
             {
-                // El camino está bloqueado, entrar en modo de espera
+                // El camino está bloqueado o no es válido, entrar en modo de espera
                 currentState = UnitActionState.WAITING;
                 waitingTimer = 0.5f;
             }
         }
         else
         {
-            // No hay destino válido, entrar en modo de espera
+            // No hay destino válido para atacar directamente, entrar en modo de espera
             currentState = UnitActionState.WAITING;
             waitingTimer = 0.5f;
         }
@@ -113,7 +118,6 @@ public class UnitController : MonoBehaviour
             yield return null;
         }
         
-        // --- LA CORRECCIÓN CRÍTICA Y DEFINITIVA ---
         transform.position = endPos;
         gridManager.ClearNode(currentNode);
         currentNode = targetNode;
@@ -142,10 +146,18 @@ public class UnitController : MonoBehaviour
 
     void FindBestTarget()
     {
-        currentTarget = FindObjectsByType<UnitController>(FindObjectsSortMode.None)
+        IQueryable<UnitController> activeEnemies = FindObjectsByType<UnitController>(FindObjectsSortMode.None)
             .Where(u => u.teamID != this.teamID && u.CurrentHealth > 0)
-            .OrderBy(u => Vector3.Distance(transform.position, u.transform.position))
-            .FirstOrDefault();
+            .AsQueryable();
+
+        if (targetPriority == TargetPriority.Closest)
+        {
+            currentTarget = activeEnemies.OrderBy(u => Vector3.Distance(transform.position, u.transform.position)).FirstOrDefault();
+        }
+        else if (targetPriority == TargetPriority.LowestHealth)
+        {
+            currentTarget = activeEnemies.OrderBy(u => u.CurrentHealth).FirstOrDefault();
+        }
     }
     
     Node FindBestAttackNode(UnitController target)
@@ -154,17 +166,31 @@ public class UnitController : MonoBehaviour
         Node targetNode = gridManager.NodeFromWorldPoint(target.transform.position);
         if (targetNode == null) return null;
 
+        // Itera sobre los 8 vecinos del nodo objetivo
         foreach (var neighbour in gridManager.GetNeighbours(targetNode))
         {
+            // Verifica si el vecino es un nodo disponible (caminable, no ocupado, no reservado)
+            // Y si hay un camino válido desde la posición actual de la unidad hasta ese vecino.
             if (neighbour.IsAvailable())
             {
-                if (gridManager.FindPath(transform.position, neighbour.worldPosition) != null) reachableNodes.Add(neighbour);
+                // La distancia de ataque ya se maneja con el rango de ataque de la unidad.
+                // Aquí solo nos aseguramos de que el nodo esté en la cuadrícula y sea accesible.
+                if (gridManager.FindPath(transform.position, neighbour.worldPosition) != null) 
+                {
+                    reachableNodes.Add(neighbour);
+                }
             }
         }
+
         if (reachableNodes.Count == 0) return null;
+        
+        // Ordena los nodos alcanzables por distancia a la unidad (para que se muevan al más cercano)
+        // y selecciona el primero.
         return reachableNodes.OrderBy(n => Vector3.Distance(transform.position, n.worldPosition)).FirstOrDefault();
     }
 
+    // El método FindSupportNode ya no será llamado si solo quieres que se muevan a celdas de ataque directas.
+    // Lo mantenemos aquí por si decides reutilizarlo para otra lógica o para referencia.
     Node FindSupportNode(UnitController targetEnemy)
     {
         var frontlineAllies = FindObjectsByType<UnitController>(FindObjectsSortMode.None)
