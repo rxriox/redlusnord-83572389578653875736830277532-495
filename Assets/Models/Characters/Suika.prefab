@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 1210026274917409516}
   - component: {fileID: 8760188244958653844}
   m_Layer: 0
-  m_Name: Enemy 1
+  m_Name: Suika
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -68,7 +68,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 594ea882c5a793440b60ff72d896021e, type: 2}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -126,7 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: afe7bb6bec67ab94c8b949d834d36c18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitController
-  baseStats: {fileID: 11400000, guid: b985b70e4066108469b607546d2a4a29, type: 2}
-  teamID: 1
+  baseStats: {fileID: 11400000, guid: 27020189174271b4cbfe0d9d1fc1ed24, type: 2}
+  teamID: 0
   healthBarUIPrefab: {fileID: 6534989218685001722, guid: ac2f1a4afeb27694c950049094bcdc63, type: 3}
   targetPriority: 0

@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 1210026274917409516}
   - component: {fileID: 8760188244958653844}
   m_Layer: 0
-  m_Name: Guerrero_8
+  m_Name: Alice Margatroid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -126,7 +126,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: afe7bb6bec67ab94c8b949d834d36c18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitController
-  baseStats: {fileID: 11400000, guid: e6c53f932317da04680b8e1ecab7e484, type: 2}
+  baseStats: {fileID: 11400000, guid: 6caaef13ee794264e8af315c2c4dee92, type: 2}
   teamID: 0
   healthBarUIPrefab: {fileID: 6534989218685001722, guid: ac2f1a4afeb27694c950049094bcdc63, type: 3}
+  healthBarVerticalOffset: 0.8
+  unitPrefab: {fileID: 0}
   targetPriority: 0
