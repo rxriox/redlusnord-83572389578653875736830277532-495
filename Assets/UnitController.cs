@@ -21,6 +21,8 @@ public class UnitController : MonoBehaviour
     public int teamID;
     [Tooltip("Prefab del UI de la barra de salud que se instanciará sobre la unidad.")]
     [SerializeField] private GameObject healthBarUIPrefab; // Nuevo campo para el prefab de la barra de salud
+    [Tooltip("Offset vertical adicional para la barra de salud sobre la unidad.")]
+    [SerializeField] private float healthBarVerticalOffset = 0.5f; // Nuevo: Offset ajustable en el Inspector
     
     // Salud actual de la unidad.
     public int CurrentHealth { get; private set; }
@@ -78,8 +80,33 @@ public class UnitController : MonoBehaviour
             // Instanciar el prefab de la barra de salud como hijo de esta unidad.
             // Esto asegura que la barra de salud se mueva con la unidad.
             GameObject hbGO = Instantiate(healthBarUIPrefab, transform); 
-            // Posicionar la barra de salud ligeramente por encima de la unidad.
-            hbGO.transform.localPosition = new Vector3(0, 1.5f, 0); 
+            
+            // --- CÁLCULO MEJORADO DE LA POSICIÓN VERTICAL DE LA BARRA DE SALUD ---
+            // Intenta obtener los límites de TODOS los renderers hijos para determinar la altura total del modelo.
+            Bounds combinedBounds = new Bounds(transform.position, Vector3.zero);
+            bool hasRenderer = false;
+
+            Renderer[] renderers = GetComponentsInChildren<Renderer>();
+            foreach (Renderer r in renderers)
+            {
+                if (!hasRenderer)
+                {
+                    combinedBounds = r.bounds;
+                    hasRenderer = true;
+                }
+                else
+                {
+                    combinedBounds.Encapsulate(r.bounds);
+                }
+            }
+
+            float highestPointY = hasRenderer ? combinedBounds.max.y : transform.position.y + 1.8f; // Fallback a 1.8f si no hay renderer.
+
+            // Convertir la posición global más alta a local para la barra de salud.
+            hbGO.transform.position = new Vector3(transform.position.x, highestPointY + healthBarVerticalOffset, transform.position.z);
+            hbGO.transform.SetParent(transform); // Asegura que la barra de salud siga siendo hija.
+            // --- FIN CÁLCULO MEJORADO ---
+
             healthBarUI = hbGO.GetComponent<HealthBarUI>();
             if (healthBarUI != null)
             {

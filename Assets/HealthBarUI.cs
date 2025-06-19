@@ -4,8 +4,8 @@ using UnityEngine.UI; // Necesario para usar componentes UI como Slider e Image
 /// <summary>
 /// Controla la visualización de la barra de salud de una unidad.
 /// Se encarga de actualizar el valor del Slider y el color del relleno.
-/// También asegura que la barra de salud siempre mire a la cámara principal,
-/// manteniéndose en un plano vertical para una apariencia 2D.
+/// Asegura que la barra de salud siempre mire a la cámara principal,
+/// manteniéndose en un plano vertical y ajustando su profundidad para una apariencia 2D consistente.
 /// </summary>
 public class HealthBarUI : MonoBehaviour
 {
@@ -13,6 +13,10 @@ public class HealthBarUI : MonoBehaviour
     [SerializeField] private Slider healthSlider;
     [Tooltip("Referencia al componente Image que es el 'relleno' del Slider.")]
     [SerializeField] private Image fillImage;
+
+    [Header("Ajustes de Visibilidad")]
+    [Tooltip("La distancia en Z para desplazar la barra de salud hacia la cámara.")]
+    [SerializeField] private float zOffsetTowardsCamera = 0.5f; // Ajusta este valor en el Inspector del prefab de la barra de salud
 
     private Camera mainCamera; // Cachea la cámara principal para rendimiento.
 
@@ -30,22 +34,24 @@ public class HealthBarUI : MonoBehaviour
     void LateUpdate()
     {
         // Asegura que la barra de salud siempre mire a la cámara,
-        // pero solo rota en el eje Y global para mantenerse 'plana' y no inclinada.
+        // manteniéndose plana y ajustando su posición en Z para consistencia visual.
         if (mainCamera != null)
         {
-            // Calcula la dirección del frente de la cámara, pero solo en el plano horizontal (XZ).
-            // Esto asegura que la barra de salud no se incline hacia arriba o abajo con la cámara.
+            // Paso 1: Billboard horizontal (como en la versión anterior).
             Vector3 cameraForwardXZ = mainCamera.transform.forward;
-            cameraForwardXZ.y = 0; // Elimina el componente Y para que solo sea horizontal.
-            cameraForwardXZ.Normalize(); // Normaliza la dirección.
+            cameraForwardXZ.y = 0; 
+            cameraForwardXZ.Normalize(); 
 
-            // Si la dirección no es cero (para evitar errores de LookRotation en Vector3.zero),
-            // hace que la barra de salud mire en esa dirección horizontal.
-            // Vector3.up asegura que el "arriba" de la barra de salud siempre esté alineado con el "arriba" del mundo.
             if (cameraForwardXZ != Vector3.zero)
             {
                 transform.rotation = Quaternion.LookRotation(cameraForwardXZ, Vector3.up);
             }
+
+            // Paso 2: Ajustar la posición local en Z para compensar la perspectiva.
+            // Esto mueve la barra de salud ligeramente hacia la cámara a lo largo de su propio eje Z local.
+            // Dado que es hija de la unidad, esto es un offset relativo a la unidad,
+            // pero en la dirección que la propia barra de salud está mirando (hacia la cámara).
+            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, -zOffsetTowardsCamera);
         }
     }
 
