@@ -2066,6 +2066,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 3805343749917133435, guid: eae740a1567c01e4a838dad85c2657e6, type: 3}
     - target: {fileID: 4621555972238156498, guid: 68f8cdcc614fb284db2cfa6537a9054a, type: 3}
+      propertyPath: unitTeamID
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4621555972238156498, guid: 68f8cdcc614fb284db2cfa6537a9054a, type: 3}
       propertyPath: highlightCubePrefab
       value: 
       objectReference: {fileID: 5090270939071943840, guid: 200536cddddad304f8a70813d2073b03, type: 3}
@@ -2668,6 +2672,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 3805343749917133435, guid: bb435a086c0022d499d5ca42d4e243b3, type: 3}
     - target: {fileID: 4621555972238156498, guid: 68f8cdcc614fb284db2cfa6537a9054a, type: 3}
+      propertyPath: unitTeamID
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4621555972238156498, guid: 68f8cdcc614fb284db2cfa6537a9054a, type: 3}
       propertyPath: highlightCubePrefab
       value: 
       objectReference: {fileID: 5090270939071943840, guid: 200536cddddad304f8a70813d2073b03, type: 3}
@@ -3109,6 +3117,10 @@ PrefabInstance:
       propertyPath: unitPrefab
       value: 
       objectReference: {fileID: 3805343749917133435, guid: c40b9b6624869554da0f194b88451be5, type: 3}
+    - target: {fileID: 4621555972238156498, guid: 68f8cdcc614fb284db2cfa6537a9054a, type: 3}
+      propertyPath: unitTeamID
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4621555972238156498, guid: 68f8cdcc614fb284db2cfa6537a9054a, type: 3}
       propertyPath: highlightCubePrefab
       value: 
