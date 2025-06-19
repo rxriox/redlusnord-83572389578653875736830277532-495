@@ -15,13 +15,16 @@ public class UnitController : MonoBehaviour
     
     [Header("Referencias y Estadísticas")]
     [Tooltip("ScriptableObject que contiene las estadísticas base de esta unidad.")]
-    [SerializeField] private UnitStats baseStats;
+    [SerializeField] public UnitStats baseStats; // CAMBIADO A PUBLIC para acceso externo
     [Tooltip("ID del equipo al que pertenece esta unidad (0 para jugador, 1 para enemigo).")]
     public int teamID;
     [Tooltip("Prefab del UI de la barra de salud que se instanciará sobre la unidad.")]
     [SerializeField] private GameObject healthBarUIPrefab;
     [Tooltip("Offset vertical adicional para la barra de salud sobre la unidad.")]
     [SerializeField] private float healthBarVerticalOffset = 0.8f;
+
+    [Tooltip("El prefab original del personaje del cual fue instanciada esta unidad.")]
+    [SerializeField] public GameObject unitPrefab; // CAMBIADO A PUBLIC para acceso externo
     
     // Salud actual de la unidad.
     public int CurrentHealth { get; private set; }
@@ -42,7 +45,7 @@ public class UnitController : MonoBehaviour
     private float waitingTimer;
 
     // Altura vertical de la unidad para posicionamiento.
-    private float unitSpawnHeightOffset = 0f; // NUEVO: Almacena el offset vertical de la unidad
+    private float unitSpawnHeightOffset = 0f; 
 
     // Prioridad de selección de objetivo para la IA de la unidad.
     public enum TargetPriority { Closest, LowestHealth }

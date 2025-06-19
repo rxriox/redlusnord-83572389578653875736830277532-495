@@ -9,11 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8d9402cbfb4a5f042bc4ebdc07da06fe, type: 3}
-  m_Name: GuerreroBase 10
-  m_EditorClassIdentifier: Assembly-CSharp::UnitStats
-  unitName: Aya
-  maxHealth: 1000
-  attackDamage: 50
-  attackSpeed: 1
-  attackRange: 1.5
+  m_Script: {fileID: 11500000, guid: d43b4437287bafb4a838b29d5f561d53, type: 3}
+  m_Name: Oni
+  m_EditorClassIdentifier: Assembly-CSharp::HarmonyType
+  harmonyName: Oni
+  icon: {fileID: 0}
+  description: 
+  bonusTiers:
+  - unitsRequired: 2
+    bonusDescription: 

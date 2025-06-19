@@ -10,10 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8d9402cbfb4a5f042bc4ebdc07da06fe, type: 3}
-  m_Name: GuerreroBase 9
+  m_Name: hong meiling
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
-  unitName: Aya
-  maxHealth: 50
-  attackDamage: 8
+  unitType: 0
+  naturalHarmonies: []
+  unitName: hong meiling
+  maxHealth: 2000
+  attackDamage: 50
   attackSpeed: 1
   attackRange: 1.5
+  projectilePrefab: {fileID: 0}
+  moveSpeed: 3

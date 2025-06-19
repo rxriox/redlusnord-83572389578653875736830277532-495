@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic; // Necessary for List
 
 /// <summary>
 /// Define las estadísticas base de una unidad usando un ScriptableObject.
@@ -6,31 +7,33 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Unit Stats", menuName = "Autobattler/Unit Stats")]
 public class UnitStats : ScriptableObject
 {
-    // Enumeración para definir el tipo de unidad (cuerpo a cuerpo o a distancia).
+    // Enumeration for unit type (melee or ranged).
     public enum UnitType { Melee, Ranged } 
 
-    [Header("Configuración de Unidad")]
-    [Tooltip("Define si la unidad es de cuerpo a cuerpo o a distancia.")]
-    public UnitType unitType = UnitType.Melee; // Por defecto, las unidades son cuerpo a cuerpo.
+    [Header("Unit Configuration")]
+    [Tooltip("Defines if the unit is melee or ranged.")]
+    public UnitType unitType = UnitType.Melee; // Default to melee.
 
-    [Header("Estadísticas de Combate")]
-    [Tooltip("Nombre de la unidad, útil para depuración o UI.")]
+    [Tooltip("The harmonies this unit naturally belongs to.")]
+    public List<HarmonyType> naturalHarmonies = new List<HarmonyType>(); // NEW: List of unit harmonies
+
+    [Header("Combat Statistics")]
+    [Tooltip("Unit's name, useful for debugging or UI.")]
     public string unitName = "New Unit";
-    [Tooltip("Salud máxima de la unidad.")]
+    [Tooltip("Maximum health of the unit.")]
     public int maxHealth = 100;
-    [Tooltip("Daño infligido por la unidad en cada ataque.")]
+    [Tooltip("Damage dealt by the unit per attack.")]
     public int attackDamage = 10;
-    [Tooltip("Velocidad de ataque de la unidad (ataques por segundo).")]
-    public float attackSpeed = 1.0f; // Ataques por segundo
-    [Tooltip("Rango de ataque de la unidad. Unidades cuerpo a cuerpo tendrán un rango pequeño, las a distancia uno mayor.")]
+    [Tooltip("Unit's attack speed (attacks per second).")]
+    public float attackSpeed = 1.0f; // Attacks per second
+    [Tooltip("Unit's attack range. Melee units will have a small range, ranged units a larger one.")]
     public float attackRange = 1.5f;
 
-    [Header("Configuración de Ataque a Distancia")]
-    [Tooltip("Prefab del proyectil que esta unidad disparará si es de tipo Ranged.")]
-    public GameObject projectilePrefab; // Prefab del proyectil para unidades a distancia
+    [Header("Ranged Attack Configuration")]
+    [Tooltip("Projectile prefab this unit will fire if it's a Ranged type.")]
+    public GameObject projectilePrefab; // Projectile prefab for ranged units
 
-    [Header("Estadísticas de Movimiento")]
-    [Tooltip("Velocidad de movimiento de la unidad (unidades de cuadrícula por segundo).")]
-    public float moveSpeed = 3f; // Unidades por segundo (Cada unidad puede tener su propia velocidad)
+    [Header("Movement Statistics")]
+    [Tooltip("Unit's movement speed (grid units per second).")]
+    public float moveSpeed = 3f; // Units per second (Each unit can have its own speed)
 }
-
