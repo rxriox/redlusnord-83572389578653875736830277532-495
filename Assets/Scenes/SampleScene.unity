@@ -574,7 +574,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 112722420}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: StartCombat
+        m_MethodName: StartCombatButton
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3760,7 +3760,7 @@ SceneRoots:
   - {fileID: 1113242421}
   - {fileID: 261310746}
   - {fileID: 112722421}
+  - {fileID: 2071166982}
   - {fileID: 382097736}
   - {fileID: 1234722014}
-  - {fileID: 2071166982}
   - {fileID: 1194721612}

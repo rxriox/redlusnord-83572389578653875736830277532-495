@@ -12,8 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d9402cbfb4a5f042bc4ebdc07da06fe, type: 3}
   m_Name: GuerreroBase 2
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
+  unitType: 1
   unitName: Aya
   maxHealth: 60
   attackDamage: 10
   attackSpeed: 1
-  attackRange: 1.5
+  attackRange: 6
+  projectilePrefab: {fileID: 4570334888300365644, guid: e0775eba1bb45214f9851bad6110993a, type: 3}
+  moveSpeed: 3

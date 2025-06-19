@@ -128,4 +128,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitController
   baseStats: {fileID: 11400000, guid: 27e999dd86eb97647885a829830464ec, type: 2}
   teamID: 0
+  healthBarUIPrefab: {fileID: 6534989218685001722, guid: ac2f1a4afeb27694c950049094bcdc63, type: 3}
   targetPriority: 1
