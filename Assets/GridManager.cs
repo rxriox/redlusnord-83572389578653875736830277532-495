@@ -9,16 +9,19 @@ public class GridManager : MonoBehaviour
 {
     [Header("Configuración del Tablero")]
     [Tooltip("Ancho de la cuadrícula en número de celdas.")]
-    [SerializeField] public int gridWidth = 8; // Ancho de la cuadrícula, accesible públicamente.
+    [SerializeField] public int gridWidth = 8; 
     [Tooltip("Altura de la cuadrícula en número de celdas.")]
-    [SerializeField] public int gridHeight = 8; // Altura de la cuadrícula, accesible públicamente.
+    [SerializeField] public int gridHeight = 8; 
     [Tooltip("Tamaño de cada celda de la cuadrícula en unidades de Unity.")]
     [SerializeField] private float tileSize = 1.0f;
     [Tooltip("Prefab del objeto de celda (Tile) para visualizar la cuadrícula.")]
-    [SerializeField] private GameObject tilePrefab;
+    [SerializeField] public GameObject tilePrefab; // CAMBIADO A PUBLIC
 
     // Array 2D que almacena todos los nodos de la cuadrícula.
     public Node[,] grid; // La cuadrícula completa, accesible públicamente.
+    // Array 2D para almacenar las referencias a los GameObjects de los tiles instanciados.
+    // Aunque no se oculte toda la cuadrícula, este array es útil para referencias si las necesitas.
+    public GameObject[,] instantiatedTileVisuals; // CAMBIADO A PUBLIC
     
     // Propiedad para obtener el tamaño de la celda.
     public float TileSize => tileSize;
@@ -34,6 +37,8 @@ public class GridManager : MonoBehaviour
     void GenerateGrid()
     {
         grid = new Node[gridWidth, gridHeight];
+        instantiatedTileVisuals = new GameObject[gridWidth, gridHeight]; 
+        
         // Calcula la posición de la esquina inferior izquierda de la cuadrícula para centrarla.
         Vector3 gridBottomLeft = transform.position - Vector3.right * gridWidth / 2f * tileSize - Vector3.forward * gridHeight / 2f * tileSize;
 
@@ -44,8 +49,14 @@ public class GridManager : MonoBehaviour
                 // Calcula la posición del mundo para el centro de cada celda.
                 Vector3 worldPoint = gridBottomLeft + Vector3.right * (x * tileSize + tileSize / 2) + Vector3.forward * (z * tileSize + tileSize / 2);
                 grid[x, z] = new Node(true, worldPoint, x, z); // Crea un nuevo nodo.
-                // Instancia un prefab de celda si está asignado para visualización.
-                if (tilePrefab != null) Instantiate(tilePrefab, worldPoint, Quaternion.identity, this.transform);
+                
+                // Instancia un prefab de celda si está asignado para visualización y almacena la referencia.
+                if (tilePrefab != null)
+                {
+                    GameObject tileGO = Instantiate(tilePrefab, worldPoint, Quaternion.identity, this.transform);
+                    instantiatedTileVisuals[x, z] = tileGO; // Almacena el GameObject
+                    // Los tiles NO se ocultan por defecto en esta versión.
+                }
             }
         }
     }
@@ -77,7 +88,8 @@ public class GridManager : MonoBehaviour
     public bool PlaceUnitOnTile(GameObject unitPrefab, Transform tileTransform)
     {
         Node node = NodeFromWorldPoint(tileTransform.position);
-        if (node == null || !node.IsAvailable()) return false; // El nodo no es válido o no está disponible.
+        // La condición de disponibilidad del nodo ahora también considera si está ocupado.
+        if (node == null || !node.IsAvailable()) return false; 
 
         Vector3 spawnPosition = node.worldPosition;
         GameObject newUnitGO = Instantiate(unitPrefab, spawnPosition, Quaternion.identity);
