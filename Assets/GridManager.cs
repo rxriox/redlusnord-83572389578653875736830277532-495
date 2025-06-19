@@ -15,13 +15,12 @@ public class GridManager : MonoBehaviour
     [Tooltip("Tamaño de cada celda de la cuadrícula en unidades de Unity.")]
     [SerializeField] private float tileSize = 1.0f;
     [Tooltip("Prefab del objeto de celda (Tile) para visualizar la cuadrícula.")]
-    [SerializeField] public GameObject tilePrefab; // CAMBIADO A PUBLIC
-
+    [SerializeField] public GameObject tilePrefab; 
+    
     // Array 2D que almacena todos los nodos de la cuadrícula.
-    public Node[,] grid; // La cuadrícula completa, accesible públicamente.
+    public Node[,] grid; 
     // Array 2D para almacenar las referencias a los GameObjects de los tiles instanciados.
-    // Aunque no se oculte toda la cuadrícula, este array es útil para referencias si las necesitas.
-    public GameObject[,] instantiatedTileVisuals; // CAMBIADO A PUBLIC
+    public GameObject[,] instantiatedTileVisuals; 
     
     // Propiedad para obtener el tamaño de la celda.
     public float TileSize => tileSize;
@@ -54,8 +53,7 @@ public class GridManager : MonoBehaviour
                 if (tilePrefab != null)
                 {
                     GameObject tileGO = Instantiate(tilePrefab, worldPoint, Quaternion.identity, this.transform);
-                    instantiatedTileVisuals[x, z] = tileGO; // Almacena el GameObject
-                    // Los tiles NO se ocultan por defecto en esta versión.
+                    instantiatedTileVisuals[x, z] = tileGO; 
                 }
             }
         }
@@ -80,37 +78,85 @@ public class GridManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Intenta colocar una nueva unidad en un nodo de la cuadrícula.
+    /// Intenta colocar una nueva unit en un nodo de la cuadrícula, respetando las zonas de equipo.
     /// </summary>
-    /// <param name="unitPrefab">El prefab de la unidad a colocar.</param>
-    /// <param name="tileTransform">La transformación del tile donde se intentará colocar la unidad.</param>
-    /// <returns>True si la unidad se colocó con éxito, false en caso contrario.</returns>
-    public bool PlaceUnitOnTile(GameObject unitPrefab, Transform tileTransform)
+    /// <param name="unitPrefab">El prefab de la unit a colocar.</param>
+    /// <param name="tileTransform">La transformación del tile donde se intentará colocar la unit.</param>
+    /// <param name="unitTeamID">El ID del equipo de la unit que se va a colocar.</param> 
+    /// <returns>True si la unit se colocó con éxito, false en caso contrario.</returns>
+    public bool PlaceUnitOnTile(GameObject unitPrefab, Transform tileTransform, int unitTeamID) 
     {
         Node node = NodeFromWorldPoint(tileTransform.position);
-        // La condición de disponibilidad del nodo ahora también considera si está ocupado.
         if (node == null || !node.IsAvailable()) return false; 
 
+        // LÓGICA DE VALIDACIÓN DE ZONA DE EQUIPO - REFINADA
+        int midPointZ = gridHeight / 2; 
+
+        if (unitTeamID == 0) // Equipo aliado (jugador) - bottom half
+        {
+            // Las unidades aliadas SOLO pueden colocarse si su coordenada Z es MENOR que el punto medio.
+            // Es decir, filas 0 a (midPointZ - 1).
+            if (node.gridZ >= midPointZ) 
+            {
+                Debug.Log($"Placement failed: Allied unit (Team {unitTeamID}) attempted to place at Z={node.gridZ}. Allowed Z < {midPointZ}.");
+                return false;
+            }
+        }
+        else if (unitTeamID == 1) // Equipo enemigo - upper half
+        {
+            // Las unidades enemigas SOLO pueden colocarse si su coordenada Z es MAYOR O IGUAL que el punto medio.
+            // Es decir, filas midPointZ a (gridHeight - 1).
+            if (node.gridZ < midPointZ) 
+            {
+                Debug.Log($"Placement failed: Enemy unit (Team {unitTeamID}) attempted to place at Z={node.gridZ}. Allowed Z >= {midPointZ}.");
+                return false;
+            }
+        }
+        // FIN LÓGICA DE VALIDACIÓN
+
+        // Calcula la altura del prefab de la unidad para posicionarla correctamente.
+        float unitHeightOffset = 0f;
+        Renderer unitRenderer = unitPrefab.GetComponentInChildren<Renderer>();
+        if (unitRenderer != null)
+        {
+            unitHeightOffset = unitRenderer.bounds.extents.y; 
+        }
+        else
+        {
+            Collider unitCollider = unitPrefab.GetComponentInChildren<Collider>();
+            if (unitCollider != null)
+            {
+                unitHeightOffset = unitCollider.bounds.extents.y; 
+            }
+            else
+            {
+                unitHeightOffset = 0.5f; 
+            }
+        }
+
         Vector3 spawnPosition = node.worldPosition;
+        spawnPosition.y += unitHeightOffset; 
+
         GameObject newUnitGO = Instantiate(unitPrefab, spawnPosition, Quaternion.identity);
 
         UnitController newUnitController = newUnitGO.GetComponent<UnitController>();
         if (newUnitController != null)
         {
-            newUnitController.Initialize(this, node); // Inicializa la unidad con el GridManager y el nodo.
+            newUnitController.Initialize(this, node); 
+            newUnitController.teamID = unitTeamID; // Asegúrate de que el teamID de la unidad instanciada sea el que arrastra.
             return true;
         }
         else
         {
-            Destroy(newUnitGO); // Si no tiene UnitController, destruye el objeto.
+            Destroy(newUnitGO); 
             return false;
         }
     }
 
     /// <summary>
-    /// Asigna una unidad a un nodo específico, marcándolo como ocupado.
+    /// Asigna una unit a un nodo específico, marcándolo como ocupado.
     /// </summary>
-    /// <param name="unit">La unidad que ocupará el nodo.</param>
+    /// <param name="unit">La unit que ocupará el nodo.</param>
     /// <param name="node">El nodo a ocupar.</param>
     public void SetUnitOnNode(UnitController unit, Node node)
     {
@@ -118,7 +164,7 @@ public class GridManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Libera un nodo de la unidad que lo ocupa.
+    /// Libera un nodo de la unit que lo ocupa.
     /// </summary>
     /// <param name="node">El nodo a liberar.</param>
     public void ClearNode(Node node)
@@ -137,7 +183,7 @@ public class GridManager : MonoBehaviour
         Node startNode = NodeFromWorldPoint(startPos);
         Node targetNode = NodeFromWorldPoint(targetPos);
         
-        if (startNode == null || targetNode == null) return null; // No se puede encontrar el camino si los nodos no existen.
+        if (startNode == null || targetNode == null) return null; 
 
         // Reinicia los costes y padres de todos los nodos para una nueva búsqueda.
         foreach (var node in grid)
@@ -146,11 +192,11 @@ public class GridManager : MonoBehaviour
             node.parent = null;
         }
 
-        List<Node> openSet = new List<Node>(); // Nodos a evaluar.
-        HashSet<Node> closedSet = new HashSet<Node>(); // Nodos ya evaluados.
+        List<Node> openSet = new List<Node>(); 
+        HashSet<Node> closedSet = new HashSet<Node>(); 
 
-        startNode.gCost = 0; // Costo G del nodo inicial es 0.
-        startNode.hCost = GetDistance(startNode, targetNode); // Calcula el costo H (heurístico).
+        startNode.gCost = 0; 
+        startNode.hCost = GetDistance(startNode, targetNode); 
         openSet.Add(startNode);
 
         while (openSet.Count > 0)
@@ -168,7 +214,7 @@ public class GridManager : MonoBehaviour
             openSet.Remove(currentNode);
             closedSet.Add(currentNode);
 
-            if (currentNode == targetNode) return RetracePath(startNode, targetNode); // Se encontró el camino.
+            if (currentNode == targetNode) return RetracePath(startNode, targetNode); 
 
             // Evalúa los vecinos del nodo actual.
             foreach (Node neighbour in GetNeighbours(currentNode))
@@ -177,25 +223,25 @@ public class GridManager : MonoBehaviour
                 // Un vecino es un obstáculo si:
                 // - No es caminable.
                 // - Ya ha sido evaluado (está en closedSet).
-                // - Está ocupado por otra unidad (y no es el objetivo final, ya que el objetivo puede estar ocupado).
-                // - Está reservado por otra unidad que se está moviendo hacia él (y no es el objetivo final).
+                // - Está ocupado por otra unit (y no es el objetivo final, ya que el objetivo puede estar ocupado).
+                // - Está reservado por otra unit que se está moviendo hacia él (y no es el objetivo final).
                 if (!neighbour.isWalkable || closedSet.Contains(neighbour) || (neighbour.occupyingUnit != null && !isDestinationNode) || (neighbour.isReserved && !isDestinationNode))
                 {
-                    continue; // Ignora este vecino.
+                    continue; 
                 }
 
                 // Calcula el nuevo costo G para el vecino.
                 int newCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
                 if (newCostToNeighbour < neighbour.gCost)
                 {
-                    neighbour.gCost = newCostToNeighbour; // Actualiza el costo G.
-                    neighbour.hCost = GetDistance(neighbour, targetNode); // Actualiza el costo H.
-                    neighbour.parent = currentNode; // Establece el nodo actual como padre del vecino.
-                    if (!openSet.Contains(neighbour)) openSet.Add(neighbour); // Añade el vecino al openSet si no está ya.
+                    neighbour.gCost = newCostToNeighbour; 
+                    neighbour.hCost = GetDistance(neighbour, targetNode); 
+                    neighbour.parent = currentNode; 
+                    if (!openSet.Contains(neighbour)) openSet.Add(neighbour); 
                 }
             }
         }
-        return null; // No se encontró un camino.
+        return null; 
     }
 
     /// <summary>
@@ -233,7 +279,7 @@ public class GridManager : MonoBehaviour
         { 
             for (int z = -1; z <= 1; z++) 
             { 
-                if (x == 0 && z == 0) continue; // Excluye el propio nodo central.
+                if (x == 0 && z == 0) continue; 
                 
                 int checkX = node.gridX + x; 
                 int checkZ = node.gridZ + z; 
@@ -263,7 +309,7 @@ public class GridManager : MonoBehaviour
             path.Add(currentNode); 
             currentNode = currentNode.parent; 
         }
-        path.Reverse(); // Invierte la lista para que el camino sea del inicio al fin.
+        path.Reverse(); 
         return path;
     }
     
