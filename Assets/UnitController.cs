@@ -15,7 +15,7 @@ public class UnitController : MonoBehaviour
     
     [Header("Referencias y Estadísticas")]
     [Tooltip("ScriptableObject que contiene las estadísticas base de esta unidad.")]
-    [SerializeField] public UnitStats baseStats; // CAMBIADO A PUBLIC para acceso externo
+    [SerializeField] public UnitStats baseStats; 
     [Tooltip("ID del equipo al que pertenece esta unidad (0 para jugador, 1 para enemigo).")]
     public int teamID;
     [Tooltip("Prefab del UI de la barra de salud que se instanciará sobre la unidad.")]
@@ -23,9 +23,6 @@ public class UnitController : MonoBehaviour
     [Tooltip("Offset vertical adicional para la barra de salud sobre la unidad.")]
     [SerializeField] private float healthBarVerticalOffset = 0.8f;
 
-    [Tooltip("El prefab original del personaje del cual fue instanciada esta unidad.")]
-    [SerializeField] public GameObject unitPrefab; // CAMBIADO A PUBLIC para acceso externo
-    
     // Salud actual de la unidad.
     public int CurrentHealth { get; private set; }
     
@@ -426,7 +423,7 @@ public class UnitController : MonoBehaviour
     /// <summary>
     /// Maneja la lógica cuando la unidad muere.
     /// </summary>
-    void Die()
+    public void Die() // Changed to public
     {
         GameManager.Instance.UnregisterUnit(this);
         StopAllCoroutines();

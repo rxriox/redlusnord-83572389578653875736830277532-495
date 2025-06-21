@@ -21,11 +21,11 @@ public class GameManager : MonoBehaviour
     // Lista de todas las unidades activas en la escena.
     private List<UnitController> allUnits = new List<UnitController>();
 
-    // NUEVO: Diccionario para rastrear la cuenta de unidades por tipo de armonía para cada equipo.
+    // Diccionario para rastrear la cuenta de unidades por tipo de armonía para cada equipo.
     // Key: HarmonyType, Value: Dictionary<TeamID, Count>
     private Dictionary<HarmonyType, Dictionary<int, int>> harmonyCounts = new Dictionary<HarmonyType, Dictionary<int, int>>();
 
-    // NUEVO: Diccionario para rastrear los tiers de armonía activos por equipo.
+    // Diccionario para rastrear los tiers de armonía activos por equipo.
     // Key: HarmonyType, Value: Dictionary<TeamID, ActivatedTierIndex>
     private Dictionary<HarmonyType, Dictionary<int, int>> activeHarmonyTiers = new Dictionary<HarmonyType, Dictionary<int, int>>();
 
@@ -76,8 +76,7 @@ public class GameManager : MonoBehaviour
     /// <param name="changeAmount">Cantidad a sumar (1 para añadir, -1 para quitar).</param>
     private void UpdateHarmonyCounts(UnitController unit, int changeAmount)
     {
-        // ACCESO CORREGIDO: Directamente desde la instancia de UnitController
-        UnitStats unitStats = unit.baseStats; // Ahora baseStats es public en UnitController
+        UnitStats unitStats = unit.baseStats; 
         
         if (unitStats == null)
         {
@@ -112,20 +111,19 @@ public class GameManager : MonoBehaviour
                 int teamID = teamCount.Key;
                 int currentUnitsOfHarmony = teamCount.Value;
 
-                // Asegura que el diccionario para este equipo exista en activeHarmonyTiers
                 if (!activeHarmonyTiers.ContainsKey(harmony))
                 {
                     activeHarmonyTiers.Add(harmony, new Dictionary<int, int>());
                 }
                 if (!activeHarmonyTiers[harmony].ContainsKey(teamID))
                 {
-                    activeHarmonyTiers[harmony].Add(teamID, -1); // -1 significa ningún tier activo
+                    activeHarmonyTiers[harmony].Add(teamID, -1); // -1 means no tier active
                 }
 
                 int oldActiveTierIndex = activeHarmonyTiers[harmony][teamID];
                 int newActiveTierIndex = -1;
 
-                // Encuentra el tier más alto que se cumple con las unidades actuales
+                // Find the highest tier that is met by current units
                 for (int i = harmony.bonusTiers.Count - 1; i >= 0; i--)
                 {
                     if (currentUnitsOfHarmony >= harmony.bonusTiers[i].unitsRequired)
@@ -135,25 +133,23 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                // Si el tier activo ha cambiado
+                // If the active tier has changed
                 if (newActiveTierIndex != oldActiveTierIndex)
                 {
-                    // Desactiva el bono antiguo si había uno
+                    // Deactivate old bonus if there was one
                     if (oldActiveTierIndex != -1)
                     {
                         Debug.Log($"Armonía {harmony.harmonyName} Tier {harmony.bonusTiers[oldActiveTierIndex].unitsRequired} desactivado para Equipo {teamID}.");
-                        // Lógica para REMOVER bonificaciones del tier viejo
                         ApplyHarmonyBonus(harmony, oldActiveTierIndex, teamID, false);
                     }
 
-                    // Activa el nuevo bono si hay uno
+                    // Activate new bonus if there is one
                     if (newActiveTierIndex != -1)
                     {
                         Debug.Log($"Armonía {harmony.harmonyName} Tier {harmony.bonusTiers[newActiveTierIndex].unitsRequired} ACTIVADO para Equipo {teamID}: {harmony.bonusTiers[newActiveTierIndex].bonusDescription}");
-                        // Lógica para APLICAR bonificaciones del tier nuevo
                         ApplyHarmonyBonus(harmony, newActiveTierIndex, teamID, true);
                     }
-                    activeHarmonyTiers[harmony][teamID] = newActiveTierIndex; // Actualiza el tier activo
+                    activeHarmonyTiers[harmony][teamID] = newActiveTierIndex; // Update active tier
                 }
             }
         }
@@ -169,78 +165,89 @@ public class GameManager : MonoBehaviour
     /// <param name="apply">True para aplicar, false para remover.</param>
     private void ApplyHarmonyBonus(HarmonyType harmony, int tierIndex, int teamID, bool apply)
     {
-        // This is the part where you would apply the REAL effects of the bonus to units.
-        // For example, you might iterate over `allUnits` and apply the bonus to units
-        // that belong to the `teamID` given and that are of `harmony` type.
-
-        // Example: Increase attack damage for units of this harmony in this team
-        // foreach (UnitController unit in allUnits.Where(u => u.teamID == teamID && u.unitStats.naturalHarmonies.Contains(harmony)))
-        // {
-        //     if (apply)
-        //     {
-        //         unit.ApplyDamageBonus(harmony.bonusTiers[tierIndex].damageBonus);
-        //     }
-        //     else
-        //     {
-        //         unit.RemoveDamageBonus(harmony.bonusTiers[tierIndex].damageBonus);
-        //     }
-        // }
-        
         Debug.Log($"Applying/Removing bonus: {harmony.harmonyName} Tier {harmony.bonusTiers[tierIndex].unitsRequired} for Team {teamID}. Action: {(apply ? "Apply" : "Remove")}");
     }
 
 
     /// <summary>
-    /// Method called by a button or event to start the combat phase.
+    /// Método llamado por un botón o evento para iniciar la fase de combate.
     /// </summary>
     public void StartCombatButton()
     {
         if (CurrentState == GameState.Placement)
         {
-            CurrentState = GameState.Combat; // Change state to combat.
-            StartCoroutine(CombatLoop()); // Start the combat loop coroutine.
+            CurrentState = GameState.Combat; // Cambia el estado a combate.
+            StartCoroutine(CombatLoop()); // Inicia la corutina del ciclo de combate.
         }
     }
 
     /// <summary>
-    /// Main coroutine that manages the combat loop turn by turn.
+    /// Corutina principal que gestiona el ciclo de combate turno a turno.
     /// </summary>
     IEnumerator CombatLoop()
     {
         while (CurrentState == GameState.Combat)
         {
-            // Filter active (alive) units on the battlefield.
             List<UnitController> activeUnits = allUnits.Where(u => u != null && u.CurrentHealth > 0).ToList();
 
-            // Check end combat conditions: if one team has lost all its units.
             if (activeUnits.Count(u => u.teamID == 0) == 0 || activeUnits.Count(u => u.teamID == 1) == 0)
             {
-                CurrentState = GameState.Result; // Change state to result.
-                Debug.Log("Combat ended!"); // End combat message.
-                break; // Exit combat loop.
+                CurrentState = GameState.Result;
+                Debug.Log("Combat ended!");
+                break;
             }
 
-            // Order units to determine action order in this combat "tick".
-            // Current priority is the one closest to an enemy for quick action.
             List<UnitController> orderedUnits = activeUnits
                 .OrderBy(u => {
                     UnitController closestEnemy = activeUnits
-                        .Where(e => e.teamID != u.teamID) // Find enemies from other team.
-                        .OrderBy(e => Vector3.Distance(u.transform.position, e.transform.position)) // Order by distance.
-                        .FirstOrDefault(); // Select the closest.
+                        .Where(e => e.teamID != u.teamID)
+                        .OrderBy(e => Vector3.Distance(u.transform.position, e.transform.position))
+                        .FirstOrDefault();
                     
-                    // If no enemies (unusual, but to avoid errors), return a high value.
                     return closestEnemy == null ? float.MaxValue : Vector3.Distance(u.transform.position, closestEnemy.transform.position);
                 })
                 .ToList();
 
-            // Each active unit evaluates and performs its action.
             foreach (var unit in orderedUnits)
             {
                 if (unit != null) unit.EvaluateAction();
             }
             
-            yield return null; // Wait a frame before next combat evaluation.
+            yield return null; 
         }
+    }
+
+    /// <summary>
+    /// Borra todas las unidades del tablero y restablece el juego al estado de colocación.
+    /// </summary>
+    public void ResetBoardButton()
+    {
+        // Si el combate está en curso, lo detenemos primero.
+        if (CurrentState == GameState.Combat)
+        {
+            StopCoroutine(CombatLoop()); // Detiene la corutina del combate
+        }
+
+        // Destruye todas las unidades en el tablero.
+        // Creamos una copia de la lista para evitar problemas al modificarla mientras iteramos.
+        List<UnitController> unitsToDestroy = new List<UnitController>(allUnits);
+        foreach (UnitController unit in unitsToDestroy)
+        {
+            if (unit != null)
+            {
+                // La función Die() de UnitController ya se encarga de desregistrar la unidad
+                // del GameManager y de limpiar su nodo.
+                unit.Die(); 
+            }
+        }
+        allUnits.Clear(); // Asegúrate de que la lista esté vacía después de destruir.
+
+        // Limpia las cuentas de armonía y los tiers activos.
+        harmonyCounts.Clear();
+        activeHarmonyTiers.Clear();
+
+        // Restablece el estado del juego a Placement.
+        CurrentState = GameState.Placement;
+        Debug.Log("Board Reset! Ready for Unit Placement.");
     }
 }
