@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections; // Necesario para Coroutines
+using System.Collections;
 
 public class PlacementUIManager : MonoBehaviour
 {
@@ -16,13 +16,13 @@ public class PlacementUIManager : MonoBehaviour
     public GameObject allyBenchScrollView;
     public Transform allyBenchContent;
     public GameObject[] allyIconPrefabs;
-    public CanvasGroup allyBenchCanvasGroup; // <-- NUEVO CAMPO
+    public CanvasGroup allyBenchCanvasGroup;
 
     [Header("Banca Enemiga")]
     public GameObject enemyBenchScrollView;
     public Transform enemyBenchContent;
     public GameObject[] enemyIconPrefabs;
-    public CanvasGroup enemyBenchCanvasGroup; // <-- NUEVO CAMPO
+    public CanvasGroup enemyBenchCanvasGroup;
 
     [Header("Configuración de Iconos")]
     public GameObject unitIconPrefab;
@@ -56,8 +56,6 @@ public class PlacementUIManager : MonoBehaviour
         }
     }
 
-    // --- MÉTODOS DE CONTROL DE PESTAÑAS (Ahora usan CanvasGroup) ---
-
     public void ShowAllyBench()
     {
         CurrentPlacementTeamID = 0;
@@ -74,7 +72,6 @@ public class PlacementUIManager : MonoBehaviour
         if (enemyBenchButton != null) enemyBenchButton.GetComponent<Image>().color = activeTabColor;
     }
     
-    // Método auxiliar para no repetir código
     private void SetBenchVisibility(CanvasGroup toShow, CanvasGroup toHide)
     {
         if (toShow != null)
@@ -91,8 +88,6 @@ public class PlacementUIManager : MonoBehaviour
         }
     }
 
-    // --- NUEVOS MÉTODOS PARA ANIMACIÓN ---
-
     public void HideBenchesForDrag()
     {
         if (allyBenchCanvasGroup != null) StartCoroutine(FadeCanvasGroup(allyBenchCanvasGroup, allyBenchCanvasGroup.alpha, 0f));
@@ -101,7 +96,6 @@ public class PlacementUIManager : MonoBehaviour
 
     public void ShowBenchesAfterDrag()
     {
-        // Vuelve a mostrar la pestaña que estaba activa antes de arrastrar.
         if (CurrentPlacementTeamID == 0)
         {
             SetBenchVisibility(allyBenchCanvasGroup, enemyBenchCanvasGroup);
@@ -112,12 +106,9 @@ public class PlacementUIManager : MonoBehaviour
         }
     }
     
-    // Corutina que hace la magia de la animación de fade
     private IEnumerator FadeCanvasGroup(CanvasGroup cg, float start, float end)
     {
         float counter = 0f;
-        
-        // Desactivamos la interacción al empezar a ocultar
         if (end == 0)
         {
             cg.interactable = false;
@@ -132,8 +123,6 @@ public class PlacementUIManager : MonoBehaviour
         }
         
         cg.alpha = end;
-
-        // Activamos la interacción al terminar de mostrar
         if (end == 1)
         {
             cg.interactable = true;

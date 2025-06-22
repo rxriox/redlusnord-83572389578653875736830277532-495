@@ -20,15 +20,12 @@ public class UnitIconController : MonoBehaviour, IBeginDragHandler, IDragHandler
     void Start()
     {
         iconImage = GetComponent<Image>();
-        // --- LÍNEA CORREGIDA ---
         playerController = FindFirstObjectByType<PlayerController>();
         ResetIcon();
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        // Ya no cambiamos el sprite aquí.
-        // Ahora solo notificamos al PlayerController que un arrastre ha comenzado.
         if (!isPlaced && eventData.button == PointerEventData.InputButton.Left)
         {
             playerController.StartDraggingUnit(this);
@@ -52,7 +49,7 @@ public class UnitIconController : MonoBehaviour, IBeginDragHandler, IDragHandler
             iconImage.sprite = placedIconSprite;
         }
     }
-    
+
     public void SetAsPlaced()
     {
         isPlaced = true;

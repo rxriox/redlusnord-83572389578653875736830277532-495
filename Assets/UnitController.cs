@@ -17,7 +17,7 @@ public class UnitController : MonoBehaviour
         if (unitStats == null) return;
 
         currentHealth = unitStats.maxHealth;
-        currentMana = unitStats.maxMana; // CORRECCIÓN: Usando 'maxMana'
+        currentMana = unitStats.maxMana;
 
         healthBar = GetComponentInChildren<HealthBarUI>();
         if (healthBar != null)
@@ -51,5 +51,5 @@ public class UnitController : MonoBehaviour
     
     [Header("Referencias Internas")]
     [Tooltip("El icono de la UI que originó esta unidad. Se asigna automáticamente.")]
-    public UnitIconController originatingIcon; // <-- AÑADE ESTA LÍNEA
+    public UnitIconController originatingIcon;
 }

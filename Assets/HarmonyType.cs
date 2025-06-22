@@ -7,8 +7,6 @@ public class HarmonyType : ScriptableObject
     public string harmonyName;
     [TextArea(3, 5)]
     public string description;
-
-    // AÑADIDO: Campos para los iconos de la UI
     [Header("UI Display")]
     [Tooltip("Icono que se muestra cuando la armonía está activa.")]
     public Sprite activeIcon;

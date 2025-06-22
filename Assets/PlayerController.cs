@@ -40,10 +40,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // Obtenemos la posición del puntero (ratón o dedo) una sola vez por frame.
         Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
-
-        // Si estamos arrastrando un icono nuevo desde la UI...
         if (currentlyDraggedIcon != null)
         {
             dragCursorImage.transform.position = pointerPosition;
@@ -51,11 +48,9 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // Si estamos reubicando una unidad del tablero...
         if (unitToReposition != null)
         {
             UpdateRepositioningUnit(pointerPosition);
-            // Usamos la acción "Click" para detectar cuándo se suelta el puntero.
             if (playerControls.Gameplay.Click.WasReleasedThisFrame())
             {
                 DropRepositionedUnit(pointerPosition);
@@ -63,21 +58,17 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // Si no estamos haciendo nada, usamos la acción "Click" para detectar si se presiona sobre una unidad.
         if (GameManager.Instance.CurrentState == GameManager.GameState.Placement && playerControls.Gameplay.Click.WasPressedThisFrame())
         {
             TryStartRepositioning(pointerPosition);
         }
     }
     
-    // --- FUNCIÓN CLAVE A REVISAR ---
     public void StartDraggingUnit(UnitIconController iconController)
     {
-        // 1. Primero, obtenemos los datos necesarios.
         int teamID = PlacementUIManager.Instance.CurrentPlacementTeamID;
         UnitStats stats = iconController.characterData;
 
-        // 2. Hacemos la comprobación de límites.
         if (GameManager.Instance.CanPlaceUnit(teamID, stats) == false)
         {
             // Si no se puede colocar, la función termina aquí y no pasa nada más.
@@ -85,16 +76,10 @@ public class PlayerController : MonoBehaviour
             return; 
         }
         
-        // 3. Si la comprobación es exitosa, continuamos con el arrastre.
         if (GameManager.Instance.CurrentState != GameManager.GameState.Placement || unitToReposition != null) return;
         
         currentlyDraggedIcon = iconController;
-
-        // 4. AÑADIDO: Ahora que sabemos que el arrastre es válido, le decimos al icono
-        // que cambie su apariencia usando la nueva función que creamos.
         currentlyDraggedIcon.SetSpriteToPlacedState();
-
-        // 5. Mostramos el cursor de arrastre como antes.
         dragCursorImage.sprite = currentlyDraggedIcon.GetDragCursorSprite();
         dragCursorImage.raycastTarget = false;
         dragCursorImage.gameObject.SetActive(true);
@@ -103,10 +88,7 @@ public class PlayerController : MonoBehaviour
     public void StopDraggingUnit()
     {
         if (currentlyDraggedIcon == null) return;
-
-        // AÑADIDO: Llevaremos un registro de si la colocación fue exitosa.
         bool placementSuccessful = false;
-
         if (!EventSystem.current.IsPointerOverGameObject())
         {
             Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
@@ -131,11 +113,10 @@ public class PlayerController : MonoBehaviour
         if (highlightInstance != null) highlightInstance.SetActive(false);
     }
     
-    // El resto de funciones se mantienen igual
     #region Funciones sin cambios
     void TryStartRepositioning(Vector2 pointerPosition)
     {
-        if (EventSystem.current.IsPointerOverGameObject()) return; // Ignora clics sobre la UI
+        if (EventSystem.current.IsPointerOverGameObject()) return;
         Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
         if (Physics.Raycast(ray, out RaycastHit hit))
         {

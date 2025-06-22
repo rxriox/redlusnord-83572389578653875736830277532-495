@@ -4,15 +4,13 @@ using System.Collections.Generic;
 [CreateAssetMenu(fileName = "New Unit Stats", menuName = "Autobattler/Unit Stats")]
 public class UnitStats : ScriptableObject
 {
-    // AÑADIDO: Una enumeración para definir nuestras categorías.
-    // Esto crea un menú desplegable muy cómodo en el Inspector.
     public enum UnitCategory { Fabulosa, Magnifica, Suprema }
 
     public enum UnitType { Melee, Ranged }
 
     [Header("Unit Configuration")]
     [Tooltip("La categoría de la unidad, que afecta a los límites en el tablero.")]
-    public UnitCategory category = UnitCategory.Fabulosa; // <-- NUEVO CAMPO
+    public UnitCategory category = UnitCategory.Fabulosa;
     
     [Tooltip("Define if the unit is melee or ranged.")]
     public UnitType unitType = UnitType.Melee;

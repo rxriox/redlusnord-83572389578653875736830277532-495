@@ -41,7 +41,6 @@ public class GameManager : MonoBehaviour
         var counts = new Dictionary<HarmonyType, int>();
         foreach(var harmonyPair in harmonyCounts)
         {
-            // Solo incluimos armonías que tienen al menos una unidad de ese equipo
             if (harmonyPair.Value.ContainsKey(teamID) && harmonyPair.Value[teamID] > 0)
             {
                 counts[harmonyPair.Key] = harmonyPair.Value[teamID];
@@ -81,7 +80,7 @@ public class GameManager : MonoBehaviour
         teamCategoryCounts[team][category]++;
 
         UpdateHarmonyBonuses(unit, true);
-        OnHarmoniesUpdated?.Invoke(); // <-- Añadir esta línea
+        OnHarmoniesUpdated?.Invoke();
     }
 
     public void UnregisterUnit(UnitController unit)
@@ -160,22 +159,16 @@ public class GameManager : MonoBehaviour
     private void UpdateHarmonyBonuses(UnitController unit, bool isAdding)
     {
         int teamID = unit.teamID;
-        int change = isAdding ? 1 : -1; // Suma 1 si se añade, resta 1 si se quita
-
-        // Recorremos todas las armonías del personaje
+        int change = isAdding ? 1 : -1;
         foreach (HarmonyType harmony in unit.unitStats.naturalHarmonies)
         {
-            // 1. Actualizamos la cuenta de unidades para esta armonía y equipo
             if (!harmonyCounts.ContainsKey(harmony))
                 harmonyCounts[harmony] = new Dictionary<int, int>();
             if (!harmonyCounts[harmony].ContainsKey(teamID))
                 harmonyCounts[harmony][teamID] = 0;
-            
             harmonyCounts[harmony][teamID] += change;
-
-            // 2. Comprobamos cuál es el tier (nivel) más alto que se ha alcanzado
             int currentCount = harmonyCounts[harmony][teamID];
-            int highestActiveTierIndex = -1; // Usamos -1 para indicar que no hay ninguno activo
+            int highestActiveTierIndex = -1;
             for (int i = 0; i < harmony.tiers.Count; i++)
             {
                 if (currentCount >= harmony.tiers[i].unitsRequired)
@@ -184,18 +177,15 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-            // 3. Guardamos la información del tier activo
             if (!activeHarmonyTiers.ContainsKey(harmony))
                 activeHarmonyTiers[harmony] = new Dictionary<int, int>();
 
             if (highestActiveTierIndex != -1)
             {
-                // Si se ha alcanzado algún tier, guardamos el índice del más alto
                 activeHarmonyTiers[harmony][teamID] = highestActiveTierIndex;
             }
             else
             {
-                // Si ya no se alcanza ningún tier, eliminamos la entrada
                 activeHarmonyTiers[harmony].Remove(teamID);
             }
         }
