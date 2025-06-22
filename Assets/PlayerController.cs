@@ -64,24 +64,35 @@ public class PlayerController : MonoBehaviour
             TryStartRepositioning(pointerPosition);
         }
     }
-
+    
+    // --- FUNCIÓN CLAVE A REVISAR ---
     public void StartDraggingUnit(UnitIconController iconController)
     {
-        if (GameManager.Instance.CanPlaceUnit(PlacementUIManager.Instance.CurrentPlacementTeamID, iconController.characterData) == false) return;
+        // 1. OBTENEMOS LOS DATOS
+        int teamID = PlacementUIManager.Instance.CurrentPlacementTeamID;
+        UnitStats stats = iconController.characterData;
+
+        // 2. HACEMOS LA COMPROBACIÓN DE LÍMITES PRIMERO
+        if (GameManager.Instance.CanPlaceUnit(teamID, stats) == false)
+        {
+            // Si CanPlaceUnit devuelve false, el GameManager ya habrá mostrado un error en la consola.
+            // Simplemente detenemos la ejecución de esta función aquí.
+            return; 
+        }
+        
+        // 3. SI LA COMPROBACIÓN PASA, CONTINUAMOS CON EL ARRASTRE
         if (GameManager.Instance.CurrentState != GameManager.GameState.Placement || unitToReposition != null) return;
+        
         currentlyDraggedIcon = iconController;
         dragCursorImage.sprite = currentlyDraggedIcon.GetDragCursorSprite();
         dragCursorImage.raycastTarget = false;
         dragCursorImage.gameObject.SetActive(true);
     }
-
-    // --- FUNCIÓN CORREGIDA ---
+    
     public void StopDraggingUnit()
     {
         if (currentlyDraggedIcon == null) return;
 
-        // La forma más sencilla y robusta de comprobar si el puntero está sobre CUALQUIER
-        // objeto de la UI es llamar a la función sin parámetros. Esto funciona para ratón y tacto.
         if (!EventSystem.current.IsPointerOverGameObject())
         {
             Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
@@ -89,6 +100,7 @@ public class PlayerController : MonoBehaviour
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 Node node = gridManager.NodeFromWorldPoint(hit.point);
+                // La comprobación de límites no es necesaria aquí, porque ya la hicimos al empezar a arrastrar.
                 if (gridManager.IsNodeValidForPlacement(node, PlacementUIManager.Instance.CurrentPlacementTeamID))
                 {
                     PlaceUnitOnNode(node, currentlyDraggedIcon.GetUnitStats());
@@ -97,14 +109,13 @@ public class PlayerController : MonoBehaviour
             }
         }
         
-        // Limpiamos el estado de arrastre de la UI.
         currentlyDraggedIcon = null;
         dragCursorImage.gameObject.SetActive(false);
         if (highlightInstance != null) highlightInstance.SetActive(false);
     }
     
     // El resto de funciones se mantienen igual
-    #region Funciones sin cambios (o con cambios internos que ya funcionan)
+    #region Funciones sin cambios
     void TryStartRepositioning(Vector2 pointerPosition) {
         if (EventSystem.current.IsPointerOverGameObject()) return;
         Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
