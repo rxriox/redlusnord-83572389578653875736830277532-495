@@ -40,14 +40,23 @@ public class GridManager : MonoBehaviour
 
     public Node NodeFromWorldPoint(Vector3 worldPosition)
     {
+        // Convertimos la posición del mundo en un porcentaje del tamaño total del grid.
         float percentX = worldPosition.x / (gridWidth * nodeSize);
         float percentZ = worldPosition.z / (gridHeight * nodeSize);
-        percentX = Mathf.Clamp01(percentX);
-        percentZ = Mathf.Clamp01(percentZ);
-        int x = Mathf.FloorToInt((gridWidth) * percentX);
-        int z = Mathf.FloorToInt((gridHeight) * percentZ);
-        if (x >= gridWidth) x = gridWidth - 1;
-        if (z >= gridHeight) z = gridHeight - 1;
+
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Comprobamos si el porcentaje está fuera del rango [0, 1).
+        // Si lo está, significa que estamos fuera del tablero.
+        if (percentX < 0 || percentX >= 1 || percentZ < 0 || percentZ >= 1)
+        {
+            return null; // Devolvemos null para indicar que la posición es inválida.
+        }
+        // --- FIN DE LA CORRECCIÓN ---
+
+        // Ya no necesitamos Mathf.Clamp01. La comprobación anterior se encarga de los límites.
+        int x = Mathf.FloorToInt(percentX * gridWidth);
+        int z = Mathf.FloorToInt(percentZ * gridHeight);
+        
         return grid[x, z];
     }
 

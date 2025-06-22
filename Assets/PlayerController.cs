@@ -62,16 +62,21 @@ public class PlayerController : MonoBehaviour
 
     void TryStartRepositioning()
     {
-        if (EventSystem.current.IsPointerOverGameObject()) return;
+        if (EventSystem.current.IsPointerOverGameObject()) return; // Ignora clics sobre la UI
+
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
             UnitController unit = hit.collider.GetComponent<UnitController>();
-            if (unit != null && unit.teamID == PlacementUIManager.Instance.CurrentPlacementTeamID)
+            
+            // --- CORRECCIÓN ---
+            // Hemos eliminado la comprobación "&& unit.teamID == PlacementUIManager.Instance.CurrentPlacementTeamID".
+            // Ahora, mientras sea una unidad, se puede mover.
+            if (unit != null)
             {
                 unitToReposition = unit;
                 originalNodeOfRepositionedUnit = unit.currentNode;
-                originalNodeOfRepositionedUnit.isWalkable = true;
+                originalNodeOfRepositionedUnit.isWalkable = true; // Liberamos la casilla original
                 if (trashZoneUI != null) trashZoneUI.SetActive(true); // Mostramos la zona de eliminación
             }
         }
