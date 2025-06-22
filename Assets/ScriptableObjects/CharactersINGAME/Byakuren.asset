@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   unitType: 0
   naturalHarmonies: []
+  characterPrefab: {fileID: 3805343749917133435, guid: bb435a086c0022d499d5ca42d4e243b3, type: 3}
+  projectilePrefab: {fileID: 0}
   unitName: Byakuren
   maxHealth: 40
+  maxMana: 100
   attackDamage: 10
   attackSpeed: 1
   attackRange: 1
-  projectilePrefab: {fileID: 0}
   moveSpeed: 3

@@ -54,19 +54,25 @@ public class PlayerController : MonoBehaviour
     public void StopDraggingUnit()
     {
         if (currentlyDraggedIcon == null) return;
+
         if (!EventSystem.current.IsPointerOverGameObject())
         {
             Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 Node node = gridManager.NodeFromWorldPoint(hit.point);
-                if (node != null && node.isWalkable)
+                int currentTeamID = PlacementUIManager.Instance.CurrentPlacementTeamID;
+
+                // CORRECCIÓN: Le preguntamos de nuevo al GridManager antes de colocar.
+                if (gridManager.IsNodeValidForPlacement(node, currentTeamID))
                 {
                     PlaceUnitOnNode(node, currentlyDraggedIcon.GetUnitStats());
                     currentlyDraggedIcon.SetAsPlaced();
                 }
             }
         }
+
+        // Limpiamos el estado de arrastre sin importar el resultado.
         currentlyDraggedIcon = null;
         dragCursorImage.gameObject.SetActive(false);
         if (highlightInstance != null) highlightInstance.SetActive(false);
@@ -74,17 +80,22 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateHighlight()
     {
-        if (highlightInstance == null) return;
+        if (highlightInstance == null || PlacementUIManager.Instance == null) return;
+
         if (EventSystem.current.IsPointerOverGameObject())
         {
             highlightInstance.SetActive(false);
             return;
         }
+        
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
             Node node = gridManager.NodeFromWorldPoint(hit.point);
-            if (node != null && node.isWalkable)
+            int currentTeamID = PlacementUIManager.Instance.CurrentPlacementTeamID;
+
+            // CORRECCIÓN: Le preguntamos al GridManager si la casilla es válida para el equipo actual.
+            if (gridManager.IsNodeValidForPlacement(node, currentTeamID))
             {
                 highlightInstance.SetActive(true);
                 highlightInstance.transform.position = node.worldPosition;
@@ -102,23 +113,50 @@ public class PlayerController : MonoBehaviour
 
     private void PlaceUnitOnNode(Node node, UnitStats unitStats)
     {
-        // CORRECCIÓN: Usando 'characterPrefab'.
-        if (unitStats?.characterPrefab != null && node != null && node.isWalkable)
-        {
-            GameObject unitInstance = Instantiate(unitStats.characterPrefab, node.worldPosition, Quaternion.identity);
-            node.isWalkable = false;
+        Debug.Log("--- Intentando colocar unidad ---");
 
-            UnitController unitController = unitInstance.GetComponent<UnitController>();
-            if (unitController != null)
-            {
-                unitController.currentNode = node;
-                unitController.teamID = 0; 
-                GameManager.Instance.RegisterUnit(unitController);
-            }
-            else
-            {
-                Debug.LogError($"El prefab de la unidad '{unitStats.unitName}' no tiene el componente UnitController.");
-            }
+        if (unitStats == null)
+        {
+            Debug.LogError("FALLO: ¡unitStats es NULO! El icono en la UI no tiene su 'Character Data' asignado.");
+            return;
+        }
+
+        Debug.Log("Unidad a colocar: " + unitStats.unitName);
+
+        if (unitStats.characterPrefab == null)
+        {
+            Debug.LogError("FALLO: ¡El 'characterPrefab' en el ScriptableObject '" + unitStats.name + "' no está asignado en el Inspector!");
+            return;
+        }
+
+        if (node == null)
+        {
+            Debug.LogError("FALLO: ¡El nodo donde intentas colocar es NULO! Problema con el GridManager o el Raycast.");
+            return;
+        }
+
+        if (!node.isWalkable)
+        {
+            Debug.LogWarning("AVISO: El nodo en la posición " + node.worldPosition + " no está disponible (isWalkable es false).");
+            return;
+        }
+
+        Debug.Log("ÉXITO: Todas las comprobaciones son correctas. Instanciando " + unitStats.characterPrefab.name);
+
+        GameObject unitInstance = Instantiate(unitStats.characterPrefab, node.worldPosition, Quaternion.identity);
+        node.isWalkable = false;
+
+        UnitController unitController = unitInstance.GetComponent<UnitController>();
+        if (unitController != null)
+        {
+            unitController.currentNode = node;
+            unitController.teamID = 0; 
+            GameManager.Instance.RegisterUnit(unitController);
+            Debug.Log("<color=green>¡Unidad instanciada y registrada con éxito!</color>");
+        }
+        else
+        {
+            Debug.LogError($"El prefab de la unidad '{unitStats.unitName}' no tiene el componente UnitController.");
         }
     }
 }

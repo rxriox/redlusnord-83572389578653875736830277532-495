@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   unitType: 0
   naturalHarmonies: []
+  characterPrefab: {fileID: 3805343749917133435, guid: 5d5f0de713f75ed4ab782a810bfdc244, type: 3}
+  projectilePrefab: {fileID: 0}
   unitName: Hata no Kokoro
   maxHealth: 2000
+  maxMana: 100
   attackDamage: 50
   attackSpeed: 1
   attackRange: 1.5
-  projectilePrefab: {fileID: 0}
   moveSpeed: 3

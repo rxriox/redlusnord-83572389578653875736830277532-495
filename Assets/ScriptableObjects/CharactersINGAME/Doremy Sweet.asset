@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   unitType: 0
   naturalHarmonies: []
+  characterPrefab: {fileID: 3805343749917133435, guid: 4b6c87e5a9738174fbfc1b1b3b4f3b71, type: 3}
+  projectilePrefab: {fileID: 0}
   unitName: Doremy Sweet
   maxHealth: 6
+  maxMana: 100
   attackDamage: 10
   attackSpeed: 1
   attackRange: 1.5
-  projectilePrefab: {fileID: 0}
   moveSpeed: 3

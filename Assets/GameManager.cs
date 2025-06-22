@@ -67,14 +67,17 @@ public class GameManager : MonoBehaviour
 
     public void ResetBoardButton()
     {
+        // Si el combate está en curso, lo detenemos primero.
         if (CurrentState == GameState.Combat)
         {
+            // Detenemos la corrutina si existe
             if (CombatLoop() != null)
             {
                 StopCoroutine(CombatLoop());
             }
         }
 
+        // Destruye todas las unidades en el tablero.
         List<UnitController> unitsToDestroy = new List<UnitController>(allUnits);
         foreach (UnitController unit in unitsToDestroy)
         {
@@ -84,16 +87,21 @@ public class GameManager : MonoBehaviour
             }
         }
         allUnits.Clear(); 
+
+        // Limpia las cuentas de armonía.
         harmonyCounts.Clear();
         activeHarmonyTiers.Clear();
 
-        // --- LÍNEA CORREGIDA ---
-        UnitIconController[] icons = FindObjectsByType<UnitIconController>(FindObjectsSortMode.None);
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Le decimos a Unity que busque los iconos INCLUYENDO los que están inactivos.
+        UnitIconController[] icons = FindObjectsByType<UnitIconController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (UnitIconController icon in icons)
         {
             icon.ResetIcon();
         }
+        // --- FIN DE LA CORRECCIÓN ---
 
+        // Restablece el estado del juego a Placement.
         CurrentState = GameState.Placement;
         Debug.Log("Board Reset! Ready for Unit Placement.");
     }
@@ -102,5 +110,6 @@ public class GameManager : MonoBehaviour
     private void UpdateHarmonyBonuses(UnitController unit, bool isAdding) {}
     public void UpdateAllUnitBonuses() {}
     public bool IsHarmonyTierActive(UnitController unit, int tierIndex) { return false; }
-    public void EvaluateAction() {} // Placeholder por si es llamado desde el loop
+    
+    public void EvaluateAction() { } // Placeholder por si es llamado desde el loop
 }

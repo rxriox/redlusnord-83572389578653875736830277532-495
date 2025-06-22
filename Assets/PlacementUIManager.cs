@@ -3,42 +3,78 @@ using UnityEngine.UI;
 
 public class PlacementUIManager : MonoBehaviour
 {
-    [Header("ScrollViews de Contenido")]
-    [Tooltip("El componente ScrollRect del ScrollView de aliados.")]
-    [SerializeField] private ScrollRect allyScrollView;
-    [Tooltip("El componente ScrollRect del ScrollView de enemigos.")]
-    [SerializeField] private ScrollRect enemyScrollView;
+    // --- Singleton ---
+    public static PlacementUIManager Instance { get; private set; }
 
-    [Header("Botones de Selección")]
-    [Tooltip("El botón para mostrar el panel de aliados.")]
-    [SerializeField] private Button allyButton;
-    [Tooltip("El botón para mostrar el panel de enemigos.")]
-    [SerializeField] private Button enemyButton;
+    [Header("Configuración de Pestañas")]
+    public Button allyBenchButton;
+    public Button enemyBenchButton;
+    public Color activeTabColor = Color.black;
+    public Color inactiveTabColor = Color.white;
 
-    [Header("Colores de Botón")]
-    [Tooltip("Color del botón cuando su panel está activo (ej. negro).")]
-    [SerializeField] private Color activeColor = Color.black;
-    [Tooltip("Color del botón cuando su panel está inactivo (ej. blanco).")]
-    [SerializeField] private Color inactiveColor = Color.white;
+    [Header("Banca Aliada")]
+    public GameObject allyBenchScrollView;
+    public Transform allyBenchContent;
+    [Tooltip("Arrastra aquí tus PREFABS de iconos de personajes aliados ya configurados.")]
+    public GameObject[] allyIconPrefabs; // CORRECCIÓN: Ahora es una lista de prefabs de iconos.
+
+    [Header("Banca Enemiga")]
+    public GameObject enemyBenchScrollView;
+    public Transform enemyBenchContent;
+    [Tooltip("Arrastra aquí tus PREFABS de iconos de personajes enemigos ya configurados.")]
+    public GameObject[] enemyIconPrefabs; // CORRECCIÓN: Ahora es una lista de prefabs de iconos.
+    
+    public int CurrentPlacementTeamID { get; private set; }
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this) Destroy(gameObject);
+        else Instance = this;
+    }
 
     void Start()
     {
-        if (allyButton != null) allyButton.onClick.AddListener(ShowAllyPanel);
-        if (enemyButton != null) enemyButton.onClick.AddListener(ShowEnemyPanel);
-        ShowAllyPanel();
+        // Llenamos las bancas usando los prefabs de iconos que asignemos en el inspector
+        PopulateBench(allyBenchContent, allyIconPrefabs);
+        PopulateBench(enemyBenchContent, enemyIconPrefabs);
+
+        ShowAllyBench();
     }
-    public void ShowAllyPanel()
+
+    /// <summary>
+    /// Instancia los prefabs de iconos pre-configurados en la banca correspondiente.
+    /// </summary>
+    void PopulateBench(Transform content, GameObject[] iconPrefabs)
     {
-        if (allyScrollView != null) allyScrollView.gameObject.SetActive(true);
-        if (enemyScrollView != null) enemyScrollView.gameObject.SetActive(false);
-        if (allyButton != null) allyButton.GetComponent<Image>().color = activeColor;
-        if (enemyButton != null) enemyButton.GetComponent<Image>().color = inactiveColor;
+        if (content == null) return;
+        
+        foreach (Transform child in content) Destroy(child.gameObject);
+
+        // Creamos un icono por cada prefab en la lista
+        foreach (GameObject iconPrefab in iconPrefabs)
+        {
+            if (iconPrefab != null)
+            {
+                Instantiate(iconPrefab, content);
+            }
+        }
     }
-    public void ShowEnemyPanel()
+    
+    public void ShowAllyBench()
     {
-        if (allyScrollView != null) allyScrollView.gameObject.SetActive(false);
-        if (enemyScrollView != null) enemyScrollView.gameObject.SetActive(true);
-        if (allyButton != null) allyButton.GetComponent<Image>().color = inactiveColor;
-        if (enemyButton != null) enemyButton.GetComponent<Image>().color = activeColor;
+        CurrentPlacementTeamID = 0;
+        allyBenchScrollView.SetActive(true);
+        enemyBenchScrollView.SetActive(false);
+        if (allyBenchButton != null) allyBenchButton.GetComponent<Image>().color = activeTabColor;
+        if (enemyBenchButton != null) enemyBenchButton.GetComponent<Image>().color = inactiveTabColor;
+    }
+
+    public void ShowEnemyBench()
+    {
+        CurrentPlacementTeamID = 1;
+        allyBenchScrollView.SetActive(false);
+        enemyBenchScrollView.SetActive(true);
+        if (allyBenchButton != null) allyBenchButton.GetComponent<Image>().color = inactiveTabColor;
+        if (enemyBenchButton != null) enemyBenchButton.GetComponent<Image>().color = activeTabColor;
     }
 }

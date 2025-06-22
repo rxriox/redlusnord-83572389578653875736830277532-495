@@ -16,10 +16,12 @@ MonoBehaviour:
   naturalHarmonies:
   - {fileID: 11400000, guid: 02b484b16826b88479fb058bec8ab49e, type: 2}
   - {fileID: 11400000, guid: 402de196378600746906d70d2c8e6349, type: 2}
+  characterPrefab: {fileID: 3805343749917133435, guid: eae740a1567c01e4a838dad85c2657e6, type: 3}
+  projectilePrefab: {fileID: 4570334888300365644, guid: e0775eba1bb45214f9851bad6110993a, type: 3}
   unitName: Alice Margatroid
   maxHealth: 60
+  maxMana: 100
   attackDamage: 10
   attackSpeed: 1
   attackRange: 6
-  projectilePrefab: {fileID: 4570334888300365644, guid: e0775eba1bb45214f9851bad6110993a, type: 3}
   moveSpeed: 3

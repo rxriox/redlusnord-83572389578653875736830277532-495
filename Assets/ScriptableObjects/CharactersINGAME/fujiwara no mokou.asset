@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   unitType: 0
   naturalHarmonies: []
+  characterPrefab: {fileID: 3805343749917133435, guid: d599e359301bbcc45b1e1708f332b1dc, type: 3}
+  projectilePrefab: {fileID: 0}
   unitName: fujiwara no mokou
   maxHealth: 1000
+  maxMana: 100
   attackDamage: 50
   attackSpeed: 1
   attackRange: 1.5
-  projectilePrefab: {fileID: 0}
   moveSpeed: 3

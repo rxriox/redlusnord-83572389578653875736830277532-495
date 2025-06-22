@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   unitType: 0
   naturalHarmonies: []
+  characterPrefab: {fileID: 3805343749917133435, guid: 97599b49ef0b1b7469558caaba5e4c19, type: 3}
+  projectilePrefab: {fileID: 0}
   unitName: Hatate Himekaidou
   maxHealth: 500
+  maxMana: 100
   attackDamage: 50
   attackSpeed: 1
   attackRange: 1.5
-  projectilePrefab: {fileID: 0}
   moveSpeed: 3

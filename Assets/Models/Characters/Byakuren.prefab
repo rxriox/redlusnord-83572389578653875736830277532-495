@@ -126,9 +126,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: afe7bb6bec67ab94c8b949d834d36c18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitController
-  baseStats: {fileID: 11400000, guid: b985b70e4066108469b607546d2a4a29, type: 2}
+  unitStats: {fileID: 11400000, guid: 4312a42317b5cee42a98a54f56a81cef, type: 2}
   teamID: 0
-  healthBarUIPrefab: {fileID: 6534989218685001722, guid: ac2f1a4afeb27694c950049094bcdc63, type: 3}
-  healthBarVerticalOffset: 0.8
-  unitPrefab: {fileID: 0}
-  targetPriority: 0

@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   unitType: 0
   naturalHarmonies: []
+  characterPrefab: {fileID: 3805343749917133435, guid: ae803c0bd8390704f9a746a264ca40ec, type: 3}
+  projectilePrefab: {fileID: 0}
   unitName: Ebisu Eika
   maxHealth: 200
+  maxMana: 100
   attackDamage: 20
   attackSpeed: 1
   attackRange: 1.5
-  projectilePrefab: {fileID: 0}
   moveSpeed: 3

@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   unitType: 0
   naturalHarmonies: []
+  characterPrefab: {fileID: 3805343749917133435, guid: f14e46ab0b8d65444ad3c1610053ff2b, type: 3}
+  projectilePrefab: {fileID: 0}
   unitName: hong meiling
   maxHealth: 2000
+  maxMana: 100
   attackDamage: 50
   attackSpeed: 1
   attackRange: 1.5
-  projectilePrefab: {fileID: 0}
   moveSpeed: 3

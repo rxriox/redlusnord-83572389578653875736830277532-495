@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   unitType: 0
   naturalHarmonies: []
+  characterPrefab: {fileID: 3805343749917133435, guid: 6bba6df984438c74993b165d328af80a, type: 3}
+  projectilePrefab: {fileID: 0}
   unitName: flandre
   maxHealth: 50
+  maxMana: 100
   attackDamage: 8
   attackSpeed: 1
   attackRange: 1.5
-  projectilePrefab: {fileID: 0}
   moveSpeed: 3
