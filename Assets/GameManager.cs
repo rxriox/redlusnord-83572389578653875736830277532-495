@@ -9,21 +9,22 @@ public class GameManager : MonoBehaviour
 
     public enum GameState { Placement, Combat, Result }
     public GameState CurrentState { get; private set; }
-    
+
+    [Header("Reglas del Juego")]
+    [Tooltip("El número máximo de unidades que cada equipo puede tener en el tablero.")]
+    public int maxUnitsPerTeam = 10;
+
     private List<UnitController> allUnits = new List<UnitController>();
+    private Dictionary<int, int> teamUnitCount = new Dictionary<int, int>();
     private Dictionary<HarmonyType, Dictionary<int, int>> harmonyCounts = new Dictionary<HarmonyType, Dictionary<int, int>>();
     private Dictionary<HarmonyType, Dictionary<int, int>> activeHarmonyTiers = new Dictionary<HarmonyType, Dictionary<int, int>>();
 
+    private Coroutine combatCoroutine; // Referencia a la corrutina de combate
+
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
     public void RegisterUnit(UnitController unit)
@@ -31,7 +32,16 @@ public class GameManager : MonoBehaviour
         if (!allUnits.Contains(unit))
         {
             allUnits.Add(unit);
-            // UpdateHarmonyBonuses(unit, true); // Asumo que esta lógica existe
+
+            int team = unit.teamID;
+            if (!teamUnitCount.ContainsKey(team))
+            {
+                teamUnitCount[team] = 0;
+            }
+            teamUnitCount[team]++;
+            Debug.Log($"Unidad registrada para equipo {team}. Total: {teamUnitCount[team]} / {maxUnitsPerTeam}");
+
+            UpdateHarmonyBonuses(unit, true);
         }
     }
 
@@ -39,9 +49,30 @@ public class GameManager : MonoBehaviour
     {
         if (allUnits.Contains(unit))
         {
+            int team = unit.teamID;
+            if (teamUnitCount.ContainsKey(team))
+            {
+                teamUnitCount[team]--;
+                Debug.Log($"Unidad des-registrada del equipo {team}. Total: {teamUnitCount[team]} / {maxUnitsPerTeam}");
+            }
+
             allUnits.Remove(unit);
-            // UpdateHarmonyBonuses(unit, false); // Asumo que esta lógica existe
+            UpdateHarmonyBonuses(unit, false);
         }
+    }
+
+    public bool CanPlaceUnit(int teamID)
+    {
+        int currentCount = 0;
+        teamUnitCount.TryGetValue(teamID, out currentCount);
+        bool canPlace = currentCount < maxUnitsPerTeam;
+
+        if (!canPlace)
+        {
+            Debug.Log($"Intento de colocar unidad para equipo {teamID} denegado. Límite alcanzado.");
+        }
+
+        return canPlace;
     }
 
     public void StartCombatButton()
@@ -49,7 +80,7 @@ public class GameManager : MonoBehaviour
         if (CurrentState == GameState.Placement)
         {
             CurrentState = GameState.Combat;
-            StartCoroutine(CombatLoop());
+            combatCoroutine = StartCoroutine(CombatLoop());
         }
     }
 
@@ -59,57 +90,45 @@ public class GameManager : MonoBehaviour
         {
             foreach (var unit in allUnits.ToList())
             {
-                if (unit != null) unit.EvaluateAction();
+                if (unit != null)
+                    unit.EvaluateAction();
             }
-            yield return null; 
+            yield return null;
         }
     }
 
     public void ResetBoardButton()
     {
-        // Si el combate está en curso, lo detenemos primero.
-        if (CurrentState == GameState.Combat)
+        if (CurrentState == GameState.Combat && combatCoroutine != null)
         {
-            // Detenemos la corrutina si existe
-            if (CombatLoop() != null)
-            {
-                StopCoroutine(CombatLoop());
-            }
+            StopCoroutine(combatCoroutine);
+            combatCoroutine = null;
         }
 
-        // Destruye todas las unidades en el tablero.
         List<UnitController> unitsToDestroy = new List<UnitController>(allUnits);
         foreach (UnitController unit in unitsToDestroy)
         {
             if (unit != null)
-            {
-                unit.Die(); 
-            }
+                unit.Die();
         }
-        allUnits.Clear(); 
 
-        // Limpia las cuentas de armonía.
+        allUnits.Clear();
         harmonyCounts.Clear();
         activeHarmonyTiers.Clear();
+        teamUnitCount.Clear();
 
-        // --- INICIO DE LA CORRECCIÓN ---
-        // Le decimos a Unity que busque los iconos INCLUYENDO los que están inactivos.
         UnitIconController[] icons = FindObjectsByType<UnitIconController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (UnitIconController icon in icons)
         {
             icon.ResetIcon();
         }
-        // --- FIN DE LA CORRECCIÓN ---
 
-        // Restablece el estado del juego a Placement.
         CurrentState = GameState.Placement;
-        Debug.Log("Board Reset! Ready for Unit Placement.");
+        Debug.Log("Tablero reiniciado. Cuentas de unidades a cero.");
     }
 
-    // Mantengo estas funciones por si existen en tu código original
-    private void UpdateHarmonyBonuses(UnitController unit, bool isAdding) {}
-    public void UpdateAllUnitBonuses() {}
+    // Placeholders o ganchos si deseas expandir luego
+    private void UpdateHarmonyBonuses(UnitController unit, bool isAdding) { }
+    public void UpdateAllUnitBonuses() { }
     public bool IsHarmonyTierActive(UnitController unit, int tierIndex) { return false; }
-    
-    public void EvaluateAction() { } // Placeholder por si es llamado desde el loop
 }

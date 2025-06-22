@@ -71,7 +71,15 @@ public class GridManager : MonoBehaviour
 
     void SpawnUnit(UnitStats stats, int team, Node node)
     {
-        // CORRECCIÓN: Ahora usamos nuestra nueva función centralizada para la validación.
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Añadimos la comprobación del límite de unidades.
+        if (!GameManager.Instance.CanPlaceUnit(team))
+        {
+            Debug.LogWarning($"No se pudo colocar la unidad inicial '{stats.name}' para el equipo {team}. ¡Límite de unidades alcanzado!");
+            return;
+        }
+        // --- FIN DE LA CORRECCIÓN ---
+
         if (stats != null && IsNodeValidForPlacement(node, team))
         {
             GameObject unitGO = Instantiate(stats.characterPrefab, node.worldPosition, Quaternion.identity);
@@ -79,7 +87,7 @@ public class GridManager : MonoBehaviour
 
             if (unitController != null)
             {
-                unitController.unitStats = stats; // Asignamos las stats a la unidad
+                unitController.unitStats = stats;
                 unitController.teamID = team;
                 unitController.currentNode = node;
                 node.isWalkable = false;

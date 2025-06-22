@@ -228,6 +228,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 593ae837de3821a42bdf183cb7273805, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
+  maxUnitsPerTeam: 10
 --- !u!4 &112722421
 Transform:
   m_ObjectHideFlags: 0
@@ -3044,9 +3045,9 @@ RectTransform:
   - {fileID: 1774583887}
   m_Father: {fileID: 382097736}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 132.10999, y: 61.605}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 132.10999, y: -237}
   m_SizeDelta: {x: 216.22998, y: 440.89}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1688085837
@@ -3447,9 +3448,9 @@ RectTransform:
   - {fileID: 906075941}
   m_Father: {fileID: 382097736}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 132.10999, y: 61.605}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 132.10999, y: -237}
   m_SizeDelta: {x: 216.22998, y: 440.89}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1807715037

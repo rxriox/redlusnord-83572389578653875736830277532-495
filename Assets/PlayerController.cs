@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using System.Collections; // Necesario para Coroutines
+using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
@@ -13,9 +13,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Referencias de UI")]
     public Image dragCursorImage;
-    [Tooltip("El CanvasGroup de la UI que funciona como zona para eliminar unidades.")]
-    public CanvasGroup trashZoneCanvasGroup; // <-- CORRECCIÓN: Ahora es un CanvasGroup
-    [Tooltip("La duración en segundos de la animación de fade.")]
+    public CanvasGroup trashZoneCanvasGroup;
     public float fadeDuration = 0.2f;
 
     // --- Variables de Estado ---
@@ -33,8 +31,6 @@ public class PlayerController : MonoBehaviour
     {
         if (highlightPrefab != null) { highlightInstance = Instantiate(highlightPrefab); highlightInstance.SetActive(false); }
         if (dragCursorImage != null) { dragCursorImage.gameObject.SetActive(false); }
-        
-        // Al empezar, nos aseguramos de que la zona de eliminación esté completamente oculta.
         if (trashZoneCanvasGroup != null)
         {
             trashZoneCanvasGroup.alpha = 0;
@@ -68,7 +64,53 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // --- Lógica de Reposicionar y Eliminar (con animación para la Trash Zone) ---
+    // --- Lógica para arrastrar DESDE LA UI ---
+
+    public void StartDraggingUnit(UnitIconController iconController)
+    {
+        if (GameManager.Instance.CanPlaceUnit(PlacementUIManager.Instance.CurrentPlacementTeamID) == false)
+        {
+            Debug.Log("No se puede arrastrar una nueva unidad. Límite del equipo alcanzado.");
+            return;
+        }
+        if (GameManager.Instance.CurrentState != GameManager.GameState.Placement || unitToReposition != null) return;
+        
+        currentlyDraggedIcon = iconController;
+        dragCursorImage.sprite = currentlyDraggedIcon.GetDragCursorSprite();
+        dragCursorImage.raycastTarget = false;
+        dragCursorImage.gameObject.SetActive(true);
+        
+        // CORRECCIÓN: Hemos quitado la línea que mostraba la papelera aquí.
+        // La papelera solo debe aparecer al reubicar, no al colocar una unidad nueva.
+    }
+
+    public void StopDraggingUnit()
+    {
+        if (currentlyDraggedIcon == null) return;
+
+        // Comprobamos si se soltó sobre la UI. Usamos IsPointerOverGameObject para una detección simple.
+        if (!EventSystem.current.IsPointerOverGameObject())
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+            if (Physics.Raycast(ray, out RaycastHit hit))
+            {
+                Node node = gridManager.NodeFromWorldPoint(hit.point);
+                if (gridManager.IsNodeValidForPlacement(node, PlacementUIManager.Instance.CurrentPlacementTeamID))
+                {
+                    PlaceUnitOnNode(node, currentlyDraggedIcon.GetUnitStats());
+                    currentlyDraggedIcon.SetAsPlaced();
+                }
+            }
+        }
+        
+        // Limpiamos el estado de arrastre de la UI.
+        currentlyDraggedIcon = null;
+        dragCursorImage.gameObject.SetActive(false);
+        if (highlightInstance != null) highlightInstance.SetActive(false);
+        // CORRECCIÓN: Nos aseguramos de que no hay ninguna línea intentando ocultar la papelera aquí.
+    }
+
+    // --- Lógica para REPOSICIONAR unidades DEL TABLERO ---
 
     void TryStartRepositioning()
     {
@@ -83,9 +125,10 @@ public class PlayerController : MonoBehaviour
                 originalNodeOfRepositionedUnit = unit.currentNode;
                 originalNodeOfRepositionedUnit.isWalkable = true;
                 
+                // Le decimos al UI Manager que oculte las bancas con un fade.
                 PlacementUIManager.Instance.HideBenchesForDrag();
-
-                // CORRECCIÓN: Usamos la corutina para mostrar la zona con un fade-in.
+                
+                // Mostramos la zona de eliminación con un fade.
                 if (trashZoneCanvasGroup != null) 
                     StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
             }
@@ -94,7 +137,6 @@ public class PlayerController : MonoBehaviour
 
     void DropRepositionedUnit()
     {
-        // ... (la lógica de detección de la papelera y reubicación es la misma) ...
         PointerEventData pointerData = new PointerEventData(EventSystem.current) { position = Mouse.current.position.ReadValue() };
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(pointerData, results);
@@ -117,140 +159,88 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // --- Limpieza y Animación de Salida ---
+        // Le decimos al UI Manager que vuelva a mostrar la banca activa.
         PlacementUIManager.Instance.ShowBenchesAfterDrag();
-
-        // CORRECCIÓN: Usamos la corutina para ocultar la zona con un fade-out.
+        // Ocultamos la zona de eliminación con un fade.
         if (trashZoneCanvasGroup != null) 
             StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 1f, 0f));
 
+        // Limpieza final.
         unitToReposition = null;
         originalNodeOfRepositionedUnit = null;
         if (highlightInstance != null) highlightInstance.SetActive(false);
     }
     
-    // --- NUEVA Corutina para la animación de Fade ---
-    private IEnumerator FadeCanvasGroup(CanvasGroup cg, float start, float end)
-    {
-        float counter = 0f;
-        
-        // Hacemos la zona interactuable al empezar a mostrarse
-        if (end > start)
-        {
-            cg.interactable = true;
-            cg.blocksRaycasts = true;
-        }
-
-        while (counter < fadeDuration)
-        {
-            counter += Time.deltaTime;
-            cg.alpha = Mathf.Lerp(start, end, counter / fadeDuration);
-            yield return null;
-        }
-        
-        cg.alpha = end;
-
-        // Dejamos de hacerla interactuable al terminar de ocultarse
-        if (end < start)
-        {
-            cg.interactable = false;
-            cg.blocksRaycasts = false;
-        }
-    }
-
-    // --- El resto de funciones se mantienen igual ---
-    void UpdateRepositioningUnit()
-    {
+    // El resto de funciones se mantienen igual, pero las incluyo para que tengas el script completo.
+    #region Funciones sin cambios
+    void UpdateRepositioningUnit() {
         Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (groundPlane.Raycast(ray, out float distance))
-        {
+        if (groundPlane.Raycast(ray, out float distance)) {
             Vector3 worldPosition = ray.GetPoint(distance);
             unitToReposition.transform.position = new Vector3(worldPosition.x, 0.5f, worldPosition.z);
             UpdateHighlightForRepositioning();
         }
     }
-    public void StartDraggingUnit(UnitIconController iconController)
-    {
-        if (GameManager.Instance.CurrentState != GameManager.GameState.Placement) return;
-        currentlyDraggedIcon = iconController;
-        dragCursorImage.sprite = currentlyDraggedIcon.GetDragCursorSprite();
-        dragCursorImage.raycastTarget = false;
-        dragCursorImage.gameObject.SetActive(true);
 
-    }
-    public void StopDraggingUnit()
-    {
-        if (currentlyDraggedIcon == null) return;
-        if (!EventSystem.current.IsPointerOverGameObject())
-        {
-            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-            if (Physics.Raycast(ray, out RaycastHit hit))
-            {
-                Node node = gridManager.NodeFromWorldPoint(hit.point);
-                if (gridManager.IsNodeValidForPlacement(node, PlacementUIManager.Instance.CurrentPlacementTeamID))
-                {
-                    PlaceUnitOnNode(node, currentlyDraggedIcon.GetUnitStats());
-                    currentlyDraggedIcon.SetAsPlaced();
-                }
-            }
-        }
-        currentlyDraggedIcon = null;
-        dragCursorImage.gameObject.SetActive(false);
-        if (highlightInstance != null) highlightInstance.SetActive(false);
-
-    }
-    private void PlaceUnitOnNode(Node node, UnitStats unitStats)
-    {
-        if (unitStats?.characterPrefab != null)
-        {
+    private void PlaceUnitOnNode(Node node, UnitStats unitStats) {
+        if (unitStats?.characterPrefab != null) {
             GameObject unitInstance = Instantiate(unitStats.characterPrefab, node.worldPosition, Quaternion.identity);
             node.isWalkable = false;
             UnitController unitController = unitInstance.GetComponent<UnitController>();
-            if (unitController != null)
-            {
+            if (unitController != null) {
                 unitController.unitStats = unitStats;
                 unitController.currentNode = node;
                 unitController.teamID = PlacementUIManager.Instance.CurrentPlacementTeamID;
-                unitController.originatingIcon = currentlyDraggedIcon; // <--- AÑADIDO: Creamos el vínculo
+                unitController.originatingIcon = currentlyDraggedIcon;
                 GameManager.Instance.RegisterUnit(unitController);
             }
         }
     }
-    private void UpdateHighlightForNewUnit()
-    {
+
+    private void UpdateHighlightForNewUnit() {
         if (highlightInstance == null || PlacementUIManager.Instance == null) return;
         int teamID = PlacementUIManager.Instance.CurrentPlacementTeamID;
         UpdateHighlight(teamID);
-
     }
-
-    private void UpdateHighlightForRepositioning()
-    {
+    
+    private void UpdateHighlightForRepositioning() {
         if (highlightInstance == null || unitToReposition == null) return;
-        int teamID = unitToReposition.teamID;
-        UpdateHighlight(teamID);
-
+        Node nodeUnderUnit = gridManager.NodeFromWorldPoint(unitToReposition.transform.position);
+        UpdateHighlight(unitToReposition.teamID, nodeUnderUnit);
     }
-    private void UpdateHighlight(int teamID)
-    {
-        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out RaycastHit hit))
-        {
-            Node node = gridManager.NodeFromWorldPoint(hit.point);
-            if (gridManager.IsNodeValidForPlacement(node, teamID))
-            {
-                highlightInstance.SetActive(true);
-                highlightInstance.transform.position = node.worldPosition;
-            }
-            else
-            {
-                highlightInstance.SetActive(false);
+
+    private void UpdateHighlight(int teamID, Node nodeToHighlight = null) {
+        if (nodeToHighlight == null) {
+            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+            if (Physics.Raycast(ray, out RaycastHit hit)) {
+                nodeToHighlight = gridManager.NodeFromWorldPoint(hit.point);
             }
         }
-        else
-        {
+        if (gridManager.IsNodeValidForPlacement(nodeToHighlight, teamID)) {
+            highlightInstance.SetActive(true);
+            highlightInstance.transform.position = nodeToHighlight.worldPosition;
+        } else {
             highlightInstance.SetActive(false);
         }
     }
+
+    private IEnumerator FadeCanvasGroup(CanvasGroup cg, float start, float end) {
+        float counter = 0f;
+        if (end > start) {
+            cg.interactable = true;
+            cg.blocksRaycasts = true;
+        }
+        while (counter < fadeDuration) {
+            counter += Time.deltaTime;
+            cg.alpha = Mathf.Lerp(start, end, counter / fadeDuration);
+            yield return null;
+        }
+        cg.alpha = end;
+        if (end < start) {
+            cg.interactable = false;
+            cg.blocksRaycasts = false;
+        }
+    }
+    #endregion
 }
