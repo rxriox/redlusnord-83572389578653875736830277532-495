@@ -27,6 +27,8 @@ public class UnitIconController : MonoBehaviour, IBeginDragHandler, IDragHandler
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        // Ya no cambiamos el sprite aquí.
+        // Ahora solo notificamos al PlayerController que un arrastre ha comenzado.
         if (!isPlaced && eventData.button == PointerEventData.InputButton.Left)
         {
             playerController.StartDraggingUnit(this);
@@ -40,6 +42,14 @@ public class UnitIconController : MonoBehaviour, IBeginDragHandler, IDragHandler
         if (eventData.button == PointerEventData.InputButton.Left)
         {
             playerController.StopDraggingUnit();
+        }
+    }
+    
+    public void SetSpriteToPlacedState()
+    {
+        if (placedIconSprite != null)
+        {
+            iconImage.sprite = placedIconSprite;
         }
     }
     

@@ -73,22 +73,28 @@ public class PlayerController : MonoBehaviour
     // --- FUNCIÓN CLAVE A REVISAR ---
     public void StartDraggingUnit(UnitIconController iconController)
     {
-        // 1. OBTENEMOS LOS DATOS
+        // 1. Primero, obtenemos los datos necesarios.
         int teamID = PlacementUIManager.Instance.CurrentPlacementTeamID;
         UnitStats stats = iconController.characterData;
 
-        // 2. HACEMOS LA COMPROBACIÓN DE LÍMITES PRIMERO
+        // 2. Hacemos la comprobación de límites.
         if (GameManager.Instance.CanPlaceUnit(teamID, stats) == false)
         {
-            // Si CanPlaceUnit devuelve false, el GameManager ya habrá mostrado un error en la consola.
-            // Simplemente detenemos la ejecución de esta función aquí.
+            // Si no se puede colocar, la función termina aquí y no pasa nada más.
+            // El icono en la UI no se ve afectado.
             return; 
         }
         
-        // 3. SI LA COMPROBACIÓN PASA, CONTINUAMOS CON EL ARRASTRE
+        // 3. Si la comprobación es exitosa, continuamos con el arrastre.
         if (GameManager.Instance.CurrentState != GameManager.GameState.Placement || unitToReposition != null) return;
         
         currentlyDraggedIcon = iconController;
+
+        // 4. AÑADIDO: Ahora que sabemos que el arrastre es válido, le decimos al icono
+        // que cambie su apariencia usando la nueva función que creamos.
+        currentlyDraggedIcon.SetSpriteToPlacedState();
+
+        // 5. Mostramos el cursor de arrastre como antes.
         dragCursorImage.sprite = currentlyDraggedIcon.GetDragCursorSprite();
         dragCursorImage.raycastTarget = false;
         dragCursorImage.gameObject.SetActive(true);
@@ -98,6 +104,9 @@ public class PlayerController : MonoBehaviour
     {
         if (currentlyDraggedIcon == null) return;
 
+        // AÑADIDO: Llevaremos un registro de si la colocación fue exitosa.
+        bool placementSuccessful = false;
+
         if (!EventSystem.current.IsPointerOverGameObject())
         {
             Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
@@ -105,15 +114,18 @@ public class PlayerController : MonoBehaviour
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 Node node = gridManager.NodeFromWorldPoint(hit.point);
-                // La comprobación de límites no es necesaria aquí, porque ya la hicimos al empezar a arrastrar.
                 if (gridManager.IsNodeValidForPlacement(node, PlacementUIManager.Instance.CurrentPlacementTeamID))
                 {
                     PlaceUnitOnNode(node, currentlyDraggedIcon.GetUnitStats());
                     currentlyDraggedIcon.SetAsPlaced();
+                    placementSuccessful = true;
                 }
             }
         }
-        
+        if (!placementSuccessful)
+        {
+            currentlyDraggedIcon.ResetIcon();
+        }
         currentlyDraggedIcon = null;
         dragCursorImage.gameObject.SetActive(false);
         if (highlightInstance != null) highlightInstance.SetActive(false);
