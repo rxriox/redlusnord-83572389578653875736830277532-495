@@ -1048,6 +1048,17 @@
                 },
                 {
                     "name": "",
+                    "id": "63050e5c-b838-4b89-a990-8ff849129814",
+                    "path": "<Pointer>/press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Click",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "5a92a6b4-b9d8-4504-8298-74a7545dc86e",
                     "path": "<Pointer>/position",
                     "interactions": "",

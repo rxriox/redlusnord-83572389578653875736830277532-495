@@ -40,8 +40,10 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        // Obtenemos la posición del puntero (ratón o dedo) una sola vez por frame.
         Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
 
+        // Si estamos arrastrando un icono nuevo desde la UI...
         if (currentlyDraggedIcon != null)
         {
             dragCursorImage.transform.position = pointerPosition;
@@ -49,9 +51,11 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        // Si estamos reubicando una unidad del tablero...
         if (unitToReposition != null)
         {
             UpdateRepositioningUnit(pointerPosition);
+            // Usamos la acción "Click" para detectar cuándo se suelta el puntero.
             if (playerControls.Gameplay.Click.WasReleasedThisFrame())
             {
                 DropRepositionedUnit(pointerPosition);
@@ -59,6 +63,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        // Si no estamos haciendo nada, usamos la acción "Click" para detectar si se presiona sobre una unidad.
         if (GameManager.Instance.CurrentState == GameManager.GameState.Placement && playerControls.Gameplay.Click.WasPressedThisFrame())
         {
             TryStartRepositioning(pointerPosition);
@@ -116,12 +121,15 @@ public class PlayerController : MonoBehaviour
     
     // El resto de funciones se mantienen igual
     #region Funciones sin cambios
-    void TryStartRepositioning(Vector2 pointerPosition) {
-        if (EventSystem.current.IsPointerOverGameObject()) return;
+    void TryStartRepositioning(Vector2 pointerPosition)
+    {
+        if (EventSystem.current.IsPointerOverGameObject()) return; // Ignora clics sobre la UI
         Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
-        if (Physics.Raycast(ray, out RaycastHit hit)) {
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
             UnitController unit = hit.collider.GetComponent<UnitController>();
-            if (unit != null) {
+            if (unit != null)
+            {
                 unitToReposition = unit;
                 originalNodeOfRepositionedUnit = unit.currentNode;
                 originalNodeOfRepositionedUnit.isWalkable = true;
@@ -131,10 +139,12 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void UpdateRepositioningUnit(Vector2 pointerPosition) {
+    void UpdateRepositioningUnit(Vector2 pointerPosition)
+    {
         Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
         Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
-        if (groundPlane.Raycast(ray, out float distance)) {
+        if (groundPlane.Raycast(ray, out float distance))
+        {
             Vector3 worldPosition = ray.GetPoint(distance);
             unitToReposition.transform.position = new Vector3(worldPosition.x, 0.5f, worldPosition.z);
             UpdateHighlightForRepositioning(pointerPosition);
@@ -189,6 +199,7 @@ public class PlayerController : MonoBehaviour
         int teamID = PlacementUIManager.Instance.CurrentPlacementTeamID;
         UpdateHighlight(teamID, pointerPosition);
     }
+
     
     private void UpdateHighlightForRepositioning(Vector2 pointerPosition) {
         if (highlightInstance == null || unitToReposition == null) return;
