@@ -71,15 +71,14 @@ public class GridManager : MonoBehaviour
 
     void SpawnUnit(UnitStats stats, int team, Node node)
     {
-        // --- INICIO DE LA CORRECCIÓN ---
-        // Añadimos la comprobación del límite de unidades.
-        if (!GameManager.Instance.CanPlaceUnit(team))
+        // Pasamos tanto el equipo como las estadísticas del personaje a la función de comprobación.
+        if (GameManager.Instance.CanPlaceUnit(team, stats) == false)
         {
-            Debug.LogWarning($"No se pudo colocar la unidad inicial '{stats.name}' para el equipo {team}. ¡Límite de unidades alcanzado!");
+            // El GameManager ya se encarga de mostrar un warning específico en la consola.
             return;
         }
-        // --- FIN DE LA CORRECCIÓN ---
-
+        
+        // El resto de la función es la misma, se comprueba si la zona es válida.
         if (stats != null && IsNodeValidForPlacement(node, team))
         {
             GameObject unitGO = Instantiate(stats.characterPrefab, node.worldPosition, Quaternion.identity);

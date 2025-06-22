@@ -15,8 +15,7 @@ public class PlayerController : MonoBehaviour
     public Image dragCursorImage;
     public CanvasGroup trashZoneCanvasGroup;
     public float fadeDuration = 0.2f;
-
-    // --- Variables de Estado ---
+    
     private GameObject highlightInstance;
     private UnitIconController currentlyDraggedIcon;
     private UnitController unitToReposition;
@@ -41,57 +40,52 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
+
         if (currentlyDraggedIcon != null)
         {
-            dragCursorImage.transform.position = Mouse.current.position.ReadValue();
-            UpdateHighlightForNewUnit();
+            dragCursorImage.transform.position = pointerPosition;
+            UpdateHighlightForNewUnit(pointerPosition);
             return;
         }
 
         if (unitToReposition != null)
         {
-            UpdateRepositioningUnit();
-            if (Mouse.current.leftButton.wasReleasedThisFrame)
+            UpdateRepositioningUnit(pointerPosition);
+            if (playerControls.Gameplay.Click.WasReleasedThisFrame())
             {
-                DropRepositionedUnit();
+                DropRepositionedUnit(pointerPosition);
             }
             return;
         }
 
-        if (GameManager.Instance.CurrentState == GameManager.GameState.Placement && Mouse.current.leftButton.wasPressedThisFrame)
+        if (GameManager.Instance.CurrentState == GameManager.GameState.Placement && playerControls.Gameplay.Click.WasPressedThisFrame())
         {
-            TryStartRepositioning();
+            TryStartRepositioning(pointerPosition);
         }
     }
 
-    // --- Lógica para arrastrar DESDE LA UI ---
-
     public void StartDraggingUnit(UnitIconController iconController)
     {
-        if (GameManager.Instance.CanPlaceUnit(PlacementUIManager.Instance.CurrentPlacementTeamID) == false)
-        {
-            Debug.Log("No se puede arrastrar una nueva unidad. Límite del equipo alcanzado.");
-            return;
-        }
+        if (GameManager.Instance.CanPlaceUnit(PlacementUIManager.Instance.CurrentPlacementTeamID, iconController.characterData) == false) return;
         if (GameManager.Instance.CurrentState != GameManager.GameState.Placement || unitToReposition != null) return;
-        
         currentlyDraggedIcon = iconController;
         dragCursorImage.sprite = currentlyDraggedIcon.GetDragCursorSprite();
         dragCursorImage.raycastTarget = false;
         dragCursorImage.gameObject.SetActive(true);
-        
-        // CORRECCIÓN: Hemos quitado la línea que mostraba la papelera aquí.
-        // La papelera solo debe aparecer al reubicar, no al colocar una unidad nueva.
     }
 
+    // --- FUNCIÓN CORREGIDA ---
     public void StopDraggingUnit()
     {
         if (currentlyDraggedIcon == null) return;
 
-        // Comprobamos si se soltó sobre la UI. Usamos IsPointerOverGameObject para una detección simple.
+        // La forma más sencilla y robusta de comprobar si el puntero está sobre CUALQUIER
+        // objeto de la UI es llamar a la función sin parámetros. Esto funciona para ratón y tacto.
         if (!EventSystem.current.IsPointerOverGameObject())
         {
-            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+            Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
+            Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 Node node = gridManager.NodeFromWorldPoint(hit.point);
@@ -107,42 +101,41 @@ public class PlayerController : MonoBehaviour
         currentlyDraggedIcon = null;
         dragCursorImage.gameObject.SetActive(false);
         if (highlightInstance != null) highlightInstance.SetActive(false);
-        // CORRECCIÓN: Nos aseguramos de que no hay ninguna línea intentando ocultar la papelera aquí.
     }
-
-    // --- Lógica para REPOSICIONAR unidades DEL TABLERO ---
-
-    void TryStartRepositioning()
-    {
+    
+    // El resto de funciones se mantienen igual
+    #region Funciones sin cambios (o con cambios internos que ya funcionan)
+    void TryStartRepositioning(Vector2 pointerPosition) {
         if (EventSystem.current.IsPointerOverGameObject()) return;
-        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out RaycastHit hit))
-        {
+        Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+        if (Physics.Raycast(ray, out RaycastHit hit)) {
             UnitController unit = hit.collider.GetComponent<UnitController>();
-            if (unit != null)
-            {
+            if (unit != null) {
                 unitToReposition = unit;
                 originalNodeOfRepositionedUnit = unit.currentNode;
                 originalNodeOfRepositionedUnit.isWalkable = true;
-                
-                // Le decimos al UI Manager que oculte las bancas con un fade.
                 PlacementUIManager.Instance.HideBenchesForDrag();
-                
-                // Mostramos la zona de eliminación con un fade.
-                if (trashZoneCanvasGroup != null) 
-                    StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
+                if (trashZoneCanvasGroup != null) StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
             }
         }
     }
 
-    void DropRepositionedUnit()
-    {
-        PointerEventData pointerData = new PointerEventData(EventSystem.current) { position = Mouse.current.position.ReadValue() };
+    void UpdateRepositioningUnit(Vector2 pointerPosition) {
+        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+        Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+        if (groundPlane.Raycast(ray, out float distance)) {
+            Vector3 worldPosition = ray.GetPoint(distance);
+            unitToReposition.transform.position = new Vector3(worldPosition.x, 0.5f, worldPosition.z);
+            UpdateHighlightForRepositioning(pointerPosition);
+        }
+    }
+
+    void DropRepositionedUnit(Vector2 pointerPosition) {
+        PointerEventData pointerData = new PointerEventData(EventSystem.current) { position = pointerPosition };
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(pointerData, results);
         bool droppedOnTrash = false;
         foreach (RaycastResult result in results) { if (result.gameObject.GetComponent<TrashZoneController>() != null) { droppedOnTrash = true; break; } }
-
         if (droppedOnTrash) {
             if (unitToReposition.originatingIcon != null) { unitToReposition.originatingIcon.ResetIcon(); }
             unitToReposition.Die();
@@ -158,31 +151,13 @@ public class PlayerController : MonoBehaviour
                 originalNodeOfRepositionedUnit.isWalkable = false;
             }
         }
-
-        // Le decimos al UI Manager que vuelva a mostrar la banca activa.
         PlacementUIManager.Instance.ShowBenchesAfterDrag();
-        // Ocultamos la zona de eliminación con un fade.
-        if (trashZoneCanvasGroup != null) 
-            StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 1f, 0f));
-
-        // Limpieza final.
+        if (trashZoneCanvasGroup != null) StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 1f, 0f));
         unitToReposition = null;
         originalNodeOfRepositionedUnit = null;
         if (highlightInstance != null) highlightInstance.SetActive(false);
     }
     
-    // El resto de funciones se mantienen igual, pero las incluyo para que tengas el script completo.
-    #region Funciones sin cambios
-    void UpdateRepositioningUnit() {
-        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (groundPlane.Raycast(ray, out float distance)) {
-            Vector3 worldPosition = ray.GetPoint(distance);
-            unitToReposition.transform.position = new Vector3(worldPosition.x, 0.5f, worldPosition.z);
-            UpdateHighlightForRepositioning();
-        }
-    }
-
     private void PlaceUnitOnNode(Node node, UnitStats unitStats) {
         if (unitStats?.characterPrefab != null) {
             GameObject unitInstance = Instantiate(unitStats.characterPrefab, node.worldPosition, Quaternion.identity);
@@ -197,22 +172,23 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-
-    private void UpdateHighlightForNewUnit() {
+    
+    private void UpdateHighlightForNewUnit(Vector2 pointerPosition) {
         if (highlightInstance == null || PlacementUIManager.Instance == null) return;
         int teamID = PlacementUIManager.Instance.CurrentPlacementTeamID;
-        UpdateHighlight(teamID);
+        UpdateHighlight(teamID, pointerPosition);
     }
     
-    private void UpdateHighlightForRepositioning() {
+    private void UpdateHighlightForRepositioning(Vector2 pointerPosition) {
         if (highlightInstance == null || unitToReposition == null) return;
         Node nodeUnderUnit = gridManager.NodeFromWorldPoint(unitToReposition.transform.position);
-        UpdateHighlight(unitToReposition.teamID, nodeUnderUnit);
+        UpdateHighlight(unitToReposition.teamID, pointerPosition, nodeUnderUnit);
     }
 
-    private void UpdateHighlight(int teamID, Node nodeToHighlight = null) {
+    private void UpdateHighlight(int teamID, Vector2 pointerPosition, Node nodeToHighlight = null) {
         if (nodeToHighlight == null) {
-            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+            if (EventSystem.current.IsPointerOverGameObject()) { if (highlightInstance != null) highlightInstance.SetActive(false); return; }
+            Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
             if (Physics.Raycast(ray, out RaycastHit hit)) {
                 nodeToHighlight = gridManager.NodeFromWorldPoint(hit.point);
             }
@@ -241,6 +217,7 @@ public class PlayerController : MonoBehaviour
             cg.interactable = false;
             cg.blocksRaycasts = false;
         }
+        yield break;
     }
     #endregion
 }
