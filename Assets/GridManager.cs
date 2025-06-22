@@ -40,24 +40,24 @@ public class GridManager : MonoBehaviour
 
     public Node NodeFromWorldPoint(Vector3 worldPosition)
     {
-        // Convertimos la posición del mundo en un porcentaje del tamaño total del grid.
-        float percentX = worldPosition.x / (gridWidth * nodeSize);
-        float percentZ = worldPosition.z / (gridHeight * nodeSize);
-
         // --- INICIO DE LA CORRECCIÓN ---
-        // Comprobamos si el porcentaje está fuera del rango [0, 1).
-        // Si lo está, significa que estamos fuera del tablero.
-        if (percentX < 0 || percentX >= 1 || percentZ < 0 || percentZ >= 1)
-        {
-            return null; // Devolvemos null para indicar que la posición es inválida.
-        }
+        // Para compensar el hecho de que el pivote de nuestras casillas (Planes) está
+        // en el centro, desplazamos el punto de referencia del cálculo sumando
+        // la mitad del tamaño de un nodo. Esto alinea la cuadrícula lógica con la física.
+        float adjustedX = worldPosition.x + nodeSize / 2f;
+        float adjustedZ = worldPosition.z + nodeSize / 2f;
+
+        int x = Mathf.FloorToInt(adjustedX / nodeSize);
+        int z = Mathf.FloorToInt(adjustedZ / nodeSize);
         // --- FIN DE LA CORRECCIÓN ---
 
-        // Ya no necesitamos Mathf.Clamp01. La comprobación anterior se encarga de los límites.
-        int x = Mathf.FloorToInt(percentX * gridWidth);
-        int z = Mathf.FloorToInt(percentZ * gridHeight);
-        
-        return grid[x, z];
+        // El resto de la lógica de comprobación de límites es la misma.
+        if (x >= 0 && x < gridWidth && z >= 0 && z < gridHeight)
+        {
+            return grid[x, z];
+        }
+
+        return null;
     }
 
     public void SpawnInitialUnits()
