@@ -1097,7 +1097,8 @@ MonoBehaviour:
   gridManager: {fileID: 1113242420}
   highlightPrefab: {fileID: 5090270939071943840, guid: 200536cddddad304f8a70813d2073b03, type: 3}
   dragCursorImage: {fileID: 1690339846}
-  trashZoneUI: {fileID: 465360112}
+  trashZoneCanvasGroup: {fileID: 465360117}
+  fadeDuration: 0.2
 --- !u!4 &261310746
 Transform:
   m_ObjectHideFlags: 0
@@ -1344,14 +1345,14 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1690339848}
   - {fileID: 223209990}
   - {fileID: 260840874}
-  - {fileID: 1993271225}
-  - {fileID: 1611992674}
   - {fileID: 1688085836}
   - {fileID: 1807715036}
   - {fileID: 465360113}
+  - {fileID: 1993271225}
+  - {fileID: 1611992674}
+  - {fileID: 1690339848}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1498,6 +1499,7 @@ GameObject:
   - component: {fileID: 465360116}
   - component: {fileID: 465360115}
   - component: {fileID: 465360114}
+  - component: {fileID: 465360117}
   m_Layer: 5
   m_Name: TrashZone
   m_TagString: Untagged
@@ -1519,11 +1521,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 382097736}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0.5}
-  m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -26.968, y: 30}
-  m_SizeDelta: {x: 231.63, y: 320.5743}
-  m_Pivot: {x: 1, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: -0.00012207031, y: 0}
+  m_SizeDelta: {x: 267.44, y: 0}
+  m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &465360114
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1574,6 +1576,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 465360112}
   m_CullTransparentMesh: 1
+--- !u!225 &465360117
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 465360112}
+  m_Enabled: 1
+  m_Alpha: 0
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!224 &663300139 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6189998322180374857, guid: 08ef3158629794e46a778f8723a3d163, type: 3}
@@ -3006,6 +3020,7 @@ GameObject:
   - component: {fileID: 1688085839}
   - component: {fileID: 1688085838}
   - component: {fileID: 1688085837}
+  - component: {fileID: 1688085840}
   m_Layer: 5
   m_Name: Ally_Poll
   m_TagString: Untagged
@@ -3102,6 +3117,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1688085835}
   m_CullTransparentMesh: 1
+--- !u!225 &1688085840
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1688085835}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1690339845
 GameObject:
   m_ObjectHideFlags: 0
@@ -3396,6 +3423,7 @@ GameObject:
   - component: {fileID: 1807715038}
   - component: {fileID: 1807715037}
   - component: {fileID: 1807715039}
+  - component: {fileID: 1807715040}
   m_Layer: 5
   m_Name: Enemy_Poll
   m_TagString: Untagged
@@ -3492,6 +3520,18 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!225 &1807715040
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1807715035}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1001 &1851028839
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4009,6 +4049,7 @@ MonoBehaviour:
   - {fileID: 8209115074712782973, guid: ace99dc470c76f74d80b95fafbda7e2b, type: 3}
   - {fileID: 8209115074712782973, guid: 6ff60c203cfb2dd40b74d6ce2c997a7c, type: 3}
   - {fileID: 8209115074712782973, guid: 2b21c8d2a89bda347a98beda5cc8f10f, type: 3}
+  allyBenchCanvasGroup: {fileID: 1688085840}
   enemyBenchScrollView: {fileID: 1807715035}
   enemyBenchContent: {fileID: 1740147707}
   enemyIconPrefabs:
@@ -4025,6 +4066,9 @@ MonoBehaviour:
   - {fileID: 8209115074712782973, guid: ace99dc470c76f74d80b95fafbda7e2b, type: 3}
   - {fileID: 8209115074712782973, guid: 6ff60c203cfb2dd40b74d6ce2c997a7c, type: 3}
   - {fileID: 8209115074712782973, guid: 2b21c8d2a89bda347a98beda5cc8f10f, type: 3}
+  enemyBenchCanvasGroup: {fileID: 1807715040}
+  unitIconPrefab: {fileID: 0}
+  fadeDuration: 0.2
 --- !u!4 &2071166982
 Transform:
   m_ObjectHideFlags: 0
