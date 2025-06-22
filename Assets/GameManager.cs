@@ -12,13 +12,11 @@ public class GameManager : MonoBehaviour
     [Header("Reglas del Juego")]
     public int maxUnitsPerTeam = 10;
     
-    [System.Serializable]
-    public class CategoryLimit
-    {
-        public UnitStats.UnitCategory category;
-        public int limit;
-    }
-    public CategoryLimit[] categoryLimits;
+    // --- CORRECCIÓN ---
+    // Hemos eliminado la clase 'CategoryLimit' y el array 'categoryLimits[]'
+    // que aparecían en el Inspector.
+
+    // El diccionario ahora es privado y se rellenará desde el código.
     private Dictionary<UnitStats.UnitCategory, int> categoryLimitsDict;
     
     private List<UnitController> allUnits = new List<UnitController>();
@@ -34,13 +32,22 @@ public class GameManager : MonoBehaviour
         else Destroy(gameObject);
 
         teamCategoryCounts = new Dictionary<int, Dictionary<UnitStats.UnitCategory, int>>();
-        categoryLimitsDict = new Dictionary<UnitStats.UnitCategory, int>();
-        foreach (var limitInfo in categoryLimits)
+
+        // --- CORRECCIÓN ---
+        // Aquí es donde definimos los límites fijos para cada categoría.
+        // Si en el futuro quieres cambiar un límite, solo tienes que modificar el número aquí.
+        categoryLimitsDict = new Dictionary<UnitStats.UnitCategory, int>
         {
-            categoryLimitsDict[limitInfo.category] = limitInfo.limit;
-        }
+            { UnitStats.UnitCategory.Fabulosa, 5 },
+            { UnitStats.UnitCategory.Magnifica, 4 },
+            { UnitStats.UnitCategory.Suprema, 1 }
+        };
     }
 
+    // El resto del script no necesita ningún cambio, ya que utiliza el 'categoryLimitsDict'
+    // que ahora rellenamos de forma fija.
+
+    #region Funciones sin cambios
     public void RegisterUnit(UnitController unit)
     {
         if (allUnits.Contains(unit)) return;
@@ -61,7 +68,6 @@ public class GameManager : MonoBehaviour
             teamCategoryCounts[team][category] = 0;
         }
         teamCategoryCounts[team][category]++;
-        // Debug.Log($"Unidad de categoría '{category}' registrada para equipo {team}. Total: {teamCategoryCounts[team][category]}");
         
         UpdateHarmonyBonuses(unit, true);
     }
@@ -84,10 +90,8 @@ public class GameManager : MonoBehaviour
         UpdateHarmonyBonuses(unit, false);
     }
 
-    // --- FUNCIÓN DE COMPROBACIÓN CORREGIDA Y CON MEJORES DIAGNÓSTICOS ---
     public bool CanPlaceUnit(int teamID, UnitStats stats)
     {
-        // 1. Comprobación del límite total de unidades por equipo
         int currentTotalCount = 0;
         teamUnitCount.TryGetValue(teamID, out currentTotalCount);
         if (currentTotalCount >= maxUnitsPerTeam)
@@ -95,24 +99,18 @@ public class GameManager : MonoBehaviour
             Debug.Log($"LÍMITE TOTAL ALCANZADO: Equipo {teamID} ya tiene {currentTotalCount}/{maxUnitsPerTeam} unidades.");
             return false;
         }
-
-        // 2. Comprobación del límite por categoría para el equipo correspondiente
+        
         UnitStats.UnitCategory category = stats.category;
         int currentCategoryCount = 0;
         
-        // Obtenemos la cuenta actual para esa categoría y ese equipo
         if (teamCategoryCounts.ContainsKey(teamID))
         {
             teamCategoryCounts[teamID].TryGetValue(category, out currentCategoryCount);
         }
         
-        // Obtenemos el límite para esa categoría
         int limitForCategory = 0;
         if(categoryLimitsDict.TryGetValue(category, out limitForCategory))
         {
-            Debug.Log($"[Check Límite] Equipo: {teamID}, Categoría: {category}, Unidades Actuales: {currentCategoryCount}, Límite: {limitForCategory}");
-            
-            // Comparamos la cuenta actual con el límite
             if (currentCategoryCount >= limitForCategory)
             {
                 Debug.LogWarning($"LÍMITE DE CATEGORÍA ALCANZADO: Equipo {teamID} ya tiene el máximo de unidades '{category}'.");
@@ -145,9 +143,9 @@ public class GameManager : MonoBehaviour
         
         CurrentState = GameState.Placement;
     }
-
-    // El resto de funciones no cambian
+    
     private void UpdateHarmonyBonuses(UnitController unit, bool isAdding) { }
     public void StartCombatButton() { }
     private IEnumerator CombatLoop() { yield return null; }
+    #endregion
 }
