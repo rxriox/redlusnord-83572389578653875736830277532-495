@@ -11,12 +11,6 @@ public class GameManager : MonoBehaviour
 
     [Header("Reglas del Juego")]
     public int maxUnitsPerTeam = 10;
-    
-    // --- CORRECCIÓN ---
-    // Hemos eliminado la clase 'CategoryLimit' y el array 'categoryLimits[]'
-    // que aparecían en el Inspector.
-
-    // El diccionario ahora es privado y se rellenará desde el código.
     private Dictionary<UnitStats.UnitCategory, int> categoryLimitsDict;
     
     private List<UnitController> allUnits = new List<UnitController>();
@@ -30,29 +24,22 @@ public class GameManager : MonoBehaviour
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
-
         teamCategoryCounts = new Dictionary<int, Dictionary<UnitStats.UnitCategory, int>>();
-
-        // --- CORRECCIÓN ---
-        // Aquí es donde definimos los límites fijos para cada categoría.
-        // Si en el futuro quieres cambiar un límite, solo tienes que modificar el número aquí.
         categoryLimitsDict = new Dictionary<UnitStats.UnitCategory, int>
         {
+// CHARACTER CATEGORY LIMIT IN BOARD
             { UnitStats.UnitCategory.Fabulosa, 5 },
             { UnitStats.UnitCategory.Magnifica, 4 },
             { UnitStats.UnitCategory.Suprema, 1 }
         };
     }
-
-    // El resto del script no necesita ningún cambio, ya que utiliza el 'categoryLimitsDict'
-    // que ahora rellenamos de forma fija.
-
+    
     #region Funciones sin cambios
     public void RegisterUnit(UnitController unit)
     {
         if (allUnits.Contains(unit)) return;
         allUnits.Add(unit);
-        
+
         int team = unit.teamID;
         UnitStats.UnitCategory category = unit.unitStats.category;
 
@@ -68,7 +55,7 @@ public class GameManager : MonoBehaviour
             teamCategoryCounts[team][category] = 0;
         }
         teamCategoryCounts[team][category]++;
-        
+
         UpdateHarmonyBonuses(unit, true);
     }
 
