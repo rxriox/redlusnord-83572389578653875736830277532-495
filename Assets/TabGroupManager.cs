@@ -4,10 +4,10 @@ using System.Collections.Generic;
 
 public class TabGroupManager : MonoBehaviour
 {
-    public static TabGroupManager Instance { get; private set; } // Añadimos un Singleton
+    public static TabGroupManager Instance { get; private set; }
     [HideInInspector]
-    public Artifact draggedArtifact { get; private set; } // Para saber qué artefacto se arrastra
-    private Tab lastSelectedTab; // Para recordar qué pestaña estaba abierta
+    public Artifact draggedArtifact { get; private set; } // Para saber que artefacto se arrastra
+    private Tab lastSelectedTab;
     private void Awake()
     {
         if (Instance == null)
@@ -39,8 +39,10 @@ public class TabGroupManager : MonoBehaviour
     [Header("Pestaña por Defecto")]
     [Tooltip("El índice de la pestaña que se mostrará al iniciar (0 es la primera de la lista).")]
     public int defaultTabIndex = 0;
-
     private Tab selectedTab;
+    [Header("Arrastre de Artefactos")]
+    [Tooltip("El índice de la pestaña/panel que se mostrará como zona para soltar artefactos (0=primero, 1=segundo, etc.).")]
+    public int artifactDropTargetTabIndex = 1;
 
     void Start()
     {
@@ -79,15 +81,15 @@ public class TabGroupManager : MonoBehaviour
     }
     public void OnArtifactDragStart(Artifact artifact)
     {
-        // Guardamos la pestaña que estaba activa para poder volver a ella después.
         lastSelectedTab = selectedTab;
         draggedArtifact = artifact;
-
-        // Opcional: Forzamos que se muestre una pestaña específica como zona de drop.
-        // Por ejemplo, la primera de la lista (el panel de armonías).
-        if (tabs.Count > 0)
+        if (tabs.Count > artifactDropTargetTabIndex && artifactDropTargetTabIndex >= 0)
         {
-            OnTabSelected(tabs[0]);
+            OnTabSelected(tabs[artifactDropTargetTabIndex]);
+        }
+        else
+        {
+            Debug.LogWarning("El 'Artifact Drop Target Tab Index' no es válido. Revisa la configuración en el TabGroupManager.");
         }
     }
     public void OnArtifactDragEnd()

@@ -157,7 +157,6 @@ public class PlacementUIManager : MonoBehaviour
             }
         }
     }
-
     public void HideBenchesForDrag()
     {
         if (allyBenchCanvasGroup != null) StartCoroutine(FadeCanvasGroup(allyBenchCanvasGroup, allyBenchCanvasGroup.alpha, 0f));
