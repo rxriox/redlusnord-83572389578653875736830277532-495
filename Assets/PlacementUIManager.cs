@@ -35,6 +35,10 @@ public class PlacementUIManager : MonoBehaviour
     [Header("Banca de Artefactos")]
     [Tooltip("El objeto GameObject del ScrollView de los artefactos.")]
     public GameObject artifactsBenchScrollView;
+    [Tooltip("El objeto 'Content' dentro del ScrollView de artefactos.")]
+    public Transform artifactsBenchContent;
+    [Tooltip("Arrastra aquí tus PREFABS de iconos de artefactos.")]
+    public GameObject[] artifactIconPrefabs;
     [Tooltip("El CanvasGroup del ScrollView de los artefactos para la animación.")]
     public CanvasGroup artifactsBenchCanvasGroup;
 
@@ -58,6 +62,7 @@ public class PlacementUIManager : MonoBehaviour
     {
         PopulateBench(allyBenchContent, allyIconPrefabs);
         PopulateBench(enemyBenchContent, enemyIconPrefabs);
+        PopulateBench(artifactsBenchContent, artifactIconPrefabs);
         ShowAllyBench();
         UpdateUnitCountDisplay();
     }
@@ -102,9 +107,7 @@ public class PlacementUIManager : MonoBehaviour
     public void ShowAllyBench()
     {
         CurrentPlacementTeamID = 0;
-        lastActiveBench = ActiveBench.Allies;
-
-        SetBenchVisibility(allyBenchCanvasGroup);
+        SetBenchVisibility(allyBenchCanvasGroup, enemyBenchCanvasGroup, artifactsBenchCanvasGroup);
 
         if (allyBenchButton != null) allyBenchButton.GetComponent<Image>().color = activeTabColor;
         if (enemyBenchButton != null) enemyBenchButton.GetComponent<Image>().color = inactiveTabColor;
@@ -114,9 +117,7 @@ public class PlacementUIManager : MonoBehaviour
     public void ShowEnemyBench()
     {
         CurrentPlacementTeamID = 1;
-        lastActiveBench = ActiveBench.Enemies;
-
-        SetBenchVisibility(enemyBenchCanvasGroup);
+        SetBenchVisibility(enemyBenchCanvasGroup, allyBenchCanvasGroup, artifactsBenchCanvasGroup);
 
         if (allyBenchButton != null) allyBenchButton.GetComponent<Image>().color = inactiveTabColor;
         if (enemyBenchButton != null) enemyBenchButton.GetComponent<Image>().color = activeTabColor;
@@ -125,26 +126,35 @@ public class PlacementUIManager : MonoBehaviour
     
     public void ShowArtifactsBench()
     {
-        lastActiveBench = ActiveBench.Artifacts;
-        // No establecemos un teamID, ya que no se colocan unidades de equipo.
-        
-        SetBenchVisibility(artifactsBenchCanvasGroup);
+        // Al estar en la banca de artefactos, no estamos colocando para ningún equipo.
+        // Podríamos asignar un ID especial si fuera necesario, como -1.
+        // CurrentPlacementTeamID = -1;
+
+        SetBenchVisibility(artifactsBenchCanvasGroup, allyBenchCanvasGroup, enemyBenchCanvasGroup);
 
         if (allyBenchButton != null) allyBenchButton.GetComponent<Image>().color = inactiveTabColor;
         if (enemyBenchButton != null) enemyBenchButton.GetComponent<Image>().color = inactiveTabColor;
         if (ArtifactsBenchButton != null) ArtifactsBenchButton.GetComponent<Image>().color = activeTabColor;
     }
-    private void SetBenchVisibility(CanvasGroup toShow)
+    private void SetBenchVisibility(CanvasGroup toShow, params CanvasGroup[] toHide)
     {
-        var allBenches = new List<CanvasGroup> { allyBenchCanvasGroup, enemyBenchCanvasGroup, artifactsBenchCanvasGroup };
-
-        foreach (var bench in allBenches)
+        // Muestra y activa el panel objetivo
+        if (toShow != null)
         {
-            if (bench == null) continue;
-            bool isActive = (bench == toShow);
-            bench.alpha = isActive ? 1f : 0f;
-            bench.interactable = isActive;
-            bench.blocksRaycasts = isActive;
+            toShow.alpha = 1;
+            toShow.interactable = true;
+            toShow.blocksRaycasts = true;
+        }
+
+        // Oculta y desactiva todos los demás paneles que se le pasen
+        foreach (var cg in toHide)
+        {
+            if (cg != null)
+            {
+                cg.alpha = 0;
+                cg.interactable = false;
+                cg.blocksRaycasts = false;
+            }
         }
     }
 
