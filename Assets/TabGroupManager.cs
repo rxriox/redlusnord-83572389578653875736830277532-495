@@ -1,10 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic; // Necesario para List<>
+using System.Collections.Generic;
 
 public class TabGroupManager : MonoBehaviour
 {
-    // Esta clase nos ayudará a organizar cada pestaña en el Inspector.
     [System.Serializable]
     public class Tab
     {
@@ -12,8 +11,6 @@ public class TabGroupManager : MonoBehaviour
         public Button tabButton;
         [Tooltip("El panel que se mostrará al hacer clic en el botón.")]
         public GameObject panelToShow;
-        
-        // --- LÍNEAS AÑADIDAS ---
         [Tooltip("El sprite que tendrá el botón cuando esta pestaña esté ACTIVA.")]
         public Sprite activeStateSprite;
         [Tooltip("El sprite que tendrá el botón cuando esta pestaña esté INACTIVA.")]
@@ -32,27 +29,16 @@ public class TabGroupManager : MonoBehaviour
 
     void Start()
     {
-        // Añadimos un 'listener' a cada botón para que llame a nuestra función
-        // cuando se le haga clic. Esto lo hacemos por código para no tener que
-        // configurar cada botón a mano en el Inspector.
         foreach (Tab tab in tabs)
         {
-            // Le decimos al botón que cuando se le haga clic, llame a la función OnTabSelected
-            // pasándose a sí mismo como referencia.
             tab.tabButton.onClick.AddListener(() => OnTabSelected(tab));
         }
 
-        // Mostramos la pestaña por defecto al iniciar el juego.
         if (tabs.Count > defaultTabIndex)
         {
             OnTabSelected(tabs[defaultTabIndex]);
         }
     }
-
-    /// <summary>
-    /// Esta función se ejecuta cuando se hace clic en cualquier botón de las pestañas.
-    /// </summary>
-    /// <param name="tab">La pestaña que ha sido seleccionada.</param>
     void OnTabSelected(Tab tab)
     {
         selectedTab = tab;
@@ -61,7 +47,6 @@ public class TabGroupManager : MonoBehaviour
 
     void ResetTabStates()
     {
-        // Recorremos todas las pestañas para actualizar su estado.
         foreach (Tab tab in tabs)
         {
             bool isActive = (tab == selectedTab);
@@ -70,12 +55,9 @@ public class TabGroupManager : MonoBehaviour
             {
                 tab.panelToShow.SetActive(isActive);
             }
-
-            // CORRECCIÓN: Ahora usamos los sprites específicos de cada 'tab'.
             Image buttonImage = tab.tabButton.GetComponent<Image>();
             if (buttonImage != null)
             {
-                // Si la pestaña está activa, usa su 'activeStateSprite', si no, su 'inactiveStateSprite'.
                 buttonImage.sprite = isActive ? tab.activeStateSprite : tab.inactiveStateSprite;
             }
         }

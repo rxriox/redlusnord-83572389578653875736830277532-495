@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using TMPro;
 
 public class PlacementUIManager : MonoBehaviour
 {
@@ -11,6 +12,12 @@ public class PlacementUIManager : MonoBehaviour
     public Button enemyBenchButton;
     public Color activeTabColor = Color.black;
     public Color inactiveTabColor = Color.white;
+
+    [Header("Contadores de Unidades")]
+    [Tooltip("El texto que mostrará el contador de unidades aliadas (ej. 5/10).")]
+    public TextMeshProUGUI allyUnitCountText;
+    [Tooltip("El texto que mostrará el contador de unidades enemigas.")]
+    public TextMeshProUGUI enemyUnitCountText;
 
     [Header("Banca Aliada")]
     public GameObject allyBenchScrollView;
@@ -44,6 +51,7 @@ public class PlacementUIManager : MonoBehaviour
         PopulateBench(allyBenchContent, allyIconPrefabs);
         PopulateBench(enemyBenchContent, enemyIconPrefabs);
         ShowAllyBench();
+        UpdateUnitCountDisplay();
     }
 
     void PopulateBench(Transform content, GameObject[] iconPrefabs)
@@ -53,6 +61,41 @@ public class PlacementUIManager : MonoBehaviour
         foreach (GameObject iconPrefab in iconPrefabs)
         {
             if (iconPrefab != null) Instantiate(iconPrefab, content);
+        }
+    }
+
+    private void OnEnable()
+    {
+        // Nos suscribimos al evento del GameManager.
+        // Cada vez que se registre/desregistre una unidad, se llamará a UpdateUnitCountDisplay.
+        GameManager.OnHarmoniesUpdated += UpdateUnitCountDisplay;
+    }
+
+    private void OnDisable()
+    {
+        // Es importante desuscribirse para evitar errores.
+        GameManager.OnHarmoniesUpdated -= UpdateUnitCountDisplay;
+    }
+
+    void UpdateUnitCountDisplay()
+    {
+        if (GameManager.Instance == null) return;
+
+        // Obtenemos el límite máximo de unidades desde el GameManager.
+        int maxUnits = GameManager.Instance.maxUnitsPerTeam;
+
+        // Actualizamos el texto del contador de aliados (equipo 0).
+        if (allyUnitCountText != null)
+        {
+            int allyCount = GameManager.Instance.GetUnitCountForTeam(0);
+            allyUnitCountText.text = $"{allyCount}/{maxUnits}";
+        }
+
+        // Actualizamos el texto del contador de enemigos (equipo 1).
+        if (enemyUnitCountText != null)
+        {
+            int enemyCount = GameManager.Instance.GetUnitCountForTeam(1);
+            enemyUnitCountText.text = $"{enemyCount}/{maxUnits}";
         }
     }
 

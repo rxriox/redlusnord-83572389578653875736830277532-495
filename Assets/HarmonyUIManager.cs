@@ -11,8 +11,10 @@ public class HarmonyUIManager : MonoBehaviour
 
     [Header("Configuración")]
     public int teamIdToShow = 0;
-    
     private Dictionary<HarmonyType, GameObject> spawnedIcons = new Dictionary<HarmonyType, GameObject>();
+    [Header("UI Mensajes")]
+    [Tooltip("El objeto de texto que se muestra cuando no hay unidades.")]
+    public GameObject noUnitsMessageObject;
 
     private void OnEnable()
     {
@@ -28,7 +30,28 @@ public class HarmonyUIManager : MonoBehaviour
     {
         if (GameManager.Instance == null) return;
 
+        // Primero, comprobamos el número total de unidades del equipo.
+        int totalPlayerUnits = GameManager.Instance.GetUnitCountForTeam(teamIdToShow);
+
+        // Si no hay unidades, mostramos el mensaje y ocultamos los paneles de iconos.
+        if (totalPlayerUnits == 0)
+        {
+            if (noUnitsMessageObject != null) noUnitsMessageObject.SetActive(true);
+            
+            activeHarmoniesContainer.gameObject.SetActive(false);
+            inactiveHarmoniesContainer.gameObject.SetActive(false);
+            return; // Salimos de la función aquí, no hay nada más que hacer.
+        }
+
+        // Si llegamos aquí, significa que SÍ hay unidades.
+        // Por tanto, ocultamos el mensaje y mostramos los paneles de iconos.
+        if (noUnitsMessageObject != null) noUnitsMessageObject.SetActive(false);
+        activeHarmoniesContainer.gameObject.SetActive(true);
+        inactiveHarmoniesContainer.gameObject.SetActive(true);
+
+        // Ahora ejecutamos la lógica que ya teníamos para dibujar los iconos de armonías.
         Dictionary<HarmonyType, int> harmonyCounts = GameManager.Instance.GetHarmonyCountsForTeam(teamIdToShow);
+
         foreach (var icon in spawnedIcons.Values)
         {
             icon.SetActive(false);
@@ -38,7 +61,9 @@ public class HarmonyUIManager : MonoBehaviour
         {
             HarmonyType type = harmonyInfo.Key;
             int count = harmonyInfo.Value;
+            
             bool isHarmonyActive = GameManager.Instance.IsHarmonyActiveForTeam(type, teamIdToShow);
+
             GameObject iconGO;
             if (spawnedIcons.ContainsKey(type))
             {
@@ -51,6 +76,7 @@ public class HarmonyUIManager : MonoBehaviour
             }
             
             iconGO.SetActive(true);
+            
             Image iconImage = iconGO.GetComponentInChildren<Image>();
             Text iconText = iconGO.GetComponentInChildren<Text>();
 

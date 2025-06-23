@@ -21,6 +21,11 @@ public class GameManager : MonoBehaviour
 
     private Dictionary<HarmonyType, Dictionary<int, int>> harmonyCounts = new Dictionary<HarmonyType, Dictionary<int, int>>();
     private Dictionary<HarmonyType, Dictionary<int, int>> activeHarmonyTiers = new Dictionary<HarmonyType, Dictionary<int, int>>();
+    public int GetUnitCountForTeam(int teamID)
+    {
+        teamUnitCount.TryGetValue(teamID, out int count);
+        return count;
+    }
 
     private void Awake()
     {
