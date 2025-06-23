@@ -7,6 +7,7 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
+    public static PlayerController Instance { get; private set; }
     [Header("Referencias del Sistema")]
     public GridManager gridManager;
     public GameObject highlightPrefab;
@@ -15,14 +16,26 @@ public class PlayerController : MonoBehaviour
     public Image dragCursorImage;
     public CanvasGroup trashZoneCanvasGroup;
     public float fadeDuration = 0.2f;
-    
+
     private GameObject highlightInstance;
     private UnitIconController currentlyDraggedIcon;
     private UnitController unitToReposition;
     private Node originalNodeOfRepositionedUnit;
     private PlayerControl playerControls;
 
-    void Awake() { playerControls = new PlayerControl(); }
+    void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
+
+        playerControls = new PlayerControl();
+    }
     private void OnEnable() { playerControls.Gameplay.Enable(); }
     private void OnDisable() { playerControls.Gameplay.Disable(); }
 
@@ -63,7 +76,7 @@ public class PlayerController : MonoBehaviour
             TryStartRepositioning(pointerPosition);
         }
     }
-    
+
     public void StartDraggingUnit(UnitIconController iconController)
     {
         int teamID = PlacementUIManager.Instance.CurrentPlacementTeamID;
@@ -73,18 +86,18 @@ public class PlayerController : MonoBehaviour
         {
             // Si no se puede colocar, la función termina aquí y no pasa nada más.
             // El icono en la UI no se ve afectado.
-            return; 
+            return;
         }
-        
+
         if (GameManager.Instance.CurrentState != GameManager.GameState.Placement || unitToReposition != null) return;
-        
+
         currentlyDraggedIcon = iconController;
         currentlyDraggedIcon.SetSpriteToPlacedState();
         dragCursorImage.sprite = currentlyDraggedIcon.GetDragCursorSprite();
         dragCursorImage.raycastTarget = false;
         dragCursorImage.gameObject.SetActive(true);
     }
-    
+
     public void StopDraggingUnit()
     {
         if (currentlyDraggedIcon == null) return;
@@ -112,7 +125,7 @@ public class PlayerController : MonoBehaviour
         dragCursorImage.gameObject.SetActive(false);
         if (highlightInstance != null) highlightInstance.SetActive(false);
     }
-    
+
     #region Funciones sin cambios
     void TryStartRepositioning(Vector2 pointerPosition)
     {
@@ -144,22 +157,29 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void DropRepositionedUnit(Vector2 pointerPosition) {
+    void DropRepositionedUnit(Vector2 pointerPosition)
+    {
         PointerEventData pointerData = new PointerEventData(EventSystem.current) { position = pointerPosition };
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(pointerData, results);
         bool droppedOnTrash = false;
         foreach (RaycastResult result in results) { if (result.gameObject.GetComponent<TrashZoneController>() != null) { droppedOnTrash = true; break; } }
-        if (droppedOnTrash) {
+        if (droppedOnTrash)
+        {
             if (unitToReposition.originatingIcon != null) { unitToReposition.originatingIcon.ResetIcon(); }
             unitToReposition.Die();
-        } else {
+        }
+        else
+        {
             Node destinationNode = gridManager.NodeFromWorldPoint(unitToReposition.transform.position);
-            if (gridManager.IsNodeValidForPlacement(destinationNode, unitToReposition.teamID)) {
+            if (gridManager.IsNodeValidForPlacement(destinationNode, unitToReposition.teamID))
+            {
                 unitToReposition.transform.position = destinationNode.worldPosition;
                 unitToReposition.currentNode = destinationNode;
                 destinationNode.isWalkable = false;
-            } else {
+            }
+            else
+            {
                 unitToReposition.transform.position = originalNodeOfRepositionedUnit.worldPosition;
                 unitToReposition.currentNode = originalNodeOfRepositionedUnit;
                 originalNodeOfRepositionedUnit.isWalkable = false;
@@ -171,13 +191,16 @@ public class PlayerController : MonoBehaviour
         originalNodeOfRepositionedUnit = null;
         if (highlightInstance != null) highlightInstance.SetActive(false);
     }
-    
-    private void PlaceUnitOnNode(Node node, UnitStats unitStats) {
-        if (unitStats?.characterPrefab != null) {
+
+    private void PlaceUnitOnNode(Node node, UnitStats unitStats)
+    {
+        if (unitStats?.characterPrefab != null)
+        {
             GameObject unitInstance = Instantiate(unitStats.characterPrefab, node.worldPosition, Quaternion.identity);
             node.isWalkable = false;
             UnitController unitController = unitInstance.GetComponent<UnitController>();
-            if (unitController != null) {
+            if (unitController != null)
+            {
                 unitController.unitStats = unitStats;
                 unitController.currentNode = node;
                 unitController.teamID = PlacementUIManager.Instance.CurrentPlacementTeamID;
@@ -186,53 +209,75 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-    
-    private void UpdateHighlightForNewUnit(Vector2 pointerPosition) {
+
+    private void UpdateHighlightForNewUnit(Vector2 pointerPosition)
+    {
         if (highlightInstance == null || PlacementUIManager.Instance == null) return;
         int teamID = PlacementUIManager.Instance.CurrentPlacementTeamID;
         UpdateHighlight(teamID, pointerPosition);
     }
 
-    
-    private void UpdateHighlightForRepositioning(Vector2 pointerPosition) {
+
+    private void UpdateHighlightForRepositioning(Vector2 pointerPosition)
+    {
         if (highlightInstance == null || unitToReposition == null) return;
         Node nodeUnderUnit = gridManager.NodeFromWorldPoint(unitToReposition.transform.position);
         UpdateHighlight(unitToReposition.teamID, pointerPosition, nodeUnderUnit);
     }
 
-    private void UpdateHighlight(int teamID, Vector2 pointerPosition, Node nodeToHighlight = null) {
-        if (nodeToHighlight == null) {
+    private void UpdateHighlight(int teamID, Vector2 pointerPosition, Node nodeToHighlight = null)
+    {
+        if (nodeToHighlight == null)
+        {
             if (EventSystem.current.IsPointerOverGameObject()) { if (highlightInstance != null) highlightInstance.SetActive(false); return; }
             Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
-            if (Physics.Raycast(ray, out RaycastHit hit)) {
+            if (Physics.Raycast(ray, out RaycastHit hit))
+            {
                 nodeToHighlight = gridManager.NodeFromWorldPoint(hit.point);
             }
         }
-        if (gridManager.IsNodeValidForPlacement(nodeToHighlight, teamID)) {
+        if (gridManager.IsNodeValidForPlacement(nodeToHighlight, teamID))
+        {
             highlightInstance.SetActive(true);
             highlightInstance.transform.position = nodeToHighlight.worldPosition;
-        } else {
+        }
+        else
+        {
             highlightInstance.SetActive(false);
         }
     }
 
-    private IEnumerator FadeCanvasGroup(CanvasGroup cg, float start, float end) {
+    private IEnumerator FadeCanvasGroup(CanvasGroup cg, float start, float end)
+    {
         float counter = 0f;
-        if (end > start) {
+        if (end > start)
+        {
             cg.interactable = true;
             cg.blocksRaycasts = true;
         }
-        while (counter < fadeDuration) {
+        while (counter < fadeDuration)
+        {
             counter += Time.deltaTime;
             cg.alpha = Mathf.Lerp(start, end, counter / fadeDuration);
             yield return null;
         }
         cg.alpha = end;
-        if (end < start) {
+        if (end < start)
+        {
             cg.interactable = false;
             cg.blocksRaycasts = false;
         }
         yield break;
     }
     #endregion
+    public void ShowTrashZone()
+    {
+        if (trashZoneCanvasGroup != null)
+            StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
+    }
+    public void HideTrashZone()
+    {
+        if (trashZoneCanvasGroup != null)
+            StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 1f, 0f));
+    }
 }

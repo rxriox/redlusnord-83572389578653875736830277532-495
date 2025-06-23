@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 public class TabGroupManager : MonoBehaviour
 {
+    private bool artifactDropWasSuccessful = false;
     public static TabGroupManager Instance { get; private set; }
     [HideInInspector]
     public Artifact draggedArtifact { get; private set; } // Para saber que artefacto se arrastra
@@ -81,8 +82,12 @@ public class TabGroupManager : MonoBehaviour
     }
     public void OnArtifactDragStart(Artifact artifact)
     {
+        // Reiniciamos la bandera al empezar un nuevo arrastre.
+        artifactDropWasSuccessful = false;
+
         lastSelectedTab = selectedTab;
         draggedArtifact = artifact;
+
         if (tabs.Count > artifactDropTargetTabIndex && artifactDropTargetTabIndex >= 0)
         {
             OnTabSelected(tabs[artifactDropTargetTabIndex]);
@@ -94,14 +99,21 @@ public class TabGroupManager : MonoBehaviour
     }
     public void OnArtifactDragEnd()
     {
-        // Restauramos la pestaña que estaba activa antes del arrastre.
-        if (lastSelectedTab != null)
+        // Si el drop NO fue exitoso, volvemos a la pestaña que estaba activa antes.
+        if (!artifactDropWasSuccessful && lastSelectedTab != null)
         {
             OnTabSelected(lastSelectedTab);
         }
+        // Si FUE exitoso, no hacemos nada y la vista se queda en el panel de artefactos.
 
-        // Limpiamos el estado.
+        // Limpiamos las variables de estado en cualquier caso.
         draggedArtifact = null;
         lastSelectedTab = null;
+        artifactDropWasSuccessful = false; // Reiniciamos la bandera para la próxima vez.
+    }
+    
+    public void SetArtifactDropSuccessful()
+    {
+        artifactDropWasSuccessful = true;
     }
 }

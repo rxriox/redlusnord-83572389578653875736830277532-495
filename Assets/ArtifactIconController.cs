@@ -6,7 +6,7 @@ public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHan
 {
     [Tooltip("El ScriptableObject del artefacto que este icono representa.")]
     public Artifact artifactData;
-    
+
     private Image iconImage;
     private CanvasGroup canvasGroup;
     private Transform originalParent;
@@ -15,21 +15,37 @@ public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHan
     void Awake()
     {
         iconImage = GetComponent<Image>();
-        canvasGroup = gameObject.AddComponent<CanvasGroup>(); // Añadimos CanvasGroup para el arrastre
+        canvasGroup = gameObject.AddComponent<CanvasGroup>();
+        ResetIcon();
     }
 
+    public void SetAsPlaced()
+    {
+        isPlaced = true;
+        if (placedSprite != null) iconImage.sprite = placedSprite;
+    }
+    public void ResetIcon()
+    {
+        isPlaced = false;
+        if (availableSprite != null) iconImage.sprite = availableSprite;
+    }
     public void OnBeginDrag(PointerEventData eventData)
     {
+        Debug.Log("<color=cyan>ICONO:</color> Arrastre de artefacto iniciado para: " + artifactData.artifactName); // <-- AÑADE ESTA LÍNEA
+        
         if (artifactData == null) return;
-        
-        // Notificamos al TabGroupManager que un arrastre ha comenzado.
         TabGroupManager.Instance.OnArtifactDragStart(artifactData);
+        originalParent = transform.parent;
+        // Comprobamos si no está ya colocado Y si hay espacio para uno nuevo.
+        if (isPlaced || !ArtifactManager.Instance.CanPlaceArtifact())
+        {
+            eventData.pointerDrag = null; // Cancelamos el arrastre si no se cumplen las condiciones.
+            return;
+        }
         
-        // Hacemos que el icono se pueda arrastrar por toda la pantalla
-        // y que no bloquee los eventos del ratón.
         originalParent = transform.parent;
         startPosition = transform.position;
-        transform.SetParent(transform.root); // Lo movemos a la raíz del Canvas
+        transform.SetParent(transform.root);
         canvasGroup.blocksRaycasts = false;
     }
 
@@ -49,4 +65,9 @@ public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHan
         transform.position = startPosition;
         canvasGroup.blocksRaycasts = true;
     }
+    
+    [Header("Apariencia")]
+    public Sprite availableSprite;
+    public Sprite placedSprite;
+    private bool isPlaced = false;
 }

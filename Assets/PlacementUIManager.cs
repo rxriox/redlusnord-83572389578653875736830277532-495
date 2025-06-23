@@ -138,27 +138,23 @@ public class PlacementUIManager : MonoBehaviour
     }
     private void SetBenchVisibility(CanvasGroup toShow, params CanvasGroup[] toHide)
     {
-        // Muestra y activa el panel objetivo
-        if (toShow != null)
+        StopAllCoroutines();
+        var allBenches = new List<CanvasGroup> { allyBenchCanvasGroup, enemyBenchCanvasGroup, artifactsBenchCanvasGroup };
+        foreach (var bench in allBenches)
         {
-            toShow.alpha = 1;
-            toShow.interactable = true;
-            toShow.blocksRaycasts = true;
-        }
+            if (bench == null) continue;
 
-        // Oculta y desactiva todos los demás paneles que se le pasen
-        foreach (var cg in toHide)
-        {
-            if (cg != null)
-            {
-                cg.alpha = 0;
-                cg.interactable = false;
-                cg.blocksRaycasts = false;
-            }
+            bool isActive = (bench == toShow);
+            bench.alpha = isActive ? 1f : 0f;
+            bench.interactable = isActive;
+            bench.blocksRaycasts = isActive;
         }
+        // Muestra y activa el panel objetivo
+        
     }
     public void HideBenchesForDrag()
     {
+        StopAllCoroutines();
         if (allyBenchCanvasGroup != null) StartCoroutine(FadeCanvasGroup(allyBenchCanvasGroup, allyBenchCanvasGroup.alpha, 0f));
         if (enemyBenchCanvasGroup != null) StartCoroutine(FadeCanvasGroup(enemyBenchCanvasGroup, enemyBenchCanvasGroup.alpha, 0f));
         if (artifactsBenchCanvasGroup != null) StartCoroutine(FadeCanvasGroup(artifactsBenchCanvasGroup, artifactsBenchCanvasGroup.alpha, 0f));
