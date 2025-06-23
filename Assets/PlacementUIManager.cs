@@ -66,8 +66,6 @@ public class PlacementUIManager : MonoBehaviour
 
     private void OnEnable()
     {
-        // Nos suscribimos al evento del GameManager.
-        // Cada vez que se registre/desregistre una unidad, se llamará a UpdateUnitCountDisplay.
         GameManager.OnHarmoniesUpdated += UpdateUnitCountDisplay;
     }
 
@@ -80,18 +78,13 @@ public class PlacementUIManager : MonoBehaviour
     void UpdateUnitCountDisplay()
     {
         if (GameManager.Instance == null) return;
-
-        // Obtenemos el límite máximo de unidades desde el GameManager.
         int maxUnits = GameManager.Instance.maxUnitsPerTeam;
-
-        // Actualizamos el texto del contador de aliados (equipo 0).
         if (allyUnitCountText != null)
         {
             int allyCount = GameManager.Instance.GetUnitCountForTeam(0);
             allyUnitCountText.text = $"{allyCount}/{maxUnits}";
         }
 
-        // Actualizamos el texto del contador de enemigos (equipo 1).
         if (enemyUnitCountText != null)
         {
             int enemyCount = GameManager.Instance.GetUnitCountForTeam(1);
