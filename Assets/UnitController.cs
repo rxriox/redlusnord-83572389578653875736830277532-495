@@ -60,17 +60,7 @@ public class UnitController : MonoBehaviour
 
     public void EvaluateAction()
     {
-        if (unitStats == null || currentState == UnitActionState.MOVING) return;
-
-        if (currentTarget == null || currentTarget.CurrentHealth <= 0)
-        {
-            FindTarget();
-            if (currentTarget == null)
-            {
-                currentState = UnitActionState.IDLE;
-                return;
-            }
-        }
+        if (unitStats == null) return;
 
         if (attackCooldown > 0)
         {
@@ -78,16 +68,29 @@ public class UnitController : MonoBehaviour
             return;
         }
 
-        if (Vector3.Distance(transform.position, currentTarget.transform.position) <= unitStats.attackRange)
+        if (currentTarget == null || currentTarget.CurrentHealth <= 0)
         {
-            StopAllCoroutines();
+            FindClosestEnemy();
+            if (currentTarget == null)
+            {
+                currentState = UnitActionState.IDLE;
+                return;
+            }
+        }
+
+        float distanceToTarget = Vector3.Distance(transform.position, currentTarget.transform.position);
+
+        if (distanceToTarget <= unitStats.attackRange)
+        {
+            // Si está en rango, ataca.
             currentState = UnitActionState.ATTACKING;
             AttackTarget();
         }
         else
         {
+            // Si NO está en rango, se mueve.
             currentState = UnitActionState.MOVING;
-            MoveToTarget();
+            MoveTowardsTarget(); 
         }
     }
     
@@ -98,14 +101,26 @@ public class UnitController : MonoBehaviour
             .OrderBy(u => Vector3.Distance(transform.position, u.transform.position))
             .FirstOrDefault();
     }
-    
+    private void FindClosestEnemy()
+    {
+        currentTarget = GameManager.Instance.GetAllUnits()
+            .Where(unit => unit != null && unit.teamID != this.teamID && unit.CurrentHealth > 0)
+            .OrderBy(unit => Vector3.Distance(transform.position, unit.transform.position))
+            .FirstOrDefault();
+    }
     private void AttackTarget()
     {
         if (currentTarget == null) return;
+
+        // Nos giramos para mirar al enemigo.
         transform.LookAt(currentTarget.transform.position);
 
+        Debug.Log($"{unitStats.unitName} ataca a {currentTarget.unitStats.unitName}");
+
+        // Lógica de ataque (Melee vs Rango)
         if (unitStats.unitType == UnitStats.UnitType.Ranged && unitStats.projectilePrefab != null)
         {
+            // Creamos y lanzamos un proyectil.
             GameObject projGO = Instantiate(unitStats.projectilePrefab, transform.position + new Vector3(0, 0.5f, 0), Quaternion.identity);
             Projectile projectile = projGO.GetComponent<Projectile>();
             if (projectile != null)
@@ -113,29 +128,45 @@ public class UnitController : MonoBehaviour
                 projectile.Initialize(this, currentTarget, unitStats.attackDamage);
             }
         }
-        else
+        else // Si es Melee o no tiene proyectil
         {
+            // Aplicamos el daño directamente.
             currentTarget.TakeDamage(unitStats.attackDamage);
         }
+
+        // Reiniciamos el cooldown del ataque.
         attackCooldown = 1f / unitStats.attackSpeed;
-        currentState = UnitActionState.IDLE; // Listo para la siguiente evaluación
     }
 
-    private void MoveToTarget()
+    private void MoveTowardsTarget()
     {
-        if (currentTarget == null || gridManager == null) return;
-        List<Node> path = gridManager.FindPath(transform.position, currentTarget.transform.position);
-        if (path != null && path.Count > 1) // > 1 para no movernos a la casilla de al lado del enemigo
+        if (currentTarget == null)
         {
-            // Quitamos el último nodo para dejar espacio para atacar
-            path.RemoveAt(path.Count - 1);
-            StopAllCoroutines();
-            StartCoroutine(MoveAlongPath(path));
+            currentState = UnitActionState.IDLE;
+            return;
         }
-        else
+        
+        // Detenemos cualquier corutina de movimiento anterior y empezamos la nueva.
+        StopAllCoroutines();
+        StartCoroutine(MoveDirectlyToTarget());
+    }
+
+    private IEnumerator MoveDirectlyToTarget()
+    {
+        // Mientras nuestro objetivo exista y estemos fuera de su rango de ataque...
+        while (currentTarget != null && Vector3.Distance(transform.position, currentTarget.transform.position) > unitStats.attackRange)
         {
-            currentState = UnitActionState.IDLE; // No hay camino, esperamos
+            // ...nos movemos hacia él en línea recta.
+            transform.position = Vector3.MoveTowards(transform.position, currentTarget.transform.position, unitStats.moveSpeed * Time.deltaTime);
+            // Hacemos que la unidad siempre mire a su objetivo mientras se mueve.
+            transform.LookAt(currentTarget.transform.position);
+            
+            yield return null; // Esperamos al siguiente frame para continuar el movimiento.
         }
+
+        // Una vez que el bucle termina (porque llegamos al rango o el objetivo murió),
+        // volvemos al estado IDLE para que en el siguiente frame, EvaluateAction decida atacar.
+        currentState = UnitActionState.IDLE;
     }
 
     private IEnumerator MoveAlongPath(List<Node> path)
