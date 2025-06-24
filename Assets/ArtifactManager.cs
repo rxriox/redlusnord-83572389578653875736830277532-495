@@ -68,15 +68,10 @@ public class ArtifactManager : MonoBehaviour
             noArtifactsMessageObject.SetActive(activeArtifacts.Count == 0);
         }
     }
-    /// <summary>
-    /// Actualiza el texto del contador de artefactos activos y su visibilidad.
-    /// </summary>
     private void UpdateCountText()
     {
         if (activeArtifactsCountText != null)
         {
-            // CORRECCIÓN: Hemos eliminado la línea que ocultaba el objeto del texto.
-            // Ahora solo actualizamos su contenido, por lo que siempre será visible.
             activeArtifactsCountText.text = $"{activeArtifacts.Count}/{maxArtifacts}";
         }
     }

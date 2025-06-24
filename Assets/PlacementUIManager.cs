@@ -126,10 +126,6 @@ public class PlacementUIManager : MonoBehaviour
     
     public void ShowArtifactsBench()
     {
-        // Al estar en la banca de artefactos, no estamos colocando para ningún equipo.
-        // Podríamos asignar un ID especial si fuera necesario, como -1.
-        // CurrentPlacementTeamID = -1;
-
         SetBenchVisibility(artifactsBenchCanvasGroup, allyBenchCanvasGroup, enemyBenchCanvasGroup);
 
         if (allyBenchButton != null) allyBenchButton.GetComponent<Image>().color = inactiveTabColor;
@@ -149,7 +145,6 @@ public class PlacementUIManager : MonoBehaviour
             bench.interactable = isActive;
             bench.blocksRaycasts = isActive;
         }
-        // Muestra y activa el panel objetivo
         
     }
     public void HideBenchesForDrag()
@@ -162,7 +157,6 @@ public class PlacementUIManager : MonoBehaviour
 
     public void ShowBenchesAfterDrag()
     {
-        // Usamos la variable que guardamos para saber qué pestaña restaurar.
         switch (lastActiveBench)
         {
             case ActiveBench.Allies:

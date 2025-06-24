@@ -84,8 +84,6 @@ public class PlayerController : MonoBehaviour
 
         if (GameManager.Instance.CanPlaceUnit(teamID, stats) == false)
         {
-            // Si no se puede colocar, la función termina aquí y no pasa nada más.
-            // El icono en la UI no se ve afectado.
             return;
         }
 

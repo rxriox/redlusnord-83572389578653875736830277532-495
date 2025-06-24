@@ -31,15 +31,14 @@ public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHan
     }
     public void OnBeginDrag(PointerEventData eventData)
     {
-        Debug.Log("<color=cyan>ICONO:</color> Arrastre de artefacto iniciado para: " + artifactData.artifactName); // <-- AÑADE ESTA LÍNEA
+        Debug.Log("<color=cyan>ICONO:</color> Arrastre de artefacto iniciado para: " + artifactData.artifactName);
         
         if (artifactData == null) return;
         TabGroupManager.Instance.OnArtifactDragStart(artifactData);
         originalParent = transform.parent;
-        // Comprobamos si no está ya colocado Y si hay espacio para uno nuevo.
         if (isPlaced || !ArtifactManager.Instance.CanPlaceArtifact())
         {
-            eventData.pointerDrag = null; // Cancelamos el arrastre si no se cumplen las condiciones.
+            eventData.pointerDrag = null;
             return;
         }
         
@@ -51,16 +50,12 @@ public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHan
 
     public void OnDrag(PointerEventData eventData)
     {
-        // El icono sigue al puntero (ratón o dedo)
         transform.position = eventData.position;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        // Notificamos al manager que el arrastre ha terminado.
         TabGroupManager.Instance.OnArtifactDragEnd();
-
-        // Devolvemos el icono a su posición y estado original.
         transform.SetParent(originalParent);
         transform.position = startPosition;
         canvasGroup.blocksRaycasts = true;
