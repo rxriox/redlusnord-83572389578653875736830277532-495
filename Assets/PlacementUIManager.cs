@@ -107,6 +107,7 @@ public class PlacementUIManager : MonoBehaviour
     public void ShowAllyBench()
     {
         CurrentPlacementTeamID = 0;
+        lastActiveBench = ActiveBench.Allies;
         SetBenchVisibility(allyBenchCanvasGroup, enemyBenchCanvasGroup, artifactsBenchCanvasGroup);
 
         if (allyBenchButton != null) allyBenchButton.GetComponent<Image>().color = activeTabColor;
@@ -117,6 +118,7 @@ public class PlacementUIManager : MonoBehaviour
     public void ShowEnemyBench()
     {
         CurrentPlacementTeamID = 1;
+        lastActiveBench = ActiveBench.Enemies;
         SetBenchVisibility(enemyBenchCanvasGroup, allyBenchCanvasGroup, artifactsBenchCanvasGroup);
 
         if (allyBenchButton != null) allyBenchButton.GetComponent<Image>().color = inactiveTabColor;
@@ -126,8 +128,8 @@ public class PlacementUIManager : MonoBehaviour
     
     public void ShowArtifactsBench()
     {
+        lastActiveBench = ActiveBench.Artifacts;
         SetBenchVisibility(artifactsBenchCanvasGroup, allyBenchCanvasGroup, enemyBenchCanvasGroup);
-
         if (allyBenchButton != null) allyBenchButton.GetComponent<Image>().color = inactiveTabColor;
         if (enemyBenchButton != null) enemyBenchButton.GetComponent<Image>().color = inactiveTabColor;
         if (ArtifactsBenchButton != null) ArtifactsBenchButton.GetComponent<Image>().color = activeTabColor;
@@ -167,6 +169,9 @@ public class PlacementUIManager : MonoBehaviour
                 break;
             case ActiveBench.Artifacts:
                 ShowArtifactsBench();
+                break;
+            default:
+                ShowAllyBench();
                 break;
         }
     }
