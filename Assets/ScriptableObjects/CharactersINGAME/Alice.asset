@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d9402cbfb4a5f042bc4ebdc07da06fe, type: 3}
   m_Name: Alice
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
-  category: 2
+  category: 0
   unitType: 1
   naturalHarmonies:
   - {fileID: 11400000, guid: 02b484b16826b88479fb058bec8ab49e, type: 2}

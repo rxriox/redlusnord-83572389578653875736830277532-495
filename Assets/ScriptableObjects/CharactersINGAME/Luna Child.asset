@@ -15,7 +15,7 @@ MonoBehaviour:
   category: 2
   unitType: 0
   naturalHarmonies: []
-  characterPrefab: {fileID: 3805343749917133435, guid: f14e46ab0b8d65444ad3c1610053ff2b, type: 3}
+  characterPrefab: {fileID: 3805343749917133435, guid: 4e891c1283e401c4aaafce97ce3041da, type: 3}
   projectilePrefab: {fileID: 0}
   unitName: hong meiling
   maxHealth: 2000

@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: yuyuko
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   category: 2
-  unitType: 0
+  unitType: 1
   naturalHarmonies: []
-  characterPrefab: {fileID: 3805343749917133435, guid: f14e46ab0b8d65444ad3c1610053ff2b, type: 3}
-  projectilePrefab: {fileID: 0}
+  characterPrefab: {fileID: 3805343749917133435, guid: d4a70dfdfd89c1448ac0811f361917b9, type: 3}
+  projectilePrefab: {fileID: 4570334888300365644, guid: e0775eba1bb45214f9851bad6110993a, type: 3}
   unitName: hong meiling
   maxHealth: 2000
   maxMana: 100

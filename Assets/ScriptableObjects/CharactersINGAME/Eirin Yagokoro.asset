@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Eirin Yagokoro
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   category: 2
-  unitType: 0
+  unitType: 1
   naturalHarmonies: []
   characterPrefab: {fileID: 3805343749917133435, guid: 1444fccd6248a43449d101978445e514, type: 3}
-  projectilePrefab: {fileID: 0}
+  projectilePrefab: {fileID: 4570334888300365644, guid: e0775eba1bb45214f9851bad6110993a, type: 3}
   unitName: Eirin Yagokoro
   maxHealth: 40
   maxMana: 100

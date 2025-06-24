@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4357723823612328309}
   - component: {fileID: 5122383893165623242}
   m_Layer: 5
-  m_Name: Alice 12
+  m_Name: Hata no Kokoro
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -88,7 +88,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a1e251cda59f394386f66edbf3d847e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitIconController
-  characterData: {fileID: 11400000, guid: 7d17cb1eb06560042991390f3f41320a, type: 2}
-  availableIconSprite: {fileID: 21300000, guid: 643daf7f13dc9364fa18748f63b299b2, type: 3}
+  characterData: {fileID: 11400000, guid: 14d5384d88a59c14191dcb72e9cf2018, type: 2}
+  availableIconSprite: {fileID: 21300000, guid: 920de3a7ca1baa946a78b5f716690d88, type: 3}
   placedIconSprite: {fileID: 21300000, guid: 81891ae7ee0aee5409608485aa468a93, type: 3}
   dragCursorSprite: {fileID: 21300000, guid: da1a024e742615f4bb9d765d107b8742, type: 3}
