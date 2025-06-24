@@ -6,9 +6,6 @@ public class Node
     public Vector3 worldPosition;
     public int gridX;
     public int gridZ;
-    
-    // Ya no necesitamos gCost, hCost, ni parent.
-
     public Node(bool _isWalkable, Vector3 _worldPosition, int _gridX, int _gridZ)
     {
         isWalkable = _isWalkable;

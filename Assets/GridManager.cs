@@ -111,8 +111,7 @@ public class GridManager : MonoBehaviour
     public List<Node> GetNeighbours(Node node)
     {
         List<Node> neighbours = new List<Node>();
-        int[,] directions = { {0,1}, {0,-1}, {1,0}, {-1,0} }; // Arriba, Abajo, Derecha, Izquierda
-
+        int[,] directions = { {0,1}, {0,-1}, {1,0}, {-1,0} };
         for (int i = 0; i < directions.GetLength(0); i++)
         {
             int checkX = node.gridX + directions[i,0];

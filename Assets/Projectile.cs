@@ -14,14 +14,14 @@ public class Projectile : MonoBehaviour
         this.attacker = shooter;
         this.target = targetUnit;
         this.damageAmount = dmg;
-        Destroy(gameObject, lifeTime); // El proyectil se autodestruye si no impacta
+        Destroy(gameObject, lifeTime);
     }
 
     void Update()
     {
         if (target == null || target.CurrentHealth <= 0)
         {
-            Destroy(gameObject); // El objetivo murió o desapareció
+            Destroy(gameObject);
             return;
         }
 

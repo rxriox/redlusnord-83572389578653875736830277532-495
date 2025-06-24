@@ -5,14 +5,11 @@ using System.Linq;
 
 public class UnitController : MonoBehaviour
 {
-    // --- DATOS Y REFERENCIAS ---
     public UnitStats unitStats;
     public int teamID;
     public Node currentNode;
     public UnitIconController originatingIcon;
     public float CurrentHealth { get; private set; }
-
-    // --- ESTADO DE LA IA ---
     private enum State { IDLE, MOVING, ATTACKING }
     private State currentState = State.IDLE;
 
@@ -26,7 +23,6 @@ public class UnitController : MonoBehaviour
         CurrentHealth = unitStats.maxHealth;
     }
 
-    // --- EL CEREBRO DE LA UNIDAD ---
     public void EvaluateAction()
     {
         if (currentState != State.IDLE || unitStats == null) return;
@@ -55,22 +51,16 @@ public class UnitController : MonoBehaviour
 
     private void FindClosestEnemy()
     {
-        // Usamos Linq para encontrar el objetivo más cercano que sea válido
         currentTarget = GameManager.Instance.GetAllUnits()
-            // Filtramos para obtener solo unidades válidas (que no seamos nosotros, de otro equipo y vivas)
             .Where(unit => unit != null && unit != this && unit.teamID != this.teamID && unit.CurrentHealth > 0)
-            // CORRECCIÓN: Ordenamos por la distancia a 'unit' (el enemigo potencial de la lista), no a 'currentTarget'.
             .OrderBy(unit => Vector3.Distance(transform.position, unit.transform.position))
-            // Cogemos el primero de la lista ya ordenada (el más cercano).
             .FirstOrDefault();
     }
 
     private bool IsTargetInAttackRange()
     {
         if (currentTarget == null) return false;
-        // Ahora usamos la distancia del grid, no la del mundo, para ser más precisos.
         int distance = Mathf.Abs(currentNode.gridX - currentTarget.currentNode.gridX) + Mathf.Abs(currentNode.gridZ - currentTarget.currentNode.gridZ);
-        // Convertimos el rango de ataque a "casillas". Asumimos que 1 de rango = 1 casilla.
         return distance <= Mathf.CeilToInt(unitStats.attackRange);
     }
 
@@ -97,7 +87,6 @@ public class UnitController : MonoBehaviour
         currentState = State.IDLE;
     }
 
-    // --- LA NUEVA LÓGICA DE MOVIMIENTO ---
     private void MoveTowardsTarget()
     {
         Node bestNextNode = FindBestNextNode();
@@ -111,7 +100,7 @@ public class UnitController : MonoBehaviour
     {
         if (currentTarget == null || gridManager == null) return null;
 
-        List<Node> neighbours = gridManager.GetNeighbours(currentNode); // Necesitamos añadir GetNeighbours de vuelta
+        List<Node> neighbours = gridManager.GetNeighbours(currentNode);
         Node bestNode = null;
         float minDistance = float.MaxValue;
 
@@ -153,7 +142,6 @@ public class UnitController : MonoBehaviour
         currentState = State.IDLE;
     }
     
-    // Funciones de vida y muerte
     public void TakeDamage(float damage)
     {
         CurrentHealth -= damage;
