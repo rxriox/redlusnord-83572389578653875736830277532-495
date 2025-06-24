@@ -16,7 +16,7 @@ MonoBehaviour:
   unitType: 0
   naturalHarmonies: []
   characterPrefab: {fileID: 3805343749917133435, guid: bb435a086c0022d499d5ca42d4e243b3, type: 3}
-  projectilePrefab: {fileID: 0}
+  projectilePrefab: {fileID: 4570334888300365644, guid: e0775eba1bb45214f9851bad6110993a, type: 3}
   unitName: Byakuren
   maxHealth: 40
   maxMana: 100

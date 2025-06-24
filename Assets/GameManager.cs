@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour
     [Header("Reglas del Juego")]
     public int maxUnitsPerTeam = 10;
     private Dictionary<UnitStats.UnitCategory, int> categoryLimitsDict;
-    
+
     private List<UnitController> allUnits = new List<UnitController>();
     private Dictionary<int, int> teamUnitCount = new Dictionary<int, int>();
     private Dictionary<int, Dictionary<UnitStats.UnitCategory, int>> teamCategoryCounts;
@@ -40,11 +40,11 @@ public class GameManager : MonoBehaviour
             { UnitStats.UnitCategory.Suprema, 1 }
         };
     }
-    
+
     public Dictionary<HarmonyType, int> GetHarmonyCountsForTeam(int teamID)
     {
         var counts = new Dictionary<HarmonyType, int>();
-        foreach(var harmonyPair in harmonyCounts)
+        foreach (var harmonyPair in harmonyCounts)
         {
             if (harmonyPair.Value.ContainsKey(teamID) && harmonyPair.Value[teamID] > 0)
             {
@@ -61,7 +61,7 @@ public class GameManager : MonoBehaviour
         }
         return false;
     }
-    
+
     #region Funciones sin cambios
     public void RegisterUnit(UnitController unit)
     {
@@ -116,17 +116,17 @@ public class GameManager : MonoBehaviour
             Debug.Log($"LÍMITE TOTAL ALCANZADO: Equipo {teamID} ya tiene {currentTotalCount}/{maxUnitsPerTeam} unidades.");
             return false;
         }
-        
+
         UnitStats.UnitCategory category = stats.category;
         int currentCategoryCount = 0;
-        
+
         if (teamCategoryCounts.ContainsKey(teamID))
         {
             teamCategoryCounts[teamID].TryGetValue(category, out currentCategoryCount);
         }
-        
+
         int limitForCategory = 0;
-        if(categoryLimitsDict.TryGetValue(category, out limitForCategory))
+        if (categoryLimitsDict.TryGetValue(category, out limitForCategory))
         {
             if (currentCategoryCount >= limitForCategory)
             {
@@ -138,29 +138,50 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogWarning($"No se encontró un límite definido para la categoría '{category}'. Se permitirá la colocación.");
         }
-        
+
         return true;
     }
 
     public void ResetBoardButton()
     {
-        if (CurrentState == GameState.Combat && CombatLoop() != null) StopCoroutine(CombatLoop());
-        
+        // Detenemos el bucle de combate si está activo
+        if (CurrentState == GameState.Combat)
+        {
+            StopAllCoroutines(); // Usamos StopAllCoroutines para ser más tajantes
+        }
+
+        // Destruimos las unidades existentes
         List<UnitController> unitsToDestroy = new List<UnitController>(allUnits);
-        foreach (UnitController unit in unitsToDestroy) { if (unit != null) unit.Die(); }
-        
+        foreach (UnitController unit in unitsToDestroy)
+        {
+            if (unit != null) unit.Die();
+        }
         allUnits.Clear();
+        
+        // Limpiamos todos los conteos y datos de la partida
         harmonyCounts.Clear();
         activeHarmonyTiers.Clear();
         teamUnitCount.Clear();
-        teamCategoryCounts.Clear(); 
+        if (teamCategoryCounts != null) teamCategoryCounts.Clear();
+        
+        // Le decimos a la UI de las armonías que se actualice (para que se limpie)
+        OnHarmoniesUpdated?.Invoke();
 
+        // Le decimos a la UI de las bancas que vuelva a la pestaña de aliados por defecto
+        if (PlacementUIManager.Instance != null)
+        {
+            PlacementUIManager.Instance.ShowAllyBench();
+        }
+
+        // Reseteamos los iconos de la UI que ya habíamos implementado
         UnitIconController[] icons = FindObjectsByType<UnitIconController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (UnitIconController icon in icons) icon.ResetIcon();
         
+        // Finalmente, cambiamos el estado del juego de vuelta a Colocación
         CurrentState = GameState.Placement;
+        Debug.Log("Tablero Reiniciado. Fase de Colocación activada.");
     }
-    
+
     private void UpdateHarmonyBonuses(UnitController unit, bool isAdding)
     {
         int teamID = unit.teamID;
@@ -195,7 +216,39 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-    public void StartCombatButton() { }
-    private IEnumerator CombatLoop() { yield return null; }
+    public void StartCombatButton()
+    {
+        if (CurrentState == GameState.Placement)
+        {
+            CurrentState = GameState.Combat;
+            Debug.Log("¡El combate ha comenzado!");
+            StartCoroutine(CombatLoop());
+        }
+    }
+    private IEnumerator CombatLoop()
+    {
+        yield return new WaitForSeconds(1.0f); // Pausa inicial
+
+        // El bucle se ejecuta mientras estemos en combate y haya al menos dos facciones
+        while (CurrentState == GameState.Combat && allUnits.Select(u => u.teamID).Distinct().Count() > 1)
+        {
+            // Creamos una copia de la lista para iterar de forma segura, por si una unidad muere
+            foreach (var unit in allUnits.ToList())
+            {
+                if (unit != null)
+                {
+                    unit.EvaluateAction();
+                }
+            }
+            yield return null; // Esperamos al siguiente frame
+        }
+
+        CurrentState = GameState.Result;
+        Debug.Log("¡El combate ha terminado!");
+    }
     #endregion
+    public List<UnitController> GetAllUnits()
+    {
+        return allUnits;
+    }
 }
