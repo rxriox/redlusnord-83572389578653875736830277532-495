@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using TMPro;
 
 public class ArtifactManager : MonoBehaviour
 {
@@ -8,14 +9,16 @@ public class ArtifactManager : MonoBehaviour
     [Header("Configuración")]
     [Tooltip("El número máximo de artefactos que el jugador puede tener activos.")]
     public int maxArtifacts = 8;
-    
+
     [Header("Referencias de UI")]
     [Tooltip("El panel donde se mostrarán los iconos de los artefactos activos.")]
     public Transform activeArtifactsContainer;
+    [Tooltip("El objeto de texto que se muestra cuando no hay artefactos activos.")]
+    public GameObject noArtifactsMessageObject;
+    [Tooltip("El texto que mostrará el contador de artefactos activos (ej. 2/8).")]
+    public TextMeshProUGUI activeArtifactsCountText;
     [Tooltip("El prefab para el icono de un artefacto cuando está activo.")]
     public GameObject activeArtifactIconPrefab;
-
-    // Lista privada para llevar la cuenta de los artefactos activos.
     private List<ActiveArtifactIcon> activeArtifacts = new List<ActiveArtifactIcon>();
 
     private void Awake()
@@ -23,10 +26,11 @@ public class ArtifactManager : MonoBehaviour
         if (Instance != null && Instance != this) Destroy(gameObject);
         else Instance = this;
     }
-
-    /// <summary>
-    /// Comprueba si el jugador puede añadir un nuevo artefacto.
-    /// </summary>
+    void Start()
+    {
+        UpdateEmptyMessageVisibility();
+        UpdateCountText();
+    }
     public bool CanPlaceArtifact()
     {
         bool canPlace = activeArtifacts.Count < maxArtifacts;
@@ -37,37 +41,43 @@ public class ArtifactManager : MonoBehaviour
         return canPlace;
     }
 
-    /// <summary>
-    /// Se llama cuando un artefacto se suelta en la zona de artefactos activos.
-    /// </summary>
     public void PlaceArtifact(ArtifactIconController benchIcon)
     {
         if (!CanPlaceArtifact()) return;
-
-        // Creamos el nuevo icono en el panel de activos
         GameObject activeIconGO = Instantiate(activeArtifactIconPrefab, activeArtifactsContainer);
         ActiveArtifactIcon activeIconScript = activeIconGO.GetComponent<ActiveArtifactIcon>();
-        
-        // Lo inicializamos con los datos del icono de la banca
         activeIconScript.Initialize(benchIcon);
-
-        // Actualizamos las listas y estados
         activeArtifacts.Add(activeIconScript);
         benchIcon.SetAsPlaced();
+        UpdateEmptyMessageVisibility();
+        UpdateCountText();
     }
 
-    /// <summary>
-    /// Se llama cuando un artefacto activo se suelta en la papelera.
-    /// </summary>
     public void RemoveArtifact(ActiveArtifactIcon activeIcon)
     {
-        // Le decimos al icono original en la banca que vuelva a estar disponible
         activeIcon.originatingBenchIcon.ResetIcon();
-        
-        // Eliminamos el artefacto de la lista de activos
         activeArtifacts.Remove(activeIcon);
-
-        // Destruimos el objeto del icono activo
         Destroy(activeIcon.gameObject);
+        UpdateEmptyMessageVisibility();
+        UpdateCountText();
+    }
+    private void UpdateEmptyMessageVisibility()
+    {
+        if (noArtifactsMessageObject != null)
+        {
+            noArtifactsMessageObject.SetActive(activeArtifacts.Count == 0);
+        }
+    }
+    /// <summary>
+    /// Actualiza el texto del contador de artefactos activos y su visibilidad.
+    /// </summary>
+    private void UpdateCountText()
+    {
+        if (activeArtifactsCountText != null)
+        {
+            // CORRECCIÓN: Hemos eliminado la línea que ocultaba el objeto del texto.
+            // Ahora solo actualizamos su contenido, por lo que siempre será visible.
+            activeArtifactsCountText.text = $"{activeArtifacts.Count}/{maxArtifacts}";
+        }
     }
 }
