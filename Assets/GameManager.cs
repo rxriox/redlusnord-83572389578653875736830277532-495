@@ -6,6 +6,16 @@ using System.Linq;
 public class GameManager : MonoBehaviour
 
 {
+    [Header("Referencias del Sistema")]
+    public GridManager gridManager;
+    private struct CombatStartInfo
+    {
+        public UnitStats stats;
+        public int teamID;
+        public Node startingNode;
+        public UnitIconController originatingIcon;
+    }
+    private List<CombatStartInfo> unitsAtCombatStart = new List<CombatStartInfo>();
     public static event System.Action OnHarmoniesUpdated;
     public static GameManager Instance { get; private set; }
     public enum GameState { Placement, Combat, Result }
@@ -167,6 +177,7 @@ public class GameManager : MonoBehaviour
         UnitIconController[] icons = FindObjectsByType<UnitIconController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (UnitIconController icon in icons) icon.ResetIcon();
         CurrentState = GameState.Placement;
+        unitsAtCombatStart.Clear();
         Debug.Log("Tablero Reiniciado. Fase de Colocación activada.");
     }
 
@@ -208,29 +219,75 @@ public class GameManager : MonoBehaviour
     {
         if (CurrentState == GameState.Placement)
         {
+            unitsAtCombatStart.Clear();
+            foreach (var unit in allUnits)
+            {
+                if (unit != null)
+                {
+                    unitsAtCombatStart.Add(new CombatStartInfo {
+                        stats = unit.unitStats,
+                        teamID = unit.teamID,
+                        startingNode = unit.currentNode,
+                        originatingIcon = unit.originatingIcon
+                    });
+                }
+            }
+            
             CurrentState = GameState.Combat;
-            Debug.Log("¡El combate ha comenzado!");
             StartCoroutine(CombatLoop());
         }
     }
     private IEnumerator CombatLoop()
     {
         yield return new WaitForSeconds(1.0f);
-        while (CurrentState == GameState.Combat && allUnits.Select(u => u.teamID).Distinct().Count() > 1)
+
+        while (CurrentState == GameState.Combat && allUnits.Any(u => u.teamID == 0) && allUnits.Any(u => u.teamID == 1))
         {
             foreach (var unit in allUnits.ToList())
             {
-                if (unit != null)
-                {
-                    unit.EvaluateAction();
-                }
+                if (unit != null) unit.EvaluateAction();
             }
             yield return null;
         }
-
-        CurrentState = GameState.Result;
-        Debug.Log("¡El combate ha terminado!");
+        
+        yield return new WaitForSeconds(1.5f);
+        ResetBoardAfterCombat();
     }
+
+    private void ResetBoardAfterCombat()
+    {
+        CurrentState = GameState.Result;
+        Debug.Log("Reconstruyendo tablero para la siguiente ronda...");
+        foreach (var unit in allUnits.ToList())
+        {
+            if (unit != null) Destroy(unit.gameObject);
+        }
+        
+        allUnits.Clear();
+        harmonyCounts.Clear();
+        activeHarmonyTiers.Clear();
+
+        if (gridManager != null && gridManager.grid != null)
+        {
+            foreach (Node node in gridManager.grid)
+            {
+                node.isWalkable = true;
+            }
+        }
+        
+        foreach (var unitInfo in unitsAtCombatStart)
+        {
+            if (gridManager != null && unitInfo.startingNode != null)
+            {
+                gridManager.SpawnUnit(unitInfo.stats, unitInfo.teamID, unitInfo.startingNode, unitInfo.originatingIcon);
+            }
+        }
+        
+        if(OnHarmoniesUpdated != null) OnHarmoniesUpdated.Invoke();
+        CurrentState = GameState.Placement;
+        Debug.Log("Fase de colocación reanudada.");
+    }
+
     #endregion
     public List<UnitController> GetAllUnits()
     {

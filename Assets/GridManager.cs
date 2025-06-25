@@ -7,7 +7,7 @@ public class GridManager : MonoBehaviour
     public int gridWidth = 10;
     public int gridHeight = 10;
     public float nodeSize = 1f;
-    private Node[,] grid;
+    public Node[,] grid;
 
     [System.Serializable]
     public class UnitSpawnInfo
@@ -62,16 +62,11 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    void SpawnUnit(UnitStats stats, int team, Node node)
+    public void SpawnUnit(UnitStats stats, int team, Node node, UnitIconController originatingIcon = null)
     {
-        if (GameManager.Instance.CanPlaceUnit(team, stats) == false)
+        if (stats != null && node != null && node.isWalkable)
         {
-            return;
-        }
-
-        if (stats != null && IsNodeValidForPlacement(node, team))
-        {
-            GameObject unitGO = Instantiate(stats.characterPrefab, node.worldPosition, Quaternion.identity);
+            GameObject unitGO = Instantiate(stats.characterPrefab, node.worldPosition, Quaternion.identity, this.transform);
             UnitController unitController = unitGO.GetComponent<UnitController>();
 
             if (unitController != null)
@@ -79,13 +74,14 @@ public class GridManager : MonoBehaviour
                 unitController.unitStats = stats;
                 unitController.teamID = team;
                 unitController.currentNode = node;
+                unitController.originatingIcon = originatingIcon;
                 node.isWalkable = false;
                 GameManager.Instance.RegisterUnit(unitController);
+                if (originatingIcon != null)
+                {
+                    originatingIcon.SetAsPlaced();
+                }
             }
-        }
-        else
-        {
-            Debug.LogWarning($"No se pudo colocar la unidad inicial '{stats.name}' para el equipo {team} en la casilla ({node.gridX}, {node.gridZ}). ¡La zona no es válida o está ocupada!");
         }
     }
 

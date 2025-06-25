@@ -170,8 +170,8 @@ public class UnitController : MonoBehaviour
     }
      public static string GetTeamTag(int teamID)
     {
-        if (teamID == 0) return "<color=#42A5F5>[Aliada]</color>";   // Azul para aliados
-        if (teamID == 1) return "<color=#EF5350>[Enemiga]</color>";   // Rojo para enemigos
+        if (teamID == 0) return "<color=#42A5F5>[Aliada]</color>";   // BLUE = ALLIES
+        if (teamID == 1) return "<color=#EF5350>[Enemiga]</color>";   // RED = ENEMIES
         return "[Equipo ?]";
     }
 }

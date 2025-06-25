@@ -633,6 +633,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 593ae837de3821a42bdf183cb7273805, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
+  gridManager: {fileID: 1113242420}
   maxUnitsPerTeam: 10
 --- !u!4 &112722421
 Transform:
