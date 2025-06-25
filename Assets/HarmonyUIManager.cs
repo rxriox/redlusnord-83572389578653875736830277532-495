@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using TMPro;
 
 public class HarmonyUIManager : MonoBehaviour
 {
@@ -29,18 +30,10 @@ public class HarmonyUIManager : MonoBehaviour
     void UpdateDisplay()
     {
         if (GameManager.Instance == null) return;
-
-        // --- INICIO DE LA CORRECCIÓN ---
-        // Solo actualizamos la visualización si estamos en la fase de colocación.
         if (GameManager.Instance.CurrentState != GameManager.GameState.Placement)
         {
-            // Si estamos en combate o en la pantalla de resultados, no hacemos nada.
-            // El panel mantendrá el estado que tenía justo antes de empezar la batalla.
-            return; 
+            return;
         }
-        // --- FIN DE LA CORRECCIÓN ---
-
-        // El resto de la función se ejecuta con normalidad solo durante la fase de colocación.
         int totalPlayerUnits = GameManager.Instance.GetUnitCountForTeam(teamIdToShow);
 
         if (totalPlayerUnits == 0)
@@ -50,7 +43,7 @@ public class HarmonyUIManager : MonoBehaviour
             inactiveHarmoniesContainer.gameObject.SetActive(false);
             return;
         }
-        
+
         if (noUnitsMessageObject != null) noUnitsMessageObject.SetActive(false);
         activeHarmoniesContainer.gameObject.SetActive(true);
         inactiveHarmoniesContainer.gameObject.SetActive(true);
@@ -78,22 +71,40 @@ public class HarmonyUIManager : MonoBehaviour
                 iconGO = Instantiate(harmonyIconPrefab);
                 spawnedIcons[type] = iconGO;
             }
-            
+
             iconGO.SetActive(true);
-            
+
             Image iconImage = iconGO.GetComponentInChildren<Image>();
             Text iconText = iconGO.GetComponentInChildren<Text>();
 
             if (iconImage != null)
                 iconImage.sprite = isHarmonyActive ? type.activeIcon : type.inactiveIcon;
-            
+
             if (iconText != null)
             {
                 iconText.text = count.ToString();
                 iconText.color = isHarmonyActive ? Color.cyan : Color.white;
             }
-            
+
             iconGO.transform.SetParent(isHarmonyActive ? activeHarmoniesContainer : inactiveHarmoniesContainer, false);
         }
     }
+    public TextMeshProUGUI timerText;
+    void Update()
+{
+    if (GameManager.Instance == null || timerText == null) return;
+
+    if (GameManager.Instance.CurrentState == GameManager.GameState.Combat)
+    {
+        timerText.gameObject.SetActive(true);
+        float timeLeft = GameManager.BATTLE_TIME_LIMIT - GameManager.Instance.battleTimer;
+        // Asegurarnos que el tiempo no sea negativo
+        timeLeft = Mathf.Max(timeLeft, 0); 
+        timerText.text = timeLeft.ToString("F1"); // Muestra el tiempo con un decimal
+    }
+    else
+    {
+        timerText.gameObject.SetActive(false);
+    }
+}
 }

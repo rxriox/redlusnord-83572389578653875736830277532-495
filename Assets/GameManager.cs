@@ -6,6 +6,8 @@ using System.Linq;
 public class GameManager : MonoBehaviour
 
 {
+    public float battleTimer;
+    public const float BATTLE_TIME_LIMIT = 40f;
     [Header("Referencias del Sistema")]
     public GridManager gridManager;
     private struct CombatStartInfo
@@ -220,11 +222,13 @@ public class GameManager : MonoBehaviour
         if (CurrentState == GameState.Placement)
         {
             unitsAtCombatStart.Clear();
+            battleTimer = 0f;
             foreach (var unit in allUnits)
             {
                 if (unit != null)
                 {
-                    unitsAtCombatStart.Add(new CombatStartInfo {
+                    unitsAtCombatStart.Add(new CombatStartInfo
+                    {
                         stats = unit.unitStats,
                         teamID = unit.teamID,
                         startingNode = unit.currentNode,
@@ -241,8 +245,9 @@ public class GameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(1.0f);
 
-        while (CurrentState == GameState.Combat && allUnits.Any(u => u.teamID == 0) && allUnits.Any(u => u.teamID == 1))
+        while (CurrentState == GameState.Combat && allUnits.Any(u => u.teamID == 0) && allUnits.Any(u => u.teamID == 1) && battleTimer < BATTLE_TIME_LIMIT)
         {
+            battleTimer += Time.deltaTime;
             foreach (var unit in allUnits.ToList())
             {
                 if (unit != null) unit.EvaluateAction();
