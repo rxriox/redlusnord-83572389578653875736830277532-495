@@ -168,7 +168,6 @@ public class GameManager : MonoBehaviour
         activeHarmonyTiers.Clear();
         teamUnitCount.Clear();
         if (teamCategoryCounts != null) teamCategoryCounts.Clear();
-        OnHarmoniesUpdated?.Invoke();
         if (PlacementUIManager.Instance != null)
         {
             PlacementUIManager.Instance.ShowAllyBench();
@@ -177,6 +176,7 @@ public class GameManager : MonoBehaviour
         UnitIconController[] icons = FindObjectsByType<UnitIconController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (UnitIconController icon in icons) icon.ResetIcon();
         CurrentState = GameState.Placement;
+        OnHarmoniesUpdated?.Invoke();
         unitsAtCombatStart.Clear();
         Debug.Log("Tablero Reiniciado. Fase de Colocación activada.");
     }

@@ -29,19 +29,32 @@ public class HarmonyUIManager : MonoBehaviour
     void UpdateDisplay()
     {
         if (GameManager.Instance == null) return;
+
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Solo actualizamos la visualización si estamos en la fase de colocación.
+        if (GameManager.Instance.CurrentState != GameManager.GameState.Placement)
+        {
+            // Si estamos en combate o en la pantalla de resultados, no hacemos nada.
+            // El panel mantendrá el estado que tenía justo antes de empezar la batalla.
+            return; 
+        }
+        // --- FIN DE LA CORRECCIÓN ---
+
+        // El resto de la función se ejecuta con normalidad solo durante la fase de colocación.
         int totalPlayerUnits = GameManager.Instance.GetUnitCountForTeam(teamIdToShow);
+
         if (totalPlayerUnits == 0)
         {
             if (noUnitsMessageObject != null) noUnitsMessageObject.SetActive(true);
-            
             activeHarmoniesContainer.gameObject.SetActive(false);
             inactiveHarmoniesContainer.gameObject.SetActive(false);
             return;
         }
-
+        
         if (noUnitsMessageObject != null) noUnitsMessageObject.SetActive(false);
         activeHarmoniesContainer.gameObject.SetActive(true);
         inactiveHarmoniesContainer.gameObject.SetActive(true);
+
         Dictionary<HarmonyType, int> harmonyCounts = GameManager.Instance.GetHarmonyCountsForTeam(teamIdToShow);
 
         foreach (var icon in spawnedIcons.Values)
@@ -53,10 +66,9 @@ public class HarmonyUIManager : MonoBehaviour
         {
             HarmonyType type = harmonyInfo.Key;
             int count = harmonyInfo.Value;
-            
             bool isHarmonyActive = GameManager.Instance.IsHarmonyActiveForTeam(type, teamIdToShow);
-
             GameObject iconGO;
+
             if (spawnedIcons.ContainsKey(type))
             {
                 iconGO = spawnedIcons[type];
