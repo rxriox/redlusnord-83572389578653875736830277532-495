@@ -69,8 +69,6 @@ public class UnitController : MonoBehaviour
         currentState = State.ATTACKING;
         transform.LookAt(currentTarget.transform.position);
 
-        Debug.Log($"{unitStats.unitName} ataca a {currentTarget.unitStats.unitName}");
-
         if (unitStats.unitType == UnitStats.UnitType.Ranged && unitStats.projectilePrefab != null)
         {
             GameObject projGO = Instantiate(unitStats.projectilePrefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
@@ -80,7 +78,8 @@ public class UnitController : MonoBehaviour
         }
         else
         {
-            currentTarget.TakeDamage(unitStats.attackDamage);
+            Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ataca a {GetTeamTag(currentTarget.teamID)} {currentTarget.unitStats.unitName}");
+            currentTarget.TakeDamage(unitStats.attackDamage, this);
         }
 
         attackCooldown = 1f / unitStats.attackSpeed;
@@ -118,7 +117,7 @@ public class UnitController : MonoBehaviour
         }
         return bestNode;
     }
-    
+
     private IEnumerator MoveToNode(Node targetNode)
     {
         currentState = State.MOVING;
@@ -141,18 +140,30 @@ public class UnitController : MonoBehaviour
         transform.position = endPosition;
         currentState = State.IDLE;
     }
-    
-    public void TakeDamage(float damage)
+
+    public void TakeDamage(float damage, UnitController attacker)
     {
+        Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha recibido {damage} de daño de {GetTeamTag(attacker.teamID)} {attacker.unitStats.unitName}.");
         CurrentHealth -= damage;
-        if (CurrentHealth <= 0) Die();
+        if (CurrentHealth <= 0)
+        {
+            CurrentHealth = 0;
+            Die();
+        }
     }
 
     public void Die()
     {
+        Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha sido eliminada.");
         StopAllCoroutines();
         if (currentNode != null) currentNode.isWalkable = true;
         GameManager.Instance.UnregisterUnit(this);
         Destroy(gameObject);
+    }
+     public static string GetTeamTag(int teamID)
+    {
+        if (teamID == 0) return "<color=#42A5F5>[Aliada]</color>";   // Azul para aliados
+        if (teamID == 1) return "<color=#EF5350>[Enemiga]</color>";   // Rojo para enemigos
+        return "[Equipo ?]";
     }
 }

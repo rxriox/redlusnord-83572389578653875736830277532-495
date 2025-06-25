@@ -37,9 +37,9 @@ public class Projectile : MonoBehaviour
 
     void HitTarget()
     {
-        if (target != null)
+        if (target != null && target.CurrentHealth > 0)
         {
-            target.TakeDamage(damageAmount);
+            Debug.Log($"{UnitController.GetTeamTag(attacker.teamID)} {attacker.unitStats.unitName} ataca a {UnitController.GetTeamTag(target.teamID)} {target.unitStats.unitName}");
         }
         Destroy(gameObject);
     }
