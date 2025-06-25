@@ -151,7 +151,7 @@ public class GameManager : MonoBehaviour
         List<UnitController> unitsToDestroy = new List<UnitController>(allUnits);
         foreach (UnitController unit in unitsToDestroy)
         {
-            if (unit != null) unit.Die();
+            if (unit != null) unit.Die(null); 
         }
         allUnits.Clear();
         harmonyCounts.Clear();

@@ -148,13 +148,21 @@ public class UnitController : MonoBehaviour
         if (CurrentHealth <= 0)
         {
             CurrentHealth = 0;
-            Die();
+            Die(attacker);
         }
     }
 
-    public void Die()
+    public void Die(UnitController killer)
     {
         Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha sido eliminada.");
+        if (killer != null)
+        {
+            Debug.Log($"{GetTeamTag(killer.teamID)} {killer.unitStats.unitName} ha eliminado a {GetTeamTag(this.teamID)} {this.unitStats.unitName}");
+        }
+        else
+        {
+            Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha sido eliminada.");
+        }
         StopAllCoroutines();
         if (currentNode != null) currentNode.isWalkable = true;
         GameManager.Instance.UnregisterUnit(this);

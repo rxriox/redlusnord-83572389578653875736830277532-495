@@ -165,7 +165,7 @@ public class PlayerController : MonoBehaviour
         if (droppedOnTrash)
         {
             if (unitToReposition.originatingIcon != null) { unitToReposition.originatingIcon.ResetIcon(); }
-            unitToReposition.Die();
+            unitToReposition.Die(null); 
         }
         else
         {
