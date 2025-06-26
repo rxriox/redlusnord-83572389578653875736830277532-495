@@ -40,11 +40,7 @@ public class PlacementUIManager : MonoBehaviour
     [Tooltip("Arrastra aquí tus PREFABS de iconos de artefactos.")]
     public GameObject[] artifactIconPrefabs;
     [Tooltip("El CanvasGroup del ScrollView de los artefactos para la animación.")]
-    public CanvasGroup artifactsBenchCanvasGroup;
-
-    [Header("Configuración de Iconos")]
-    public GameObject unitIconPrefab;
-    
+    public CanvasGroup artifactsBenchCanvasGroup;    
     [Header("Animación")]
     [Tooltip("La duración en segundos del desvanecimiento (fade).")]
     public float fadeDuration = 0.2f;

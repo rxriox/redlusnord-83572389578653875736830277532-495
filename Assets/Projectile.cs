@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class Projectile : MonoBehaviour
 {
@@ -14,14 +15,14 @@ public class Projectile : MonoBehaviour
         this.attacker = shooter;
         this.target = targetUnit;
         this.damageAmount = dmg;
-        Destroy(gameObject, lifeTime);
+        StartCoroutine(DeactivateAfterTime(lifeTime));
     }
 
     void Update()
     {
         if (target == null || target.CurrentHealth <= 0)
         {
-            Destroy(gameObject);
+            gameObject.SetActive(false);
             return;
         }
 
@@ -39,9 +40,15 @@ public class Projectile : MonoBehaviour
     {
         if (target != null && target.CurrentHealth > 0)
         {
-            Debug.Log($"{UnitController.GetTeamTag(attacker.teamID)} {attacker.unitStats.unitName} ha infligido {damageAmount} de daño a {UnitController.GetTeamTag(target.teamID)} {target.unitStats.unitName}.");
+            Debug.Log($"{UnitController.GetTeamTag(attacker.teamID)} {attacker.unitStats.unitName} ataca a {UnitController.GetTeamTag(target.teamID)} {target.unitStats.unitName}");
             target.TakeDamage(damageAmount, attacker);
         }
-        Destroy(gameObject);
+        gameObject.SetActive(false);
+    }
+
+    private IEnumerator DeactivateAfterTime(float time)
+    {
+        yield return new WaitForSeconds(time);
+        gameObject.SetActive(false);
     }
 }

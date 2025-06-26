@@ -71,7 +71,7 @@ public class UnitController : MonoBehaviour
 
         if (unitStats.unitType == UnitStats.UnitType.Ranged && unitStats.projectilePrefab != null)
         {
-            GameObject projGO = Instantiate(unitStats.projectilePrefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
+            GameObject projGO = ObjectPooler.Instance.SpawnFromPool("Proyectil", transform.position + Vector3.up * 0.5f, Quaternion.identity);
             Projectile projectile = projGO.GetComponent<Projectile>();
             if (projectile != null)
                 projectile.Initialize(this, currentTarget, unitStats.attackDamage);
