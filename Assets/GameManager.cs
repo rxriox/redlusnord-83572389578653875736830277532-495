@@ -24,8 +24,8 @@ public class GameManager : MonoBehaviour
     public GameState CurrentState { get; private set; }
 
     [Header("Reglas del Juego")]
-    public int maxUnitsPerTeam = 10;
-    private Dictionary<UnitStats.UnitCategory, int> categoryLimitsDict;
+    public int maxUnitsPerTeam;
+    private Dictionary<UnitStats.UnitCategory, int> categoryLimitsDict = new Dictionary<UnitStats.UnitCategory, int>();
 
     private List<UnitController> allUnits = new List<UnitController>();
     private Dictionary<int, int> teamUnitCount = new Dictionary<int, int>();
@@ -44,14 +44,25 @@ public class GameManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
         teamCategoryCounts = new Dictionary<int, Dictionary<UnitStats.UnitCategory, int>>();
-        categoryLimitsDict = new Dictionary<UnitStats.UnitCategory, int>
-        {
-// CHARACTER CATEGORY LIMIT IN BOARD
-            { UnitStats.UnitCategory.Fabulosa, 5 },
-            { UnitStats.UnitCategory.Magnifica, 4 },
-            { UnitStats.UnitCategory.Suprema, 1 }
-        };
     }
+
+    public void ApplyRoundSettings(RoundSettings settings)
+{
+    if (settings == null)
+    {
+        Debug.LogError("Se intentó aplicar una configuración de ronda nula.");
+        return;
+    }
+
+    maxUnitsPerTeam = settings.maxTotalUnits;
+
+    categoryLimitsDict.Clear();
+    categoryLimitsDict[UnitStats.UnitCategory.Fabulosa] = settings.fabulosaLimit;
+    categoryLimitsDict[UnitStats.UnitCategory.Magnifica] = settings.magnificaLimit;
+    categoryLimitsDict[UnitStats.UnitCategory.Suprema] = settings.supremaLimit;
+
+    Debug.Log($"Límites de tablero actualizados a: {settings.roundName}. Total: {maxUnitsPerTeam}, Fabulosa: {settings.fabulosaLimit}, Magnífica: {settings.magnificaLimit}, Suprema: {settings.supremaLimit}");
+}
 
     public Dictionary<HarmonyType, int> GetHarmonyCountsForTeam(int teamID)
     {
