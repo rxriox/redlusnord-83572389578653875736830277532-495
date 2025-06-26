@@ -45,15 +45,13 @@ public class ArtifactManager : MonoBehaviour
     {
         if (!CanPlaceArtifact()) return;
 
-        // Pedimos un icono del pool en lugar de instanciarlo.
-        GameObject activeIconGO = ObjectPooler.Instance.SpawnFromPool("ActiveArtifactIcon", activeArtifactsContainer.position, Quaternion.identity);
+        // CORRECCIÓN: Volvemos a usar Instantiate en lugar de pedirlo al Object Pooler.
+        GameObject activeIconGO = Instantiate(activeArtifactIconPrefab, activeArtifactsContainer);
         
         if (activeIconGO != null)
         {
-            // Lo hacemos hijo del contenedor, y el Layout Group se encargará de su posición.
-            activeIconGO.transform.SetParent(activeArtifactsContainer);
-            activeIconGO.transform.localScale = Vector3.one; // Nos aseguramos de que la escala es correcta.
-
+            // El resto de la lógica es la misma
+            activeIconGO.transform.localScale = Vector3.one;
             ActiveArtifactIcon activeIconScript = activeIconGO.GetComponent<ActiveArtifactIcon>();
         
             activeIconScript.Initialize(benchIcon);
@@ -73,8 +71,8 @@ public class ArtifactManager : MonoBehaviour
         
         activeArtifacts.Remove(activeIcon);
         
-        // CORRECCIÓN: Devolvemos el icono al pool en lugar de destruirlo.
-        ObjectPooler.Instance.ReturnToPool("ActiveArtifactIcon", activeIcon.gameObject);
+        // CORRECCIÓN: Usamos Destroy en lugar de devolver el objeto al pool.
+        Destroy(activeIcon.gameObject);
 
         UpdateEmptyMessageVisibility();
         UpdateCountText();

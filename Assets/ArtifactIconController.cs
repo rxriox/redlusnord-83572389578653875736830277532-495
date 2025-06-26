@@ -31,33 +31,28 @@ public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHan
     }
     public void OnBeginDrag(PointerEventData eventData)
     {
-        Debug.Log("<color=cyan>ICONO:</color> Arrastre de artefacto iniciado para: " + artifactData.artifactName);
-        
         if (artifactData == null) return;
-        TabGroupManager.Instance.OnArtifactDragStart(artifactData);
-        originalParent = transform.parent;
-        if (isPlaced || !ArtifactManager.Instance.CanPlaceArtifact())
-        {
-            eventData.pointerDrag = null;
-            return;
-        }
         
-        originalParent = transform.parent;
-        startPosition = transform.position;
-        transform.SetParent(transform.root);
+        // Notificamos al manager, pasándole una referencia a este mismo icono.
+        TabGroupManager.Instance.OnArtifactDragStart(this);
+        
+        // Hacemos que el icono original se vuelva semitransparente durante el arrastre.
+        canvasGroup.alpha = 0.4f;
         canvasGroup.blocksRaycasts = false;
     }
 
-    public void OnDrag(PointerEventData eventData)
-    {
-        transform.position = eventData.position;
-    }
+    public void OnDrag(PointerEventData eventData){}
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        TabGroupManager.Instance.OnArtifactDragEnd();
-        transform.SetParent(originalParent);
-        transform.position = startPosition;
+        // Notificamos al manager que el arrastre ha terminado.
+        if (TabGroupManager.Instance != null)
+        {
+            TabGroupManager.Instance.OnArtifactDragEnd();
+        }
+        
+        // Restauramos la apariencia y la interacción del icono original.
+        canvasGroup.alpha = 1f;
         canvasGroup.blocksRaycasts = true;
     }
     

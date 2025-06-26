@@ -1,9 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
 public class TabGroupManager : MonoBehaviour
 {
+    private PlayerControl playerControls;
     private bool artifactDropWasSuccessful = false;
     public static TabGroupManager Instance { get; private set; }
     [HideInInspector]
@@ -19,6 +21,18 @@ public class TabGroupManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        // Inicializamos nuestro objeto de controles
+        playerControls = new PlayerControl();
+    }
+    private void OnEnable()
+    {
+        playerControls.Gameplay.Enable();
+    }
+
+    private void OnDisable()
+    {
+        playerControls.Gameplay.Disable();
     }
     [System.Serializable]
     public class Tab
@@ -44,6 +58,8 @@ public class TabGroupManager : MonoBehaviour
     [Header("Arrastre de Artefactos")]
     [Tooltip("El índice de la pestaña/panel que se mostrará como zona para soltar artefactos (0=primero, 1=segundo, etc.).")]
     public int artifactDropTargetTabIndex = 1;
+    [Tooltip("La imagen de la UI que seguirá al puntero al arrastrar un artefacto.")]
+    public Image artifactDragCursor;
 
     void Start()
     {
@@ -80,35 +96,56 @@ public class TabGroupManager : MonoBehaviour
             }
         }
     }
-    public void OnArtifactDragStart(Artifact artifact)
+    public void OnArtifactDragStart(ArtifactIconController icon)
     {
-        artifactDropWasSuccessful = false;
-
+        artifactDropWasSuccessful = false; 
         lastSelectedTab = selectedTab;
-        draggedArtifact = artifact;
-
+        draggedArtifact = icon.artifactData;
+        
+        // Activamos y configuramos el cursor de arrastre
+        if (artifactDragCursor != null && icon.artifactData != null)
+        {
+            artifactDragCursor.gameObject.SetActive(true);
+            artifactDragCursor.sprite = icon.artifactData.icon;
+        }
+        
         if (tabs.Count > artifactDropTargetTabIndex && artifactDropTargetTabIndex >= 0)
         {
             OnTabSelected(tabs[artifactDropTargetTabIndex]);
         }
         else
         {
-            Debug.LogWarning("El 'Artifact Drop Target Tab Index' no es válido. Revisa la configuración en el TabGroupManager.");
+            Debug.LogWarning("El 'Artifact Drop Target Tab Index' no es válido.");
         }
     }
     public void OnArtifactDragEnd()
     {
+        // Ocultamos el cursor de arrastre
+        if (artifactDragCursor != null)
+        {
+            artifactDragCursor.gameObject.SetActive(false);
+        }
+
         if (!artifactDropWasSuccessful && lastSelectedTab != null)
         {
             OnTabSelected(lastSelectedTab);
         }
+        
         draggedArtifact = null;
         lastSelectedTab = null;
         artifactDropWasSuccessful = false;
     }
-    
+
     public void SetArtifactDropSuccessful()
     {
         artifactDropWasSuccessful = true;
+    }
+    private void Update()
+    {
+        if (draggedArtifact != null && artifactDragCursor != null)
+        {
+            // CORRECCIÓN: Leemos la posición del puntero desde nuestro sistema de control unificado.
+            artifactDragCursor.transform.position = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
+        }
     }
 }
