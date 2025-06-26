@@ -7,6 +7,11 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("Indicadores 3D Fijos")]
+    [Tooltip("El objeto Plane que se activa al arrastrar una unidad aliada.")]
+    public GameObject allyDragIndicatorPlane;
+    [Tooltip("El objeto Plane que se activa al arrastrar una unidad enemiga.")]
+    public GameObject enemyDragIndicatorPlane;
     public static PlayerController Instance { get; private set; }
     [Header("Referencias del Sistema")]
     public GridManager gridManager;
@@ -49,6 +54,8 @@ public class PlayerController : MonoBehaviour
             trashZoneCanvasGroup.interactable = false;
             trashZoneCanvasGroup.blocksRaycasts = false;
         }
+        if (allyDragIndicatorPlane != null) allyDragIndicatorPlane.SetActive(false);
+        if (enemyDragIndicatorPlane != null) enemyDragIndicatorPlane.SetActive(false);
     }
 
     void Update()
@@ -94,6 +101,14 @@ public class PlayerController : MonoBehaviour
         dragCursorImage.sprite = currentlyDraggedIcon.GetDragCursorSprite();
         dragCursorImage.raycastTarget = false;
         dragCursorImage.gameObject.SetActive(true);
+        if (teamID == 0)
+        {
+            if (allyDragIndicatorPlane != null) allyDragIndicatorPlane.SetActive(true);
+        }
+        else if (teamID == 1)
+        {
+            if (enemyDragIndicatorPlane != null) enemyDragIndicatorPlane.SetActive(true);
+        }
     }
 
     public void StopDraggingUnit()
@@ -122,6 +137,8 @@ public class PlayerController : MonoBehaviour
         currentlyDraggedIcon = null;
         dragCursorImage.gameObject.SetActive(false);
         if (highlightInstance != null) highlightInstance.SetActive(false);
+        if (allyDragIndicatorPlane != null) allyDragIndicatorPlane.SetActive(false);
+        if (enemyDragIndicatorPlane != null) enemyDragIndicatorPlane.SetActive(false);
     }
 
     #region Funciones sin cambios
