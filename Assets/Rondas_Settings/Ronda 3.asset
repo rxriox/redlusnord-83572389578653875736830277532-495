@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7230d5a83b637a04bb852165f48f121a, type: 3}
   m_Name: Ronda 3
   m_EditorClassIdentifier: Assembly-CSharp::RoundSettings
-  roundName: Ronda X
-  maxTotalUnits: 5
+  roundName: Ronda 3
+  maxTotalUnits: 10
   fabulosaLimit: 5
-  magnificaLimit: 0
-  supremaLimit: 0
+  magnificaLimit: 9
+  supremaLimit: 1

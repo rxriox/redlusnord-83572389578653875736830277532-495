@@ -1,5 +1,5 @@
 using UnityEngine;
-using TMPro;
+using TMPro; // Necesario para TextMeshPro
 using System.Collections.Generic;
 using System.Linq;
 
@@ -27,7 +27,7 @@ public class RoundUIManager : MonoBehaviour
 
         if (roundSettingsList != null && roundSettingsList.Count > 0)
         {
-            ApplySettingsForRound(0);
+            ApplySettingsForRound(0, false);
         }
     }
     void PopulateDropdown()
@@ -42,10 +42,10 @@ public class RoundUIManager : MonoBehaviour
 
     void OnDropdownValueChanged(TMP_Dropdown change)
     {
-        ApplySettingsForRound(change.value);
+        ApplySettingsForRound(change.value, true);
     }
-    
-    void ApplySettingsForRound(int index)
+
+    void ApplySettingsForRound(int index, bool clearBoard)
     {
         if (roundSettingsList != null && index >= 0 && index < roundSettingsList.Count)
         {
@@ -53,6 +53,10 @@ public class RoundUIManager : MonoBehaviour
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.ApplyRoundSettings(selectedSettings);
+                if (clearBoard)
+                {
+                    GameManager.Instance.ResetBoardButton();
+                }
             }
             else
             {
