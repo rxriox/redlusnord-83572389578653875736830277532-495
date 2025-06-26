@@ -3,20 +3,17 @@ using UnityEngine;
 
 public class ObjectPooler : MonoBehaviour
 {
-    // Clase para configurar cada tipo de objeto que queremos poolear desde el Inspector.
     [System.Serializable]
     public class Pool
     {
-        public string tag; // Un nombre para identificar el tipo de objeto (ej. "Proyectil")
-        public GameObject prefab; // El prefab que queremos instanciar
-        public int size; // Cuántos objetos de este tipo creamos al inicio
+        public string tag;
+        public GameObject prefab;
+        public int size;
     }
 
-    // Singleton para acceder fácilmente al pooler desde cualquier script.
     public static ObjectPooler Instance;
 
-    public List<Pool> pools; // La lista de todos nuestros "almacenes" de objetos.
-    // El diccionario que realmente guardará nuestros objetos listos para usar.
+    public List<Pool> pools;
     private Dictionary<string, Queue<GameObject>> poolDictionary;
 
     private void Awake()
@@ -28,11 +25,9 @@ public class ObjectPooler : MonoBehaviour
     {
         poolDictionary = new Dictionary<string, Queue<GameObject>>();
 
-        // Al iniciar el juego, recorremos cada "almacén" que hemos definido...
         foreach (Pool pool in pools)
         {
             Queue<GameObject> objectPool = new Queue<GameObject>();
-            // ...y creamos la cantidad inicial de objetos, dejándolos "dormidos".
             for (int i = 0; i < pool.size; i++)
             {
                 GameObject obj = Instantiate(pool.prefab);
@@ -54,17 +49,37 @@ public class ObjectPooler : MonoBehaviour
             return null;
         }
 
-        // Sacamos un objeto de la "pila".
+        if (poolDictionary[tag].Count == 0)
+        {
+            Debug.LogWarning("El Pool con el tag " + tag + " se ha quedado sin objetos. Considera aumentar su tamaño inicial.");
+            // Opcional: podrías crear un objeto nuevo aquí si quieres que el pool sea expandible.
+            return null; 
+        }
+
+        // Saca un objeto de la cola ("pila").
         GameObject objectToSpawn = poolDictionary[tag].Dequeue();
 
-        // Lo activamos, lo posicionamos y lo devolvemos.
         objectToSpawn.SetActive(true);
         objectToSpawn.transform.position = position;
         objectToSpawn.transform.rotation = rotation;
 
-        // Lo volvemos a poner al final de la cola para tener un ciclo infinito de objetos.
-        poolDictionary[tag].Enqueue(objectToSpawn);
-
         return objectToSpawn;
+    }
+
+    /// <summary>
+    /// Desactiva un objeto y lo devuelve a la piscina para ser reutilizado.
+    /// </summary>
+    public void ReturnToPool(string tag, GameObject objectToReturn)
+    {
+        if (!poolDictionary.ContainsKey(tag))
+        {
+            Debug.LogWarning("El Pool con el tag " + tag + " no existe. El objeto será destruido.");
+            Destroy(objectToReturn);
+            return;
+        }
+
+        objectToReturn.SetActive(false);
+        // Devuelve el objeto a la cola ("pila").
+        poolDictionary[tag].Enqueue(objectToReturn);
     }
 }

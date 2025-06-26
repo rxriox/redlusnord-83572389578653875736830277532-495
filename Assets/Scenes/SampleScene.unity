@@ -11168,7 +11168,6 @@ MonoBehaviour:
   artifactIconPrefabs:
   - {fileID: 8209115074712782973, guid: 77269048a8865304ba2fa19154952c57, type: 3}
   artifactsBenchCanvasGroup: {fileID: 1343948396}
-  unitIconPrefab: {fileID: 0}
   fadeDuration: 0.2
 --- !u!4 &2071166982
 Transform:

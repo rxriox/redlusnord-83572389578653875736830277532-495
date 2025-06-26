@@ -44,20 +44,38 @@ public class ArtifactManager : MonoBehaviour
     public void PlaceArtifact(ArtifactIconController benchIcon)
     {
         if (!CanPlaceArtifact()) return;
-        GameObject activeIconGO = Instantiate(activeArtifactIconPrefab, activeArtifactsContainer);
-        ActiveArtifactIcon activeIconScript = activeIconGO.GetComponent<ActiveArtifactIcon>();
-        activeIconScript.Initialize(benchIcon);
-        activeArtifacts.Add(activeIconScript);
-        benchIcon.SetAsPlaced();
-        UpdateEmptyMessageVisibility();
-        UpdateCountText();
+
+        // Pedimos un icono del pool en lugar de instanciarlo.
+        GameObject activeIconGO = ObjectPooler.Instance.SpawnFromPool("ActiveArtifactIcon", activeArtifactsContainer.position, Quaternion.identity);
+        
+        if (activeIconGO != null)
+        {
+            // Lo hacemos hijo del contenedor, y el Layout Group se encargará de su posición.
+            activeIconGO.transform.SetParent(activeArtifactsContainer);
+            activeIconGO.transform.localScale = Vector3.one; // Nos aseguramos de que la escala es correcta.
+
+            ActiveArtifactIcon activeIconScript = activeIconGO.GetComponent<ActiveArtifactIcon>();
+        
+            activeIconScript.Initialize(benchIcon);
+            activeArtifacts.Add(activeIconScript);
+            benchIcon.SetAsPlaced();
+            UpdateEmptyMessageVisibility();
+            UpdateCountText();
+        }
     }
 
     public void RemoveArtifact(ActiveArtifactIcon activeIcon)
     {
-        activeIcon.originatingBenchIcon.ResetIcon();
+        if (activeIcon == null) return;
+        
+        if(activeIcon.originatingBenchIcon != null)
+            activeIcon.originatingBenchIcon.ResetIcon();
+        
         activeArtifacts.Remove(activeIcon);
-        Destroy(activeIcon.gameObject);
+        
+        // CORRECCIÓN: Devolvemos el icono al pool en lugar de destruirlo.
+        ObjectPooler.Instance.ReturnToPool("ActiveArtifactIcon", activeIcon.gameObject);
+
         UpdateEmptyMessageVisibility();
         UpdateCountText();
     }
