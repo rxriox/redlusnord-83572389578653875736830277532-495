@@ -6207,6 +6207,8 @@ GameObject:
   - component: {fileID: 1122752303}
   - component: {fileID: 1122752302}
   - component: {fileID: 1122752301}
+  - component: {fileID: 1122752305}
+  - component: {fileID: 1122752304}
   m_Layer: 5
   m_Name: END_COMBAT_BUTON
   m_TagString: Untagged
@@ -6328,6 +6330,32 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1122752299}
   m_CullTransparentMesh: 1
+--- !u!114 &1122752304
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1122752299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b28ef17ab5674b94199ea68fb7bbe65e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EarlyEndButtonUI
+  activeAlpha: 1
+  inactiveAlpha: 0.276
+--- !u!225 &1122752305
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1122752299}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1001 &1143358510
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6988,7 +7016,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "No se han a\xF1adido artefactos"
+  m_text: Arrastra aqui para agregar artefactos
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -7015,8 +7043,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 23
+  m_fontSizeBase: 23
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -11472,6 +11500,14 @@ MonoBehaviour:
   artifactsBenchContent: {fileID: 1806474163}
   artifactIconPrefabs:
   - {fileID: 8209115074712782973, guid: 77269048a8865304ba2fa19154952c57, type: 3}
+  - {fileID: 8209115074712782973, guid: 025dcf8599d9f3d469974e3357e873ee, type: 3}
+  - {fileID: 8209115074712782973, guid: 2770f88546c1e5a4194e7369f0c84baa, type: 3}
+  - {fileID: 8209115074712782973, guid: 909f726be666ce7449a440cb2729bfcc, type: 3}
+  - {fileID: 8209115074712782973, guid: 475ed95cdafaee949b2e1d12f28ebb95, type: 3}
+  - {fileID: 8209115074712782973, guid: 02aa22c222fdd1946ae92b3134d3cf91, type: 3}
+  - {fileID: 8209115074712782973, guid: fce16ee0d44787b47a25715e11d22038, type: 3}
+  - {fileID: 8209115074712782973, guid: 709482b01e6ae9440900f418609da39e, type: 3}
+  - {fileID: 8209115074712782973, guid: dfbea9c05ccf417419963d09a6a08b65, type: 3}
   artifactsBenchCanvasGroup: {fileID: 1343948396}
   fadeDuration: 0.2
 --- !u!4 &2071166982

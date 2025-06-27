@@ -107,17 +107,37 @@ public class GridManager : MonoBehaviour
     public List<Node> GetNeighbours(Node node)
     {
         List<Node> neighbours = new List<Node>();
-        int[,] directions = { {0,1}, {0,-1}, {1,0}, {-1,0} };
-        for (int i = 0; i < directions.GetLength(0); i++)
-        {
-            int checkX = node.gridX + directions[i,0];
-            int checkZ = node.gridZ + directions[i,1];
 
-            if (checkX >= 0 && checkX < gridWidth && checkZ >= 0 && checkZ < gridHeight)
+        // Este bucle doble recorre todas las casillas circundantes (-1, 0, 1)
+        for (int x = -1; x <= 1; x++)
+        {
+            for (int z = -1; z <= 1; z++)
             {
-                neighbours.Add(grid[checkX, checkZ]);
+                // Saltamos la casilla del centro, que es el propio nodo
+                if (x == 0 && z == 0)
+                    continue;
+
+                int checkX = node.gridX + x;
+                int checkZ = node.gridZ + z;
+
+                // Nos aseguramos de que el vecino está dentro de los límites del tablero
+                if (checkX >= 0 && checkX < gridWidth && checkZ >= 0 && checkZ < gridHeight)
+                {
+                    neighbours.Add(grid[checkX, checkZ]);
+                }
             }
         }
         return neighbours;
+    }
+    private int GetDistance(Node nodeA, Node nodeB)
+    {
+        int dstX = Mathf.Abs(nodeA.gridX - nodeB.gridX);
+        int dstZ = Mathf.Abs(nodeA.gridZ - nodeB.gridZ);
+
+        // Asignamos un coste de 14 para las casillas diagonales y 10 para las ortogonales.
+        if (dstX > dstZ)
+            return 14 * dstZ + 10 * (dstX - dstZ);
+        
+        return 14 * dstX + 10 * (dstZ - dstX);
     }
 }
