@@ -173,7 +173,6 @@ public class PlayerController : MonoBehaviour
                 dragCursorImage.transform.position = pointerPosition;
             }
 
-            // 🟢 NUEVO: Activamos el plano indicador según el teamID
             if (unit.teamID == 0)
             {
                 if (allyDragIndicatorPlane != null)

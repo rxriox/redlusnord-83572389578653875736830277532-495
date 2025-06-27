@@ -21,7 +21,20 @@ public class GameManager : MonoBehaviour
     public static event System.Action OnHarmoniesUpdated;
     public static GameManager Instance { get; private set; }
     public enum GameState { Placement, Combat, Result }
-    public GameState CurrentState { get; private set; }
+    private GameState _currentState;
+    public GameState CurrentState
+    {
+        get { return _currentState; }
+        private set
+        {
+            if (_currentState != value)
+            {
+                _currentState = value;
+                OnGameStateChanged?.Invoke(_currentState);
+            }
+        }
+    }
+    public static event System.Action<GameState> OnGameStateChanged;
 
     [Header("Reglas del Juego")]
     public int maxUnitsPerTeam;
@@ -44,6 +57,7 @@ public class GameManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
         teamCategoryCounts = new Dictionary<int, Dictionary<UnitStats.UnitCategory, int>>();
+        CurrentState = GameState.Placement;
     }
 
     public void ApplyRoundSettings(RoundSettings settings)
