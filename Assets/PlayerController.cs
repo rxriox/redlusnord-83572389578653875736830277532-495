@@ -4,6 +4,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Collections;
+using System.Linq;
 
 public class PlayerController : MonoBehaviour
 {
@@ -61,12 +62,16 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
-        if (currentlyDraggedIcon != null)
+        if (currentlyDraggedIcon != null || unitToReposition != null)
         {
-            dragCursorImage.transform.position = pointerPosition;
-            UpdateHighlightForNewUnit(pointerPosition);
-            return;
+            if (dragCursorImage != null)
+                dragCursorImage.transform.position = pointerPosition;
         }
+if (currentlyDraggedIcon != null)
+{
+    UpdateHighlight(PlacementUIManager.Instance.CurrentPlacementTeamID, pointerPosition);
+    return; // Procesamos solo este estado en este frame
+}
 
         if (unitToReposition != null)
         {
@@ -143,22 +148,40 @@ public class PlayerController : MonoBehaviour
 
     #region Funciones sin cambios
     void TryStartRepositioning(Vector2 pointerPosition)
+{
+    if (EventSystem.current.IsPointerOverGameObject()) return;
+
+    Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+    if (Physics.Raycast(ray, out RaycastHit hit))
     {
-        if (EventSystem.current.IsPointerOverGameObject()) return;
-        Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
-        if (Physics.Raycast(ray, out RaycastHit hit))
+        UnitController unit = hit.collider.GetComponent<UnitController>();
+        if (unit != null)
         {
-            UnitController unit = hit.collider.GetComponent<UnitController>();
-            if (unit != null)
+            unitToReposition = unit;
+            originalNodeOfRepositionedUnit = unit.currentNode;
+            originalNodeOfRepositionedUnit.isWalkable = true;
+
+            PlacementUIManager.Instance.HideBenchesForDrag();
+
+            // Mostrar zona de basura
+            if (trashZoneCanvasGroup != null)
+                StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
+
+            // --- NUEVA LÓGICA VISUAL ---
+            // Ocultar modelo 3D de la unidad
+            unit.gameObject.SetActive(false);
+
+            // Mostrar cursor de arrastre 2D
+            if (dragCursorImage != null && unit.originatingIcon != null)
             {
-                unitToReposition = unit;
-                originalNodeOfRepositionedUnit = unit.currentNode;
-                originalNodeOfRepositionedUnit.isWalkable = true;
-                PlacementUIManager.Instance.HideBenchesForDrag();
-                if (trashZoneCanvasGroup != null) StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
+                dragCursorImage.sprite = unit.originatingIcon.GetDragCursorSprite();
+                dragCursorImage.gameObject.SetActive(true);
             }
+            // --- FIN DE NUEVA LÓGICA VISUAL ---
         }
     }
+}
+
 
     void UpdateRepositioningUnit(Vector2 pointerPosition)
     {
@@ -192,16 +215,20 @@ public class PlayerController : MonoBehaviour
                 unitToReposition.transform.position = destinationNode.worldPosition;
                 unitToReposition.currentNode = destinationNode;
                 destinationNode.isWalkable = false;
+                unitToReposition.gameObject.SetActive(true);
             }
             else
             {
                 unitToReposition.transform.position = originalNodeOfRepositionedUnit.worldPosition;
                 unitToReposition.currentNode = originalNodeOfRepositionedUnit;
                 originalNodeOfRepositionedUnit.isWalkable = false;
+                unitToReposition.gameObject.SetActive(true);
             }
         }
         PlacementUIManager.Instance.ShowBenchesAfterDrag();
         if (trashZoneCanvasGroup != null) StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 1f, 0f));
+        if (dragCursorImage != null)
+    dragCursorImage.gameObject.SetActive(false);
         unitToReposition = null;
         originalNodeOfRepositionedUnit = null;
         if (highlightInstance != null) highlightInstance.SetActive(false);
