@@ -139,29 +139,23 @@ public class GameManager : MonoBehaviour
             Debug.Log($"LÍMITE TOTAL ALCANZADO: Equipo {teamID} ya tiene {currentTotalCount}/{maxUnitsPerTeam} unidades.");
             return false;
         }
-
         UnitStats.UnitCategory category = stats.category;
         int currentCategoryCount = 0;
-
-        if (teamCategoryCounts.ContainsKey(teamID))
+        
+        if (teamCategoryCounts != null && teamCategoryCounts.ContainsKey(teamID))
         {
             teamCategoryCounts[teamID].TryGetValue(category, out currentCategoryCount);
         }
-
-        int limitForCategory = 0;
-        if (categoryLimitsDict.TryGetValue(category, out limitForCategory))
+        
+        if (categoryLimitsDict.TryGetValue(category, out int limitForCategory))
         {
             if (currentCategoryCount >= limitForCategory)
             {
-                Debug.LogWarning($"LÍMITE DE CATEGORÍA ALCANZADO: Equipo {teamID} ya tiene el máximo de unidades '{category}'.");
+                Debug.LogWarning($"LÍMITE DE CATEGORÍA ALCANZADO: Equipo {teamID} ya tiene el máximo de unidades '{category}' ({currentCategoryCount}/{limitForCategory}).");
                 return false;
             }
         }
-        else
-        {
-            Debug.LogWarning($"No se encontró un límite definido para la categoría '{category}'. Se permitirá la colocación.");
-        }
-
+        
         return true;
     }
 
@@ -191,6 +185,8 @@ public class GameManager : MonoBehaviour
         CurrentState = GameState.Placement;
         OnHarmoniesUpdated?.Invoke();
         unitsAtCombatStart.Clear();
+        teamUnitCount.Clear();
+        if (teamCategoryCounts != null) teamCategoryCounts.Clear();
         Debug.Log("Tablero Reiniciado. Fase de Colocación activada.");
     }
 
@@ -269,6 +265,19 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(1.5f);
         ResetBoardAfterCombat();
     }
+    public void EndCombatEarly()
+    {
+        if (CurrentState == GameState.Combat)
+        {
+            Debug.Log("El jugador ha terminado el combate manualmente. Reseteando tablero...");
+            StopAllCoroutines();
+            ResetBoardAfterCombat();
+        }
+        else
+        {
+            Debug.LogWarning("Se intentó terminar el combate, pero no hay ninguno en curso.");
+        }
+    }
 
     private void ResetBoardAfterCombat()
     {
@@ -278,7 +287,7 @@ public class GameManager : MonoBehaviour
         {
             if (unit != null) Destroy(unit.gameObject);
         }
-        
+
         allUnits.Clear();
         harmonyCounts.Clear();
         activeHarmonyTiers.Clear();
@@ -290,7 +299,7 @@ public class GameManager : MonoBehaviour
                 node.isWalkable = true;
             }
         }
-        
+
         foreach (var unitInfo in unitsAtCombatStart)
         {
             if (gridManager != null && unitInfo.startingNode != null)
@@ -298,9 +307,11 @@ public class GameManager : MonoBehaviour
                 gridManager.SpawnUnit(unitInfo.stats, unitInfo.teamID, unitInfo.startingNode, unitInfo.originatingIcon);
             }
         }
-        
-        if(OnHarmoniesUpdated != null) OnHarmoniesUpdated.Invoke();
+
+        if (OnHarmoniesUpdated != null) OnHarmoniesUpdated.Invoke();
         CurrentState = GameState.Placement;
+        teamUnitCount.Clear();
+        if (teamCategoryCounts != null) teamCategoryCounts.Clear();
         Debug.Log("Fase de colocación reanudada.");
     }
 
