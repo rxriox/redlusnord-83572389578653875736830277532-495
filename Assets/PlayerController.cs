@@ -67,11 +67,11 @@ public class PlayerController : MonoBehaviour
             if (dragCursorImage != null)
                 dragCursorImage.transform.position = pointerPosition;
         }
-if (currentlyDraggedIcon != null)
-{
-    UpdateHighlight(PlacementUIManager.Instance.CurrentPlacementTeamID, pointerPosition);
-    return; // Procesamos solo este estado en este frame
-}
+        if (currentlyDraggedIcon != null)
+        {
+            UpdateHighlight(PlacementUIManager.Instance.CurrentPlacementTeamID, pointerPosition);
+            return;
+        }
 
         if (unitToReposition != null)
         {
@@ -145,8 +145,6 @@ if (currentlyDraggedIcon != null)
         if (allyDragIndicatorPlane != null) allyDragIndicatorPlane.SetActive(false);
         if (enemyDragIndicatorPlane != null) enemyDragIndicatorPlane.SetActive(false);
     }
-
-    #region Funciones sin cambios
     void TryStartRepositioning(Vector2 pointerPosition)
 {
     if (EventSystem.current.IsPointerOverGameObject()) return;
@@ -163,24 +161,33 @@ if (currentlyDraggedIcon != null)
 
             PlacementUIManager.Instance.HideBenchesForDrag();
 
-            // Mostrar zona de basura
             if (trashZoneCanvasGroup != null)
                 StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
 
-            // --- NUEVA LÓGICA VISUAL ---
-            // Ocultar modelo 3D de la unidad
             unit.gameObject.SetActive(false);
 
-            // Mostrar cursor de arrastre 2D
             if (dragCursorImage != null && unit.originatingIcon != null)
             {
                 dragCursorImage.sprite = unit.originatingIcon.GetDragCursorSprite();
                 dragCursorImage.gameObject.SetActive(true);
+                dragCursorImage.transform.position = pointerPosition;
             }
-            // --- FIN DE NUEVA LÓGICA VISUAL ---
+
+            // 🟢 NUEVO: Activamos el plano indicador según el teamID
+            if (unit.teamID == 0)
+            {
+                if (allyDragIndicatorPlane != null)
+                    allyDragIndicatorPlane.SetActive(true);
+            }
+            else if (unit.teamID == 1)
+            {
+                if (enemyDragIndicatorPlane != null)
+                    enemyDragIndicatorPlane.SetActive(true);
+            }
         }
     }
 }
+
 
 
     void UpdateRepositioningUnit(Vector2 pointerPosition)
@@ -205,7 +212,7 @@ if (currentlyDraggedIcon != null)
         if (droppedOnTrash)
         {
             if (unitToReposition.originatingIcon != null) { unitToReposition.originatingIcon.ResetIcon(); }
-            unitToReposition.Die(null); 
+            unitToReposition.Die(null);
         }
         else
         {
@@ -228,10 +235,12 @@ if (currentlyDraggedIcon != null)
         PlacementUIManager.Instance.ShowBenchesAfterDrag();
         if (trashZoneCanvasGroup != null) StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 1f, 0f));
         if (dragCursorImage != null)
-    dragCursorImage.gameObject.SetActive(false);
+            dragCursorImage.gameObject.SetActive(false);
         unitToReposition = null;
         originalNodeOfRepositionedUnit = null;
         if (highlightInstance != null) highlightInstance.SetActive(false);
+        if (allyDragIndicatorPlane != null) allyDragIndicatorPlane.SetActive(false);
+        if (enemyDragIndicatorPlane != null) enemyDragIndicatorPlane.SetActive(false);
     }
 
     private void PlaceUnitOnNode(Node node, UnitStats unitStats)
@@ -311,7 +320,6 @@ if (currentlyDraggedIcon != null)
         }
         yield break;
     }
-    #endregion
     public void ShowTrashZone()
     {
         if (trashZoneCanvasGroup != null)
