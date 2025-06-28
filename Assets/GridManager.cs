@@ -137,7 +137,72 @@ public class GridManager : MonoBehaviour
         // Asignamos un coste de 14 para las casillas diagonales y 10 para las ortogonales.
         if (dstX > dstZ)
             return 14 * dstZ + 10 * (dstX - dstZ);
-        
+
         return 14 * dstX + 10 * (dstZ - dstX);
     }
+    public List<Node> FindPath(Node startNode, Node targetNode)
+{
+    List<Node> openSet = new List<Node>();
+    HashSet<Node> closedSet = new HashSet<Node>();
+    openSet.Add(startNode);
+
+    while (openSet.Count > 0)
+    {
+        Node currentNode = openSet[0];
+        for (int i = 1; i < openSet.Count; i++)
+        {
+            if (openSet[i].fCost < currentNode.fCost || 
+                (openSet[i].fCost == currentNode.fCost && openSet[i].hCost < currentNode.hCost))
+            {
+                currentNode = openSet[i];
+            }
+        }
+
+        openSet.Remove(currentNode);
+        closedSet.Add(currentNode);
+
+        if (currentNode == targetNode)
+        {
+            return RetracePath(startNode, targetNode);
+        }
+
+        foreach (Node neighbour in GetNeighbours(currentNode))
+        {
+            if (!neighbour.isWalkable || closedSet.Contains(neighbour))
+            {
+                // Also treat the target node as walkable for path calculation,
+                // even if occupied, so the unit can move towards it.
+                if (neighbour != targetNode)
+                    continue;
+            }
+
+            int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
+            if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
+            {
+                neighbour.gCost = newMovementCostToNeighbour;
+                neighbour.hCost = GetDistance(neighbour, targetNode);
+                neighbour.parent = currentNode;
+
+                if (!openSet.Contains(neighbour))
+                    openSet.Add(neighbour);
+            }
+        }
+    }
+
+    return null; // No path found
+}
+
+private List<Node> RetracePath(Node startNode, Node endNode)
+{
+    List<Node> path = new List<Node>();
+    Node currentNode = endNode;
+
+    while (currentNode != startNode)
+    {
+        path.Add(currentNode);
+        currentNode = currentNode.parent;
+    }
+    path.Reverse();
+    return path;
+}
 }
