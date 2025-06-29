@@ -329,6 +329,24 @@ public class GameManager : MonoBehaviour
         Debug.Log("Fase de colocación reanudada.");
     }
 
+    public UnitController GetUnitAtNode(Node node)
+{
+    if (node == null) return null;
+
+    // Busca en tu lista "allUnits"
+    foreach (UnitController unit in allUnits)
+    {
+        // Si el nodo actual de una unidad coincide con el que buscamos, la hemos encontrado.
+        if (unit != null && unit.currentNode == node)
+        {
+            return unit;
+        }
+    }
+
+    // Si el bucle termina y no se encuentra ninguna unidad, devuelve null.
+    return null;
+}
+
     #endregion
     public List<UnitController> GetAllUnits()
     {

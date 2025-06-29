@@ -262,58 +262,117 @@ public class PlayerController : MonoBehaviour
     }
 
     void DropRepositionedUnit(Vector2 pointerPosition)
+{
+    PlacementUIManager.Instance.HideDetailsPanel();
+
+    // Comprobación de la papelera (sin cambios)
+    PointerEventData pointerData = new PointerEventData(EventSystem.current) { position = pointerPosition };
+    List<RaycastResult> results = new List<RaycastResult>();
+    EventSystem.current.RaycastAll(pointerData, results);
+    bool droppedOnTrash = results.Any(r => r.gameObject.GetComponent<TrashZoneController>() != null);
+
+    if (droppedOnTrash)
     {
-        PlacementUIManager.Instance.HideDetailsPanel();
-
-        PointerEventData pointerData = new PointerEventData(EventSystem.current) { position = pointerPosition };
-        List<RaycastResult> results = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(pointerData, results);
-        bool droppedOnTrash = results.Any(r => r.gameObject.GetComponent<TrashZoneController>() != null);
-
-        if (droppedOnTrash)
+        if (unitToReposition.originatingIcon != null) { unitToReposition.originatingIcon.ResetIcon(); }
+        if(GameManager.Instance != null) GameManager.Instance.UnregisterUnit(unitToReposition);
+        Destroy(unitToReposition.gameObject);
+    }
+    else
+    {
+        // --- INICIO DE LA NUEVA LÓGICA DE DECISIÓN PRIORIZADA ---
+        Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+        Node destinationNode = null;
+        if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            if (unitToReposition.originatingIcon != null) { unitToReposition.originatingIcon.ResetIcon(); }
-            if(GameManager.Instance != null) GameManager.Instance.UnregisterUnit(unitToReposition);
-            Destroy(unitToReposition.gameObject);
+            destinationNode = gridManager.NodeFromWorldPoint(hit.point);
         }
-        else
+
+        bool actionTaken = false;
+
+        // PRIORIDAD 1: ¿ES UN INTERCAMBIO (SWAP)?
+        if (destinationNode != null && !actionTaken)
         {
-            Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+            UnitController otherUnit = GameManager.Instance.GetUnitAtNode(destinationNode);
+
+            // Si hay otra unidad, no es la que estamos moviendo, y es del mismo equipo...
+            if (otherUnit != null && otherUnit != unitToReposition && otherUnit.teamID == unitToReposition.teamID)
+            {
+                // ¡Realizamos el intercambio!
+                Node originalNode = originalNodeOfRepositionedUnit;
+
+                otherUnit.transform.position = originalNode.worldPosition;
+                otherUnit.currentNode = originalNode;
+
+                unitToReposition.transform.position = destinationNode.worldPosition;
+                unitToReposition.currentNode = destinationNode;
+                
+                // Marcamos que la acción se ha realizado
+                actionTaken = true; 
+            }
+        }
+        
+        // PRIORIDAD 2: ¿ES UN MOVIMIENTO A UNA CASILLA VÁLIDA Y VACÍA?
+        if (!actionTaken)
+        {
+            // Verificamos si el nodo de destino es válido para una colocación normal (vacío, en la zona correcta).
+            if (gridManager.IsNodeValidForPlacement(destinationNode, unitToReposition.teamID))
+            {
+                originalNodeOfRepositionedUnit.isWalkable = true;
+                
+                unitToReposition.transform.position = destinationNode.worldPosition;
+                unitToReposition.currentNode = destinationNode;
+                
+                destinationNode.isWalkable = false;
+
+                actionTaken = true;
+            }
+        }
+
+        // PRIORIDAD 3: FALLBACK - SOLTAR FUERA O EN LUGAR INVÁLIDO
+        if (!actionTaken)
+        {
             Vector3 dropWorldPosition = Vector3.zero;
             Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
             if (groundPlane.Raycast(ray, out float distance))
             {
                 dropWorldPosition = ray.GetPoint(distance);
             }
-
-            Node destinationNode = gridManager.NodeFromWorldPoint(dropWorldPosition);
-
-            if (!gridManager.IsNodeValidForPlacement(destinationNode, unitToReposition.teamID))
+            
+            Node closestNode = gridManager.FindClosestValidNode(dropWorldPosition, unitToReposition.teamID);
+            
+            if (closestNode == null) // Red de seguridad
             {
-                destinationNode = gridManager.FindClosestValidNode(dropWorldPosition, unitToReposition.teamID);
+                closestNode = originalNodeOfRepositionedUnit; 
             }
             
-            if (destinationNode == null)
-            {
-                destinationNode = originalNodeOfRepositionedUnit;
+            // Solo si el nodo más cercano está vacío (no es el original en un swap fallido)
+            if (closestNode.isWalkable) {
+                originalNodeOfRepositionedUnit.isWalkable = true;
+                unitToReposition.transform.position = closestNode.worldPosition;
+                unitToReposition.currentNode = closestNode;
+                closestNode.isWalkable = false;
+            } else { // Si no, simplemente vuelve a su sitio original.
+                 unitToReposition.transform.position = originalNodeOfRepositionedUnit.worldPosition;
+                 unitToReposition.currentNode = originalNodeOfRepositionedUnit;
+                 originalNodeOfRepositionedUnit.isWalkable = false; // Se vuelve a ocupar
             }
-
-            unitToReposition.transform.position = destinationNode.worldPosition;
-            unitToReposition.currentNode = destinationNode;
-            destinationNode.isWalkable = false;
-            unitToReposition.gameObject.SetActive(true);
         }
-
-        isDraggingForReposition = false;
-        unitToReposition = null;
-        originalNodeOfRepositionedUnit = null;
-        PlacementUIManager.Instance.ShowBenchesAfterDrag();
-        if (trashZoneCanvasGroup != null) StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 1f, 0f));
-        if (dragCursorImage != null) dragCursorImage.gameObject.SetActive(false);
-        if (highlightInstance != null) highlightInstance.SetActive(false);
-        if (allyDragIndicatorPlane != null) allyDragIndicatorPlane.SetActive(false);
-        if (enemyDragIndicatorPlane != null) enemyDragIndicatorPlane.SetActive(false);
+        
+        // La unidad arrastrada siempre debe reactivarse.
+        unitToReposition.gameObject.SetActive(true);
     }
+
+    // Limpieza final (sin cambios)
+    isDraggingForReposition = false;
+    unitToReposition = null;
+    originalNodeOfRepositionedUnit = null;
+    PlacementUIManager.Instance.ShowBenchesAfterDrag();
+    if (trashZoneCanvasGroup != null) StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 1f, 0f));
+    if (dragCursorImage != null) dragCursorImage.gameObject.SetActive(false);
+    if (highlightInstance != null) highlightInstance.SetActive(false);
+    if (allyDragIndicatorPlane != null) allyDragIndicatorPlane.SetActive(false);
+    if (enemyDragIndicatorPlane != null) enemyDragIndicatorPlane.SetActive(false);
+}
 
     private void PlaceUnitOnNode(Node node, UnitStats unitStats)
     {
@@ -342,34 +401,64 @@ public class PlayerController : MonoBehaviour
 
 
     private void UpdateHighlightForRepositioning(Vector2 pointerPosition)
+{
+    if (highlightInstance == null || unitToReposition == null) return;
+
+    // Obtenemos la posición del cursor en el mundo
+    Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+    Vector3 cursorWorldPosition = Vector3.zero;
+    Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+    if (groundPlane.Raycast(ray, out float distance))
     {
-        if (highlightInstance == null || unitToReposition == null) return;
+        cursorWorldPosition = ray.GetPoint(distance);
+    }
+    
+    Node nodeUnderCursor = gridManager.NodeFromWorldPoint(cursorWorldPosition);
+    Node nodeToShowHighlightOn = null;
 
-        Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
-        Vector3 cursorWorldPosition = Vector3.zero;
-        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-        if (groundPlane.Raycast(ray, out float distance))
-        {
-            cursorWorldPosition = ray.GetPoint(distance);
-        }
+    // --- INICIO DE LA LÓGICA DE HIGHLIGHT PRIORIZADA ---
 
-        Node targetNode = gridManager.NodeFromWorldPoint(cursorWorldPosition);
-
-        if (!gridManager.IsNodeValidForPlacement(targetNode, unitToReposition.teamID))
+    // PRIORIDAD 1: ¿EL CURSOR ESTÁ SOBRE UN ALIADO PARA HACER SWAP?
+    if (nodeUnderCursor != null)
+    {
+        UnitController otherUnit = GameManager.Instance.GetUnitAtNode(nodeUnderCursor);
+        if (otherUnit != null && otherUnit != unitToReposition && otherUnit.teamID == unitToReposition.teamID)
         {
-            targetNode = gridManager.FindClosestValidNode(cursorWorldPosition, unitToReposition.teamID);
-        }
-
-        if (targetNode != null)
-        {
-            highlightInstance.SetActive(true);
-            highlightInstance.transform.position = targetNode.worldPosition;
-        }
-        else
-        {
-            highlightInstance.SetActive(false);
+            // ¡Sí! Es un objetivo de swap válido. El highlight debe ir aquí.
+            nodeToShowHighlightOn = nodeUnderCursor;
         }
     }
+
+    // PRIORIDAD 2: ¿ES UNA CASILLA VACÍA Y VÁLIDA?
+    // Si no encontramos un objetivo para swap, comprobamos si la casilla está vacía.
+    if (nodeToShowHighlightOn == null)
+    {
+        if (gridManager.IsNodeValidForPlacement(nodeUnderCursor, unitToReposition.teamID))
+        {
+            // Sí, es una casilla vacía válida.
+            nodeToShowHighlightOn = nodeUnderCursor;
+        }
+    }
+
+    // PRIORIDAD 3: EL CURSOR ESTÁ FUERA O EN UN LUGAR INVÁLIDO
+    // Si seguimos sin un nodo para el highlight, buscamos el más cercano.
+    if (nodeToShowHighlightOn == null)
+    {
+        nodeToShowHighlightOn = gridManager.FindClosestValidNode(cursorWorldPosition, unitToReposition.teamID);
+    }
+    
+    // --- LÓGICA FINAL PARA MOSTRAR EL HIGHLIGHT ---
+    if (nodeToShowHighlightOn != null)
+    {
+        highlightInstance.SetActive(true);
+        highlightInstance.transform.position = nodeToShowHighlightOn.worldPosition;
+    }
+    else
+    {
+        // Como red de seguridad, si no hay ningún lugar posible, se oculta.
+        highlightInstance.SetActive(false);
+    }
+}
 
     private void UpdateHighlight(int teamID, Vector2 pointerPosition, Node nodeToHighlight = null)
     {
