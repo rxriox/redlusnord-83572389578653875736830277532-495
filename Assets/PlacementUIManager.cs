@@ -85,15 +85,22 @@ public class PlacementUIManager : MonoBehaviour
     {
         if (stats == null || detailsPanel == null || unitNameText == null) return;
 
-        unitNameText.text = stats.unitName; // Muestra el nombre
+        unitNameText.text = stats.unitName;
         detailsPanel.SetActive(true);
-        if (panelBlocker != null) panelBlocker.SetActive(true); // Activa el blocker
+        if (panelBlocker != null) panelBlocker.SetActive(true);
     }
 
     public void HideDetailsPanel()
     {
         if (detailsPanel != null) detailsPanel.SetActive(false);
-        if (panelBlocker != null) panelBlocker.SetActive(false); // Desactiva el blocker
+        if (panelBlocker != null) panelBlocker.SetActive(false);
+
+        // --- AÑADIDO IMPORTANTE ---
+        // Le decimos al PlayerController que resetee su estado de clic/arrastre.
+        if (PlayerController.Instance != null)
+        {
+            PlayerController.Instance.ClearInteractionState();
+        }
     }
 
     void PopulateBench(Transform content, GameObject[] iconPrefabs)

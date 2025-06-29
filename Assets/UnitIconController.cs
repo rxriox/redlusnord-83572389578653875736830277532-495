@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(Image))]
-public class UnitIconController : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class UnitIconController : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
     [Header("Configuración de la Unidad")]
     public UnitStats characterData;
@@ -12,6 +12,12 @@ public class UnitIconController : MonoBehaviour, IBeginDragHandler, IDragHandler
     public Sprite availableIconSprite;
     public Sprite placedIconSprite;
     public Sprite dragCursorSprite;
+
+    [Tooltip("Tiempo en segundos para que un clic en el icono se convierta en arrastre.")]
+    public float dragDelay = 0.2f;
+    private float pointerDownTimer = 0f;
+    private bool isDragging = false;
+    private bool isPointerDown = false;
 
     private Image iconImage;
     private PlayerController playerController;
@@ -23,34 +29,61 @@ public class UnitIconController : MonoBehaviour, IBeginDragHandler, IDragHandler
         playerController = FindFirstObjectByType<PlayerController>();
         ResetIcon();
     }
-
-    public void OnPointerClick(PointerEventData eventData)
+    
+    public void OnPointerDown(PointerEventData eventData)
     {
-        if (isPlaced) return; // No hacer nada si ya está colocada
+        if (isPlaced || eventData.button != PointerEventData.InputButton.Left) return;
         
-        // Muestra el panel de detalles si se hace un clic simple
-        PlacementUIManager.Instance.ShowDetailsPanel(characterData);
+        isPointerDown = true;
+        pointerDownTimer = 0f;
+        isDragging = false;
     }
-
-    public void OnBeginDrag(PointerEventData eventData)
+    
+    public void OnPointerUp(PointerEventData eventData)
     {
-        if (!isPlaced && eventData.button == PointerEventData.InputButton.Left)
-        {
-            PlacementUIManager.Instance.ShowDetailsPanel(characterData);
-            playerController.StartDraggingUnit(this);
-        }
-    }
+        if (!isPointerDown || eventData.button != PointerEventData.InputButton.Left) return;
 
-    public void OnDrag(PointerEventData eventData) { }
+        isPointerDown = false;
 
-    public void OnEndDrag(PointerEventData eventData)
-    {
-        if (eventData.button == PointerEventData.InputButton.Left)
+        if (isDragging)
         {
-            PlacementUIManager.Instance.HideDetailsPanel();
+            // Si estábamos arrastrando, le decimos al PlayerController que termine la operación.
             playerController.StopDraggingUnit();
+            PlacementUIManager.Instance.HideDetailsPanel(); // Ocultamos el panel al soltar
         }
+        else
+        {
+            // Si no estábamos arrastrando (fue un clic corto), mostramos el panel de detalles.
+            PlacementUIManager.Instance.ShowDetailsPanel(characterData);
+        }
+        
+        // Reseteamos los estados
+        isDragging = false;
+        pointerDownTimer = 0f;
     }
+
+    
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (!isPointerDown || isPlaced || eventData.button != PointerEventData.InputButton.Left) return;
+
+        // Si aún no hemos empezado a arrastrar
+        if (!isDragging)
+        {
+            pointerDownTimer += Time.deltaTime;
+            if (pointerDownTimer >= dragDelay)
+            {
+                // Umbral superado, ¡empezamos a arrastrar!
+                isDragging = true;
+                PlacementUIManager.Instance.ShowDetailsPanel(characterData); // Muestra el panel al arrastrar
+                playerController.StartDraggingUnit(this);
+            }
+        }
+        // Si ya estamos arrastrando, no hacemos nada más aquí. El PlayerController maneja el movimiento del cursor.
+    }
+
+    
     
     public void SetSpriteToPlacedState()
     {

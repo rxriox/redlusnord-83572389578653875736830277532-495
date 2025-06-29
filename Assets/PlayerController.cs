@@ -23,6 +23,14 @@ public class PlayerController : MonoBehaviour
     public CanvasGroup trashZoneCanvasGroup;
     public float fadeDuration = 0.2f;
 
+    [Header("Configuración de Interacción")]
+    [Tooltip("Tiempo en segundos para que un clic se convierta en arrastre.")]
+    public float dragDelay = 0.2f;
+
+    private float pointerDownTimer = 0f;
+    private bool isDraggingForReposition = false;
+    private UnitController potentialRepositionTarget;
+
     private GameObject highlightInstance;
     private UnitIconController currentlyDraggedIcon;
     private UnitController unitToReposition;
@@ -62,31 +70,44 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
-        if (currentlyDraggedIcon != null || unitToReposition != null)
+
+        // --- MODIFICACIÓN CLAVE: Actualiza la posición del cursor si se está arrastrando CUALQUIER COSA ---
+        if (currentlyDraggedIcon != null || isDraggingForReposition)
         {
-            if (dragCursorImage != null)
+            if (dragCursorImage != null && dragCursorImage.gameObject.activeInHierarchy)
+            {
                 dragCursorImage.transform.position = pointerPosition;
+            }
         }
+        
+        // Caso 1: Arrastrando un icono NUEVO desde la banca
         if (currentlyDraggedIcon != null)
         {
             UpdateHighlight(PlacementUIManager.Instance.CurrentPlacementTeamID, pointerPosition);
             return;
         }
 
-        if (unitToReposition != null)
+        // Caso 2: Ya estamos en medio del proceso de REPOSICIONAR una unidad
+        if (isDraggingForReposition && unitToReposition != null)
         {
+            // Ya no necesitamos mover el cursor aquí, se hace arriba.
+            // Solo actualizamos el highlight del tablero.
             UpdateRepositioningUnit(pointerPosition);
+
             if (playerControls.Gameplay.Click.WasReleasedThisFrame())
             {
                 DropRepositionedUnit(pointerPosition);
             }
             return;
         }
+        
+        // Lógica principal para detectar clic vs arrastre en el tablero
+        HandleBoardInteraction(pointerPosition);
+    }
 
-        if (GameManager.Instance.CurrentState == GameManager.GameState.Placement && playerControls.Gameplay.Click.WasPressedThisFrame())
-        {
-            TryStartRepositioning(pointerPosition);
-        }
+    public void ClearInteractionState()
+    {
+        ResetInteractionState();
     }
 
     public void StartDraggingUnit(UnitIconController iconController)
@@ -102,7 +123,10 @@ public class PlayerController : MonoBehaviour
         if (GameManager.Instance.CurrentState != GameManager.GameState.Placement || unitToReposition != null) return;
 
         currentlyDraggedIcon = iconController;
-        currentlyDraggedIcon.SetSpriteToPlacedState();
+        // La siguiente línea ya la hace el icono, pero la dejamos por si acaso.
+        // Opcionalmente, puedes eliminarla si quieres que el icono solo cambie al colocarlo con éxito.
+        currentlyDraggedIcon.SetSpriteToPlacedState(); 
+        
         dragCursorImage.sprite = currentlyDraggedIcon.GetDragCursorSprite();
         dragCursorImage.raycastTarget = false;
         dragCursorImage.gameObject.SetActive(true);
@@ -114,6 +138,8 @@ public class PlayerController : MonoBehaviour
         {
             if (enemyDragIndicatorPlane != null) enemyDragIndicatorPlane.SetActive(true);
         }
+
+        // NO llamamos a PlacementUIManager.Instance.ShowDetailsPanel(stats); aquí.
     }
 
     public void StopDraggingUnit()
@@ -135,6 +161,7 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
+
         if (!placementSuccessful)
         {
             currentlyDraggedIcon.ResetIcon();
@@ -145,48 +172,93 @@ public class PlayerController : MonoBehaviour
         if (allyDragIndicatorPlane != null) allyDragIndicatorPlane.SetActive(false);
         if (enemyDragIndicatorPlane != null) enemyDragIndicatorPlane.SetActive(false);
     }
-    void TryStartRepositioning(Vector2 pointerPosition)
+
+    private void HandleBoardInteraction(Vector2 pointerPosition)
     {
-        if (EventSystem.current.IsPointerOverGameObject()) return;
-
-        Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
-        if (Physics.Raycast(ray, out RaycastHit hit))
+        if (GameManager.Instance.CurrentState != GameManager.GameState.Placement || EventSystem.current.IsPointerOverGameObject())
         {
-            UnitController unit = hit.collider.GetComponent<UnitController>();
-            if (unit != null)
+            ResetInteractionState();
+            return;
+        }
+
+        // Al presionar el clic
+        if (playerControls.Gameplay.Click.WasPressedThisFrame())
+        {
+            Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+            if (Physics.Raycast(ray, out RaycastHit hit))
             {
-                // --- MODIFICADO: Mostrar panel al iniciar el reposicionamiento ---
-                PlacementUIManager.Instance.ShowDetailsPanel(unit.unitStats);
-                
-                unitToReposition = unit;
-                originalNodeOfRepositionedUnit = unit.currentNode;
-                originalNodeOfRepositionedUnit.isWalkable = true;
-
-                PlacementUIManager.Instance.HideBenchesForDrag();
-
-                if (trashZoneCanvasGroup != null)
-                    StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
-
-                unit.gameObject.SetActive(false);
-
-                if (dragCursorImage != null && unit.originatingIcon != null)
+                UnitController unit = hit.collider.GetComponent<UnitController>();
+                if (unit != null)
                 {
-                    dragCursorImage.sprite = unit.originatingIcon.GetDragCursorSprite();
-                    dragCursorImage.gameObject.SetActive(true);
-                    dragCursorImage.transform.position = pointerPosition;
-                }
-
-                if (unit.teamID == 0)
-                {
-                    if (allyDragIndicatorPlane != null)
-                        allyDragIndicatorPlane.SetActive(true);
-                }
-                else if (unit.teamID == 1)
-                {
-                    if (enemyDragIndicatorPlane != null)
-                        enemyDragIndicatorPlane.SetActive(true);
+                    potentialRepositionTarget = unit;
+                    pointerDownTimer = 0f; // Inicia el temporizador
                 }
             }
+        }
+        
+        // Mientras se mantiene presionado el clic
+        if (playerControls.Gameplay.Click.IsPressed() && potentialRepositionTarget != null)
+        {
+            pointerDownTimer += Time.deltaTime;
+            // Si el tiempo supera el umbral y aún no estamos arrastrando
+            if (pointerDownTimer >= dragDelay && !isDraggingForReposition)
+            {
+                StartRepositioning(potentialRepositionTarget); // Inicia el arrastre
+            }
+        }
+
+        // Al soltar el clic
+        if (playerControls.Gameplay.Click.WasReleasedThisFrame())
+        {
+            // Si teníamos una unidad como objetivo pero NO se inició el arrastre (clic corto)
+            if (potentialRepositionTarget != null && !isDraggingForReposition)
+            {
+                // ¡Esto es un CLIC! Mostramos el panel.
+                PlacementUIManager.Instance.ShowDetailsPanel(potentialRepositionTarget.unitStats);
+            }
+            // Reseteamos el estado de la interacción
+            ResetInteractionState();
+        }
+    }
+
+    private void ResetInteractionState()
+    {
+        pointerDownTimer = 0f;
+        potentialRepositionTarget = null;
+    }
+    void StartRepositioning(UnitController unit)
+    {
+        isDraggingForReposition = true; // Marcamos que estamos arrastrando
+
+        // Muestra el panel de detalles al empezar a arrastrar
+        PlacementUIManager.Instance.ShowDetailsPanel(unit.unitStats);
+
+        unitToReposition = unit;
+        originalNodeOfRepositionedUnit = unit.currentNode;
+        originalNodeOfRepositionedUnit.isWalkable = true;
+
+        PlacementUIManager.Instance.HideBenchesForDrag();
+
+        if (trashZoneCanvasGroup != null)
+            StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
+
+        unit.gameObject.SetActive(false);
+
+        if (dragCursorImage != null && unit.originatingIcon != null)
+        {
+            dragCursorImage.sprite = unit.originatingIcon.GetDragCursorSprite();
+            dragCursorImage.gameObject.SetActive(true);
+        }
+
+        if (unit.teamID == 0)
+        {
+            if (allyDragIndicatorPlane != null)
+                allyDragIndicatorPlane.SetActive(true);
+        }
+        else if (unit.teamID == 1)
+        {
+            if (enemyDragIndicatorPlane != null)
+                enemyDragIndicatorPlane.SetActive(true);
         }
     }
 
@@ -202,14 +274,12 @@ public class PlayerController : MonoBehaviour
             unitToReposition.transform.position = new Vector3(worldPosition.x, 0.5f, worldPosition.z);
             UpdateHighlightForRepositioning(pointerPosition);
         }
+        
     }
 
     void DropRepositionedUnit(Vector2 pointerPosition)
     {
-        // --- MODIFICADO: Ocultar panel al soltar la unidad ---
         PlacementUIManager.Instance.HideDetailsPanel();
-
-        // El resto de la función sigue igual
         PointerEventData pointerData = new PointerEventData(EventSystem.current) { position = pointerPosition };
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(pointerData, results);
@@ -238,6 +308,9 @@ public class PlayerController : MonoBehaviour
                 unitToReposition.gameObject.SetActive(true);
             }
         }
+        isDraggingForReposition = false; // Reseteamos el flag de arrastre
+        unitToReposition = null;         // Liberamos la referencia
+        originalNodeOfRepositionedUnit = null;
         PlacementUIManager.Instance.ShowBenchesAfterDrag();
         if (trashZoneCanvasGroup != null) StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 1f, 0f));
         if (dragCursorImage != null)
