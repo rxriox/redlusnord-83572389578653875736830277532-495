@@ -11,7 +11,9 @@ public class UnitController : MonoBehaviour
     public UnitIconController originatingIcon;
     public float CurrentHealth { get; private set; }
 
-    private enum State { IDLE, MOVING, ATTACKING, CHASING }
+    // --- MODIFICACIÓN 1: Simplificamos los estados ---
+    // Ya no necesitamos CHASING. IDLE se encargará de decidir si moverse o atacar.
+    private enum State { IDLE, MOVING, ATTACKING }
     private State currentState = State.IDLE;
 
     private UnitController currentTarget;
@@ -27,40 +29,65 @@ public class UnitController : MonoBehaviour
 
     public void EvaluateAction()
     {
-        if (unitStats == null || currentState == State.MOVING) return;
-
+        // Si estamos en medio de una acción (movimiento o ataque), no reevaluamos.
+        // La reevaluación ocurrirá cuando estas acciones terminen y el estado vuelva a IDLE.
+        if (currentState == State.MOVING || currentState == State.ATTACKING) return;
+        
         if (attackCooldown > 0)
         {
             attackCooldown -= Time.deltaTime;
         }
 
-        if (currentTarget == null || currentTarget.CurrentHealth <= 0)
-        {
-            currentState = State.IDLE;
-            FindClosestEnemy();
-            if (currentTarget == null)
-            {
-                return;
-            }
-        }
+        // --- LÓGICA DE PRIORIDADES ---
 
-        if (IsTargetInAttackRange())
+        // PRIORIDAD 1: ¿HAY ALGUIEN A QUIEN ATACAR EN MI RANGO AHORA MISMO?
+        UnitController immediateTarget = FindEnemyInAttackRange();
+        if (immediateTarget != null)
         {
+            currentTarget = immediateTarget; // Fijamos este como nuestro objetivo
             if (attackCooldown <= 0)
             {
                 PerformAttack();
             }
-            else
+            return; // Acción del frame decidida, salimos.
+        }
+
+        // PRIORIDAD 2: SI NO HAY NADIE CERCA, ¿TENGO UN OBJETIVO A LARGO PLAZO?
+        // Si no tenemos un objetivo o el que teníamos murió, buscamos uno nuevo.
+        if (currentTarget == null || currentTarget.CurrentHealth <= 0)
+        {
+            FindClosestEnemy();
+            if (currentTarget == null)
             {
-                transform.LookAt(new Vector3(currentTarget.transform.position.x, transform.position.y, currentTarget.transform.position.z));
-                currentState = State.IDLE; 
+                // No quedan enemigos en el mapa.
+                currentState = State.IDLE;
+                return;
             }
         }
-        else
-        {
-            currentState = State.CHASING;
-            MoveTowardsTarget();
-        }
+
+        // PRIORIDAD 3: MOVERSE HACIA EL OBJETIVO A LARGO PLAZO
+        // Si llegamos aquí, significa que tenemos un objetivo, pero no está en rango.
+        MoveTowardsTarget();
+    }
+
+    private UnitController FindEnemyInAttackRange()
+    {
+        // Busca en todas las unidades la más cercana que esté DENTRO de nuestro rango de ataque.
+        return GameManager.Instance.GetAllUnits()
+            .Where(unit => unit != null && unit.teamID != this.teamID && unit.CurrentHealth > 0 && IsUnitWithinAttackRange(unit))
+            .OrderBy(unit => Vector3.Distance(transform.position, unit.transform.position))
+            .FirstOrDefault();
+    }
+    
+    // --- MÉTODO AYUDANTE: Comprueba si una unidad específica está en rango ---
+    private bool IsUnitWithinAttackRange(UnitController unit)
+    {
+        if (unit == null || unit.currentNode == null || this.currentNode == null) return false;
+        int dist_x = Mathf.Abs(currentNode.gridX - unit.currentNode.gridX);
+        int dist_z = Mathf.Abs(currentNode.gridZ - unit.currentNode.gridZ);
+        int distance = Mathf.Max(dist_x, dist_z); // Distancia de Chebyshev para cuadrículas
+
+        return distance <= unitStats.attackRange;
     }
 
     private void FindClosestEnemy()
@@ -73,12 +100,8 @@ public class UnitController : MonoBehaviour
 
     private bool IsTargetInAttackRange()
     {
-        if (currentTarget == null) return false;
-        int dist_x = Mathf.Abs(currentNode.gridX - currentTarget.currentNode.gridX);
-        int dist_z = Mathf.Abs(currentNode.gridZ - currentTarget.currentNode.gridZ);
-        int distance = Mathf.Max(dist_x, dist_z);
-
-        return distance <= unitStats.attackRange;
+        // Reutilizamos nuestro nuevo método ayudante.
+        return IsUnitWithinAttackRange(currentTarget);
     }
 
     private void PerformAttack()
@@ -100,11 +123,12 @@ public class UnitController : MonoBehaviour
         }
 
         attackCooldown = 1f / unitStats.attackSpeed;
+        StartCoroutine(ResetStateAfterAction(0.1f));
     }
 
     private void MoveTowardsTarget()
     {
-        if (gridManager == null || currentTarget == null) return;
+        if (gridManager == null || currentTarget == null || currentState == State.MOVING) return;
         currentPath = gridManager.FindPath(currentNode, currentTarget.currentNode);
 
         if (currentPath != null && currentPath.Count > 0)
@@ -115,6 +139,12 @@ public class UnitController : MonoBehaviour
         {
             currentState = State.IDLE;
         }
+    }
+    
+    private IEnumerator ResetStateAfterAction(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        currentState = State.IDLE;
     }
 
 
@@ -142,7 +172,9 @@ public class UnitController : MonoBehaviour
         }
 
         transform.position = endPosition;
-        currentState = State.CHASING; 
+        // Al terminar de moverse a UNA casilla, vuelve a IDLE para REEVALUAR.
+        // Aquí está la clave: después de cada paso, mira a su alrededor de nuevo.
+        currentState = State.IDLE; 
     }
 
     public void TakeDamage(float damage, UnitController attacker)
