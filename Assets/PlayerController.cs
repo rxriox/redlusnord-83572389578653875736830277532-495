@@ -200,6 +200,7 @@ public class PlayerController : MonoBehaviour
         {
             if (potentialRepositionTarget != null && !isDraggingForReposition)
             {
+                ShowSelectionHighlight(potentialRepositionTarget.currentNode);
                 PlacementUIManager.Instance.ShowDetailsPanel(potentialRepositionTarget.unitStats);
             }
             ResetInteractionState();
@@ -504,6 +505,32 @@ public class PlayerController : MonoBehaviour
         }
         yield break;
     }
+
+    public void ShowSelectionHighlight(Node node)
+    {
+        if (highlightInstance != null && node != null)
+        {
+            // Nos aseguramos de que no esté siendo controlado por la lógica de arrastre
+            if (!isDraggingForReposition)
+            {
+                highlightInstance.transform.position = node.worldPosition;
+                highlightInstance.SetActive(true);
+            }
+        }
+    }
+
+    public void HideSelectionHighlight()
+    {
+        if (highlightInstance != null)
+        {
+            // Nos aseguramos de no ocultarlo si estamos en medio de un arrastre
+            if (!isDraggingForReposition)
+            {
+                highlightInstance.SetActive(false);
+            }
+        }
+    }
+
     public void ShowTrashZone()
     {
         if (trashZoneCanvasGroup != null)

@@ -73,7 +73,7 @@ public class PlacementUIManager : MonoBehaviour
         {
             closeDetailsButton.onClick.AddListener(HideDetailsPanel);
         }
-        
+
         if (panelBlocker != null && panelBlocker.GetComponent<Button>() != null)
         {
             panelBlocker.GetComponent<Button>().onClick.AddListener(HideDetailsPanel);
@@ -96,6 +96,7 @@ public class PlacementUIManager : MonoBehaviour
         if (panelBlocker != null) panelBlocker.SetActive(false);
         if (PlayerController.Instance != null)
         {
+            PlayerController.Instance.HideSelectionHighlight();
             PlayerController.Instance.ClearInteractionState();
         }
     }
