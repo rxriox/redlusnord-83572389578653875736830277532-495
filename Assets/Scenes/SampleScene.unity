@@ -1846,6 +1846,7 @@ MonoBehaviour:
   dragCursorImage: {fileID: 1690339846}
   trashZoneCanvasGroup: {fileID: 465360117}
   fadeDuration: 0.2
+  dragDelay: 0.2
 --- !u!4 &261310746
 Transform:
   m_ObjectHideFlags: 0
