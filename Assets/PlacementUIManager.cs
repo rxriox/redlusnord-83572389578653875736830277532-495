@@ -32,6 +32,7 @@ public class PlacementUIManager : MonoBehaviour
     public Transform enemyBenchContent;
     public GameObject[] enemyIconPrefabs;
     public CanvasGroup enemyBenchCanvasGroup;
+
     [Header("Banca de Artefactos")]
     [Tooltip("El objeto GameObject del ScrollView de los artefactos.")]
     public GameObject artifactsBenchScrollView;
@@ -40,7 +41,14 @@ public class PlacementUIManager : MonoBehaviour
     [Tooltip("Arrastra aquí tus PREFABS de iconos de artefactos.")]
     public GameObject[] artifactIconPrefabs;
     [Tooltip("El CanvasGroup del ScrollView de los artefactos para la animación.")]
-    public CanvasGroup artifactsBenchCanvasGroup;    
+    public CanvasGroup artifactsBenchCanvasGroup;
+
+    [Header("Panel de Detalles de Unidad")]
+    public GameObject detailsPanel;
+    public TextMeshProUGUI unitNameText;
+    public Button closeDetailsButton;
+    public GameObject panelBlocker;
+
     [Header("Animación")]
     [Tooltip("La duración en segundos del desvanecimiento (fade).")]
     public float fadeDuration = 0.2f;
@@ -61,6 +69,31 @@ public class PlacementUIManager : MonoBehaviour
         PopulateBench(artifactsBenchContent, artifactIconPrefabs);
         ShowAllyBench();
         UpdateUnitCountDisplay();
+        if (closeDetailsButton != null)
+        {
+            closeDetailsButton.onClick.AddListener(HideDetailsPanel);
+        }
+        // Asigna la función de ocultar al blocker
+        if (panelBlocker != null && panelBlocker.GetComponent<Button>() != null)
+        {
+            panelBlocker.GetComponent<Button>().onClick.AddListener(HideDetailsPanel);
+        }
+        HideDetailsPanel();
+    }
+
+    public void ShowDetailsPanel(UnitStats stats)
+    {
+        if (stats == null || detailsPanel == null || unitNameText == null) return;
+
+        unitNameText.text = stats.unitName; // Muestra el nombre
+        detailsPanel.SetActive(true);
+        if (panelBlocker != null) panelBlocker.SetActive(true); // Activa el blocker
+    }
+
+    public void HideDetailsPanel()
+    {
+        if (detailsPanel != null) detailsPanel.SetActive(false);
+        if (panelBlocker != null) panelBlocker.SetActive(false); // Desactiva el blocker
     }
 
     void PopulateBench(Transform content, GameObject[] iconPrefabs)

@@ -18,7 +18,7 @@ MonoBehaviour:
   characterPrefab: {fileID: 3805343749917133435, guid: c40b9b6624869554da0f194b88451be5, type: 3}
   projectilePrefab: {fileID: 4570334888300365644, guid: e0775eba1bb45214f9851bad6110993a, type: 3}
   unitName: Aya
-  maxHealth: 50
+  maxHealth: 2000
   maxMana: 100
   attackDamage: 10
   attackSpeed: 1

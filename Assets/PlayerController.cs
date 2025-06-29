@@ -146,46 +146,49 @@ public class PlayerController : MonoBehaviour
         if (enemyDragIndicatorPlane != null) enemyDragIndicatorPlane.SetActive(false);
     }
     void TryStartRepositioning(Vector2 pointerPosition)
-{
-    if (EventSystem.current.IsPointerOverGameObject()) return;
-
-    Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
-    if (Physics.Raycast(ray, out RaycastHit hit))
     {
-        UnitController unit = hit.collider.GetComponent<UnitController>();
-        if (unit != null)
+        if (EventSystem.current.IsPointerOverGameObject()) return;
+
+        Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+        if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            unitToReposition = unit;
-            originalNodeOfRepositionedUnit = unit.currentNode;
-            originalNodeOfRepositionedUnit.isWalkable = true;
-
-            PlacementUIManager.Instance.HideBenchesForDrag();
-
-            if (trashZoneCanvasGroup != null)
-                StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
-
-            unit.gameObject.SetActive(false);
-
-            if (dragCursorImage != null && unit.originatingIcon != null)
+            UnitController unit = hit.collider.GetComponent<UnitController>();
+            if (unit != null)
             {
-                dragCursorImage.sprite = unit.originatingIcon.GetDragCursorSprite();
-                dragCursorImage.gameObject.SetActive(true);
-                dragCursorImage.transform.position = pointerPosition;
-            }
+                // --- MODIFICADO: Mostrar panel al iniciar el reposicionamiento ---
+                PlacementUIManager.Instance.ShowDetailsPanel(unit.unitStats);
+                
+                unitToReposition = unit;
+                originalNodeOfRepositionedUnit = unit.currentNode;
+                originalNodeOfRepositionedUnit.isWalkable = true;
 
-            if (unit.teamID == 0)
-            {
-                if (allyDragIndicatorPlane != null)
-                    allyDragIndicatorPlane.SetActive(true);
-            }
-            else if (unit.teamID == 1)
-            {
-                if (enemyDragIndicatorPlane != null)
-                    enemyDragIndicatorPlane.SetActive(true);
+                PlacementUIManager.Instance.HideBenchesForDrag();
+
+                if (trashZoneCanvasGroup != null)
+                    StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
+
+                unit.gameObject.SetActive(false);
+
+                if (dragCursorImage != null && unit.originatingIcon != null)
+                {
+                    dragCursorImage.sprite = unit.originatingIcon.GetDragCursorSprite();
+                    dragCursorImage.gameObject.SetActive(true);
+                    dragCursorImage.transform.position = pointerPosition;
+                }
+
+                if (unit.teamID == 0)
+                {
+                    if (allyDragIndicatorPlane != null)
+                        allyDragIndicatorPlane.SetActive(true);
+                }
+                else if (unit.teamID == 1)
+                {
+                    if (enemyDragIndicatorPlane != null)
+                        enemyDragIndicatorPlane.SetActive(true);
+                }
             }
         }
     }
-}
 
 
 
@@ -203,6 +206,10 @@ public class PlayerController : MonoBehaviour
 
     void DropRepositionedUnit(Vector2 pointerPosition)
     {
+        // --- MODIFICADO: Ocultar panel al soltar la unidad ---
+        PlacementUIManager.Instance.HideDetailsPanel();
+
+        // El resto de la función sigue igual
         PointerEventData pointerData = new PointerEventData(EventSystem.current) { position = pointerPosition };
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(pointerData, results);

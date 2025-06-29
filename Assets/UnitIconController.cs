@@ -24,10 +24,19 @@ public class UnitIconController : MonoBehaviour, IBeginDragHandler, IDragHandler
         ResetIcon();
     }
 
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (isPlaced) return; // No hacer nada si ya está colocada
+        
+        // Muestra el panel de detalles si se hace un clic simple
+        PlacementUIManager.Instance.ShowDetailsPanel(characterData);
+    }
+
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (!isPlaced && eventData.button == PointerEventData.InputButton.Left)
         {
+            PlacementUIManager.Instance.ShowDetailsPanel(characterData);
             playerController.StartDraggingUnit(this);
         }
     }
@@ -38,6 +47,7 @@ public class UnitIconController : MonoBehaviour, IBeginDragHandler, IDragHandler
     {
         if (eventData.button == PointerEventData.InputButton.Left)
         {
+            PlacementUIManager.Instance.HideDetailsPanel();
             playerController.StopDraggingUnit();
         }
     }
