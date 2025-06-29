@@ -179,6 +179,10 @@ public class GameManager : MonoBehaviour
         {
             StopAllCoroutines();
         }
+        if (ObjectPooler.Instance != null)
+    {
+        ObjectPooler.Instance.ResetAllPools();
+    }
         List<UnitController> unitsToDestroy = new List<UnitController>(allUnits);
         foreach (UnitController unit in unitsToDestroy)
         {
@@ -297,6 +301,10 @@ public class GameManager : MonoBehaviour
     {
         CurrentState = GameState.Result;
         Debug.Log("Reconstruyendo tablero para la siguiente ronda...");
+        if (ObjectPooler.Instance != null)
+    {
+        ObjectPooler.Instance.ResetAllPools();
+    }
         foreach (var unit in allUnits.ToList())
         {
             if (unit != null) Destroy(unit.gameObject);

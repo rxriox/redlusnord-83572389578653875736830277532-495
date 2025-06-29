@@ -1894,7 +1894,7 @@ MonoBehaviour:
   pools:
   - tag: Proyectil
     prefab: {fileID: 4570334888300365644, guid: e0775eba1bb45214f9851bad6110993a, type: 3}
-    size: 322
+    size: 10000
 --- !u!4 &324062223
 Transform:
   m_ObjectHideFlags: 0
@@ -11576,6 +11576,7 @@ MonoBehaviour:
   closeDetailsButton: {fileID: 655488640}
   panelBlocker: {fileID: 0}
   fadeDuration: 0.2
+  selectionHighlightPrefab: {fileID: 5090270939071943840, guid: c51d1aea6ca007a4c8e7ce2a016e225e, type: 3}
 --- !u!4 &2071166982
 Transform:
   m_ObjectHideFlags: 0
