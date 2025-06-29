@@ -92,3 +92,4 @@ MonoBehaviour:
   availableIconSprite: {fileID: 21300000, guid: 920de3a7ca1baa946a78b5f716690d88, type: 3}
   placedIconSprite: {fileID: 21300000, guid: 81891ae7ee0aee5409608485aa468a93, type: 3}
   dragCursorSprite: {fileID: 21300000, guid: c91b9cf695ea5e44f901ab2261a5521b, type: 3}
+  dragDelay: 0.1

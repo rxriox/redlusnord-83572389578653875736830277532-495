@@ -25,7 +25,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Configuración de Interacción")]
     [Tooltip("Tiempo en segundos para que un clic se convierta en arrastre.")]
-    public float dragDelay = 0.2f;
+    public float dragDelay = 0.1f;
 
     private float pointerDownTimer = 0f;
     private bool isDraggingForReposition = false;
@@ -36,6 +36,10 @@ public class PlayerController : MonoBehaviour
     private UnitController unitToReposition;
     private Node originalNodeOfRepositionedUnit;
     private PlayerControl playerControls;
+
+
+    private void OnEnable() { playerControls.Gameplay.Enable(); }
+    private void OnDisable() { playerControls.Gameplay.Disable(); }
 
     void Awake()
     {
@@ -50,8 +54,7 @@ public class PlayerController : MonoBehaviour
 
         playerControls = new PlayerControl();
     }
-    private void OnEnable() { playerControls.Gameplay.Enable(); }
-    private void OnDisable() { playerControls.Gameplay.Disable(); }
+    
 
     void Start()
     {
@@ -71,7 +74,6 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
 
-        // --- MODIFICACIÓN CLAVE: Actualiza la posición del cursor si se está arrastrando CUALQUIER COSA ---
         if (currentlyDraggedIcon != null || isDraggingForReposition)
         {
             if (dragCursorImage != null && dragCursorImage.gameObject.activeInHierarchy)
@@ -80,18 +82,14 @@ public class PlayerController : MonoBehaviour
             }
         }
         
-        // Caso 1: Arrastrando un icono NUEVO desde la banca
         if (currentlyDraggedIcon != null)
         {
             UpdateHighlight(PlacementUIManager.Instance.CurrentPlacementTeamID, pointerPosition);
             return;
         }
 
-        // Caso 2: Ya estamos en medio del proceso de REPOSICIONAR una unidad
         if (isDraggingForReposition && unitToReposition != null)
         {
-            // Ya no necesitamos mover el cursor aquí, se hace arriba.
-            // Solo actualizamos el highlight del tablero.
             UpdateRepositioningUnit(pointerPosition);
 
             if (playerControls.Gameplay.Click.WasReleasedThisFrame())
@@ -100,8 +98,6 @@ public class PlayerController : MonoBehaviour
             }
             return;
         }
-        
-        // Lógica principal para detectar clic vs arrastre en el tablero
         HandleBoardInteraction(pointerPosition);
     }
 
@@ -123,10 +119,7 @@ public class PlayerController : MonoBehaviour
         if (GameManager.Instance.CurrentState != GameManager.GameState.Placement || unitToReposition != null) return;
 
         currentlyDraggedIcon = iconController;
-        // La siguiente línea ya la hace el icono, pero la dejamos por si acaso.
-        // Opcionalmente, puedes eliminarla si quieres que el icono solo cambie al colocarlo con éxito.
         currentlyDraggedIcon.SetSpriteToPlacedState(); 
-        
         dragCursorImage.sprite = currentlyDraggedIcon.GetDragCursorSprite();
         dragCursorImage.raycastTarget = false;
         dragCursorImage.gameObject.SetActive(true);
@@ -139,7 +132,6 @@ public class PlayerController : MonoBehaviour
             if (enemyDragIndicatorPlane != null) enemyDragIndicatorPlane.SetActive(true);
         }
 
-        // NO llamamos a PlacementUIManager.Instance.ShowDetailsPanel(stats); aquí.
     }
 
     public void StopDraggingUnit()
@@ -181,7 +173,6 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // Al presionar el clic
         if (playerControls.Gameplay.Click.WasPressedThisFrame())
         {
             Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
@@ -191,32 +182,26 @@ public class PlayerController : MonoBehaviour
                 if (unit != null)
                 {
                     potentialRepositionTarget = unit;
-                    pointerDownTimer = 0f; // Inicia el temporizador
+                    pointerDownTimer = 0f;
                 }
             }
         }
         
-        // Mientras se mantiene presionado el clic
         if (playerControls.Gameplay.Click.IsPressed() && potentialRepositionTarget != null)
         {
             pointerDownTimer += Time.deltaTime;
-            // Si el tiempo supera el umbral y aún no estamos arrastrando
             if (pointerDownTimer >= dragDelay && !isDraggingForReposition)
             {
-                StartRepositioning(potentialRepositionTarget); // Inicia el arrastre
+                StartRepositioning(potentialRepositionTarget, pointerPosition); 
             }
         }
 
-        // Al soltar el clic
         if (playerControls.Gameplay.Click.WasReleasedThisFrame())
         {
-            // Si teníamos una unidad como objetivo pero NO se inició el arrastre (clic corto)
             if (potentialRepositionTarget != null && !isDraggingForReposition)
             {
-                // ¡Esto es un CLIC! Mostramos el panel.
                 PlacementUIManager.Instance.ShowDetailsPanel(potentialRepositionTarget.unitStats);
             }
-            // Reseteamos el estado de la interacción
             ResetInteractionState();
         }
     }
@@ -226,43 +211,42 @@ public class PlayerController : MonoBehaviour
         pointerDownTimer = 0f;
         potentialRepositionTarget = null;
     }
-    void StartRepositioning(UnitController unit)
+    void StartRepositioning(UnitController unit, Vector2 pointerPosition)
+{
+    isDraggingForReposition = true;
+    PlacementUIManager.Instance.ShowDetailsPanel(unit.unitStats);
+
+    unitToReposition = unit;
+    originalNodeOfRepositionedUnit = unit.currentNode;
+    originalNodeOfRepositionedUnit.isWalkable = true;
+
+
+    PlacementUIManager.Instance.HideBenchesForDrag();
+
+    if (trashZoneCanvasGroup != null)
+        StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
+
+    unit.gameObject.SetActive(false);
+
+    if (dragCursorImage != null && unit.originatingIcon != null)
     {
-        isDraggingForReposition = true; // Marcamos que estamos arrastrando
-
-        // Muestra el panel de detalles al empezar a arrastrar
-        PlacementUIManager.Instance.ShowDetailsPanel(unit.unitStats);
-
-        unitToReposition = unit;
-        originalNodeOfRepositionedUnit = unit.currentNode;
-        originalNodeOfRepositionedUnit.isWalkable = true;
-
-        PlacementUIManager.Instance.HideBenchesForDrag();
-
-        if (trashZoneCanvasGroup != null)
-            StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
-
-        unit.gameObject.SetActive(false);
-
-        if (dragCursorImage != null && unit.originatingIcon != null)
-        {
-            dragCursorImage.sprite = unit.originatingIcon.GetDragCursorSprite();
-            dragCursorImage.gameObject.SetActive(true);
-        }
-
-        if (unit.teamID == 0)
-        {
-            if (allyDragIndicatorPlane != null)
-                allyDragIndicatorPlane.SetActive(true);
-        }
-        else if (unit.teamID == 1)
-        {
-            if (enemyDragIndicatorPlane != null)
-                enemyDragIndicatorPlane.SetActive(true);
-        }
+        dragCursorImage.sprite = unit.originatingIcon.GetDragCursorSprite();
+        dragCursorImage.gameObject.SetActive(true);
+        // --- LA SOLUCIÓN: Actualizamos la posición INMEDIATAMENTE ---
+        dragCursorImage.transform.position = pointerPosition;
     }
 
-
+    if (unit.teamID == 0)
+    {
+        if (allyDragIndicatorPlane != null)
+            allyDragIndicatorPlane.SetActive(true);
+    }
+    else if (unit.teamID == 1)
+    {
+        if (enemyDragIndicatorPlane != null)
+            enemyDragIndicatorPlane.SetActive(true);
+    }
+}
 
     void UpdateRepositioningUnit(Vector2 pointerPosition)
     {
@@ -280,43 +264,52 @@ public class PlayerController : MonoBehaviour
     void DropRepositionedUnit(Vector2 pointerPosition)
     {
         PlacementUIManager.Instance.HideDetailsPanel();
+
         PointerEventData pointerData = new PointerEventData(EventSystem.current) { position = pointerPosition };
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(pointerData, results);
-        bool droppedOnTrash = false;
-        foreach (RaycastResult result in results) { if (result.gameObject.GetComponent<TrashZoneController>() != null) { droppedOnTrash = true; break; } }
+        bool droppedOnTrash = results.Any(r => r.gameObject.GetComponent<TrashZoneController>() != null);
+
         if (droppedOnTrash)
         {
             if (unitToReposition.originatingIcon != null) { unitToReposition.originatingIcon.ResetIcon(); }
-            unitToReposition.Die(null);
+            if(GameManager.Instance != null) GameManager.Instance.UnregisterUnit(unitToReposition);
+            Destroy(unitToReposition.gameObject);
         }
         else
         {
-            Node destinationNode = gridManager.NodeFromWorldPoint(unitToReposition.transform.position);
-            if (gridManager.IsNodeValidForPlacement(destinationNode, unitToReposition.teamID))
+            Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+            Vector3 dropWorldPosition = Vector3.zero;
+            Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+            if (groundPlane.Raycast(ray, out float distance))
             {
-                unitToReposition.transform.position = destinationNode.worldPosition;
-                unitToReposition.currentNode = destinationNode;
-                destinationNode.isWalkable = false;
-                unitToReposition.gameObject.SetActive(true);
+                dropWorldPosition = ray.GetPoint(distance);
             }
-            else
+
+            Node destinationNode = gridManager.NodeFromWorldPoint(dropWorldPosition);
+
+            if (!gridManager.IsNodeValidForPlacement(destinationNode, unitToReposition.teamID))
             {
-                unitToReposition.transform.position = originalNodeOfRepositionedUnit.worldPosition;
-                unitToReposition.currentNode = originalNodeOfRepositionedUnit;
-                originalNodeOfRepositionedUnit.isWalkable = false;
-                unitToReposition.gameObject.SetActive(true);
+                destinationNode = gridManager.FindClosestValidNode(dropWorldPosition, unitToReposition.teamID);
             }
+            
+            if (destinationNode == null)
+            {
+                destinationNode = originalNodeOfRepositionedUnit;
+            }
+
+            unitToReposition.transform.position = destinationNode.worldPosition;
+            unitToReposition.currentNode = destinationNode;
+            destinationNode.isWalkable = false;
+            unitToReposition.gameObject.SetActive(true);
         }
-        isDraggingForReposition = false; // Reseteamos el flag de arrastre
-        unitToReposition = null;         // Liberamos la referencia
+
+        isDraggingForReposition = false;
+        unitToReposition = null;
         originalNodeOfRepositionedUnit = null;
         PlacementUIManager.Instance.ShowBenchesAfterDrag();
         if (trashZoneCanvasGroup != null) StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 1f, 0f));
-        if (dragCursorImage != null)
-            dragCursorImage.gameObject.SetActive(false);
-        unitToReposition = null;
-        originalNodeOfRepositionedUnit = null;
+        if (dragCursorImage != null) dragCursorImage.gameObject.SetActive(false);
         if (highlightInstance != null) highlightInstance.SetActive(false);
         if (allyDragIndicatorPlane != null) allyDragIndicatorPlane.SetActive(false);
         if (enemyDragIndicatorPlane != null) enemyDragIndicatorPlane.SetActive(false);
@@ -351,8 +344,31 @@ public class PlayerController : MonoBehaviour
     private void UpdateHighlightForRepositioning(Vector2 pointerPosition)
     {
         if (highlightInstance == null || unitToReposition == null) return;
-        Node nodeUnderUnit = gridManager.NodeFromWorldPoint(unitToReposition.transform.position);
-        UpdateHighlight(unitToReposition.teamID, pointerPosition, nodeUnderUnit);
+
+        Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+        Vector3 cursorWorldPosition = Vector3.zero;
+        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+        if (groundPlane.Raycast(ray, out float distance))
+        {
+            cursorWorldPosition = ray.GetPoint(distance);
+        }
+
+        Node targetNode = gridManager.NodeFromWorldPoint(cursorWorldPosition);
+
+        if (!gridManager.IsNodeValidForPlacement(targetNode, unitToReposition.teamID))
+        {
+            targetNode = gridManager.FindClosestValidNode(cursorWorldPosition, unitToReposition.teamID);
+        }
+
+        if (targetNode != null)
+        {
+            highlightInstance.SetActive(true);
+            highlightInstance.transform.position = targetNode.worldPosition;
+        }
+        else
+        {
+            highlightInstance.SetActive(false);
+        }
     }
 
     private void UpdateHighlight(int teamID, Vector2 pointerPosition, Node nodeToHighlight = null)

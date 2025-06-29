@@ -107,20 +107,16 @@ public class GridManager : MonoBehaviour
     public List<Node> GetNeighbours(Node node)
     {
         List<Node> neighbours = new List<Node>();
-
-        // Este bucle doble recorre todas las casillas circundantes (-1, 0, 1)
         for (int x = -1; x <= 1; x++)
         {
             for (int z = -1; z <= 1; z++)
             {
-                // Saltamos la casilla del centro, que es el propio nodo
                 if (x == 0 && z == 0)
                     continue;
 
                 int checkX = node.gridX + x;
                 int checkZ = node.gridZ + z;
 
-                // Nos aseguramos de que el vecino está dentro de los límites del tablero
                 if (checkX >= 0 && checkX < gridWidth && checkZ >= 0 && checkZ < gridHeight)
                 {
                     neighbours.Add(grid[checkX, checkZ]);
@@ -133,76 +129,94 @@ public class GridManager : MonoBehaviour
     {
         int dstX = Mathf.Abs(nodeA.gridX - nodeB.gridX);
         int dstZ = Mathf.Abs(nodeA.gridZ - nodeB.gridZ);
-
-        // Asignamos un coste de 14 para las casillas diagonales y 10 para las ortogonales.
         if (dstX > dstZ)
             return 14 * dstZ + 10 * (dstX - dstZ);
 
         return 14 * dstX + 10 * (dstZ - dstX);
     }
     public List<Node> FindPath(Node startNode, Node targetNode)
-{
-    List<Node> openSet = new List<Node>();
-    HashSet<Node> closedSet = new HashSet<Node>();
-    openSet.Add(startNode);
-
-    while (openSet.Count > 0)
     {
-        Node currentNode = openSet[0];
-        for (int i = 1; i < openSet.Count; i++)
+        List<Node> openSet = new List<Node>();
+        HashSet<Node> closedSet = new HashSet<Node>();
+        openSet.Add(startNode);
+
+        while (openSet.Count > 0)
         {
-            if (openSet[i].fCost < currentNode.fCost || 
-                (openSet[i].fCost == currentNode.fCost && openSet[i].hCost < currentNode.hCost))
+            Node currentNode = openSet[0];
+            for (int i = 1; i < openSet.Count; i++)
             {
-                currentNode = openSet[i];
+                if (openSet[i].fCost < currentNode.fCost ||
+                    (openSet[i].fCost == currentNode.fCost && openSet[i].hCost < currentNode.hCost))
+                {
+                    currentNode = openSet[i];
+                }
+            }
+
+            openSet.Remove(currentNode);
+            closedSet.Add(currentNode);
+
+            if (currentNode == targetNode)
+            {
+                return RetracePath(startNode, targetNode);
+            }
+
+            foreach (Node neighbour in GetNeighbours(currentNode))
+            {
+                if (!neighbour.isWalkable || closedSet.Contains(neighbour))
+                {
+                    if (neighbour != targetNode)
+                        continue;
+                }
+
+                int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
+                if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
+                {
+                    neighbour.gCost = newMovementCostToNeighbour;
+                    neighbour.hCost = GetDistance(neighbour, targetNode);
+                    neighbour.parent = currentNode;
+
+                    if (!openSet.Contains(neighbour))
+                        openSet.Add(neighbour);
+                }
             }
         }
 
-        openSet.Remove(currentNode);
-        closedSet.Add(currentNode);
+        return null;
+    }
+    
+    public Node FindClosestValidNode(Vector3 worldPosition, int teamID)
+{
+    Node closestNode = null;
+    float minDistance = float.MaxValue;
 
-        if (currentNode == targetNode)
+    foreach (Node node in grid)
+    {
+        if (IsNodeValidForPlacement(node, teamID))
         {
-            return RetracePath(startNode, targetNode);
-        }
+            float distance = Vector3.Distance(node.worldPosition, worldPosition);
 
-        foreach (Node neighbour in GetNeighbours(currentNode))
-        {
-            if (!neighbour.isWalkable || closedSet.Contains(neighbour))
+            if (distance < minDistance)
             {
-                // Also treat the target node as walkable for path calculation,
-                // even if occupied, so the unit can move towards it.
-                if (neighbour != targetNode)
-                    continue;
-            }
-
-            int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
-            if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
-            {
-                neighbour.gCost = newMovementCostToNeighbour;
-                neighbour.hCost = GetDistance(neighbour, targetNode);
-                neighbour.parent = currentNode;
-
-                if (!openSet.Contains(neighbour))
-                    openSet.Add(neighbour);
+                minDistance = distance;
+                closestNode = node;
             }
         }
     }
 
-    return null; // No path found
+    return closestNode;
 }
 
 private List<Node> RetracePath(Node startNode, Node endNode)
-{
-    List<Node> path = new List<Node>();
-    Node currentNode = endNode;
-
-    while (currentNode != startNode)
     {
-        path.Add(currentNode);
-        currentNode = currentNode.parent;
+        List<Node> path = new List<Node>();
+        Node currentNode = endNode;
+
+        while (currentNode != startNode)
+        {
+            path.Add(currentNode);
+            currentNode = currentNode.parent;
+        }
+        path.Reverse();
+        return path;
     }
-    path.Reverse();
-    return path;
-}
 }

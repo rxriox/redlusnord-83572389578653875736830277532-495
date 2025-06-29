@@ -73,7 +73,7 @@ public class PlacementUIManager : MonoBehaviour
         {
             closeDetailsButton.onClick.AddListener(HideDetailsPanel);
         }
-        // Asigna la función de ocultar al blocker
+        
         if (panelBlocker != null && panelBlocker.GetComponent<Button>() != null)
         {
             panelBlocker.GetComponent<Button>().onClick.AddListener(HideDetailsPanel);
@@ -94,9 +94,6 @@ public class PlacementUIManager : MonoBehaviour
     {
         if (detailsPanel != null) detailsPanel.SetActive(false);
         if (panelBlocker != null) panelBlocker.SetActive(false);
-
-        // --- AÑADIDO IMPORTANTE ---
-        // Le decimos al PlayerController que resetee su estado de clic/arrastre.
         if (PlayerController.Instance != null)
         {
             PlayerController.Instance.ClearInteractionState();
