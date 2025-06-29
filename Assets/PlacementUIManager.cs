@@ -53,6 +53,12 @@ public class PlacementUIManager : MonoBehaviour
     [Tooltip("La duración en segundos del desvanecimiento (fade).")]
     public float fadeDuration = 0.2f;
     public enum ActiveBench { Allies, Enemies, Artifacts }
+
+    [Header("Highlight de Selección en Combate")]
+    [Tooltip("Arrastra aquí el prefab 'SelectionHighlightFollower_Prefab'")]
+    public GameObject selectionHighlightPrefab;
+    private GameObject activeSelectionHighlight;
+
     private ActiveBench lastActiveBench;
     public int CurrentPlacementTeamID { get; private set; }
 
@@ -94,7 +100,17 @@ public class PlacementUIManager : MonoBehaviour
     {
         if (detailsPanel != null) detailsPanel.SetActive(false);
         if (panelBlocker != null) panelBlocker.SetActive(false);
-        if (PlayerController.Instance != null)
+
+        // --- LÓGICA MODIFICADA ---
+        // Si hay un highlight de seguidor activo, lo destruimos.
+        if (activeSelectionHighlight != null)
+        {
+            Destroy(activeSelectionHighlight);
+            activeSelectionHighlight = null; // Limpiamos la referencia
+        }
+
+        // La lógica de la fase de colocación sigue siendo necesaria
+        if (PlayerController.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Placement)
         {
             PlayerController.Instance.HideSelectionHighlight();
             PlayerController.Instance.ClearInteractionState();
@@ -159,7 +175,7 @@ public class PlacementUIManager : MonoBehaviour
         if (enemyBenchButton != null) enemyBenchButton.GetComponent<Image>().color = activeTabColor;
         if (ArtifactsBenchButton != null) ArtifactsBenchButton.GetComponent<Image>().color = inactiveTabColor;
     }
-    
+
     public void ShowArtifactsBench()
     {
         lastActiveBench = ActiveBench.Artifacts;
@@ -181,7 +197,7 @@ public class PlacementUIManager : MonoBehaviour
             bench.interactable = isActive;
             bench.blocksRaycasts = isActive;
         }
-        
+
     }
     public void HideBenchesForDrag()
     {
@@ -209,7 +225,7 @@ public class PlacementUIManager : MonoBehaviour
                 break;
         }
     }
-    
+
     private IEnumerator FadeCanvasGroup(CanvasGroup cg, float start, float end)
     {
         float counter = 0f;
@@ -225,12 +241,36 @@ public class PlacementUIManager : MonoBehaviour
             cg.alpha = Mathf.Lerp(start, end, counter / fadeDuration);
             yield return null;
         }
-        
+
         cg.alpha = end;
         if (end == 1)
         {
             cg.interactable = true;
             cg.blocksRaycasts = true;
+        }
+    }
+    public void SelectUnitForDetails(UnitController unit)
+    {
+        // Si ya había un highlight, lo destruimos para crear uno nuevo
+        if (activeSelectionHighlight != null)
+        {
+            Destroy(activeSelectionHighlight);
+        }
+
+        // Mostramos el panel de detalles con la info de la unidad
+        ShowDetailsPanel(unit.unitStats);
+
+        // Creamos la instancia del highlight seguidor
+        if (selectionHighlightPrefab != null)
+        {
+            activeSelectionHighlight = Instantiate(selectionHighlightPrefab, unit.transform.position, Quaternion.identity);
+            
+            // Le decimos al highlight a quién debe seguir
+            HighlightFollower follower = activeSelectionHighlight.GetComponent<HighlightFollower>();
+            if (follower != null)
+            {
+                follower.targetToFollow = unit.transform;
+            }
         }
     }
 }

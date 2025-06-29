@@ -74,32 +74,58 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
 
-        if (currentlyDraggedIcon != null || isDraggingForReposition)
+        // --- LÓGICA DE FASE DE COLOCACIÓN (YA LA TIENES) ---
+        if (GameManager.Instance.CurrentState == GameManager.GameState.Placement)
         {
-            if (dragCursorImage != null && dragCursorImage.gameObject.activeInHierarchy)
+            if (currentlyDraggedIcon != null || isDraggingForReposition)
             {
-                dragCursorImage.transform.position = pointerPosition;
+                if (dragCursorImage != null && dragCursorImage.gameObject.activeInHierarchy)
+                {
+                    dragCursorImage.transform.position = pointerPosition;
+                }
             }
-        }
-        
-        if (currentlyDraggedIcon != null)
-        {
-            UpdateHighlight(PlacementUIManager.Instance.CurrentPlacementTeamID, pointerPosition);
-            return;
-        }
 
-        if (isDraggingForReposition && unitToReposition != null)
-        {
-            UpdateRepositioningUnit(pointerPosition);
-
-            if (playerControls.Gameplay.Click.WasReleasedThisFrame())
+            if (currentlyDraggedIcon != null)
             {
-                DropRepositionedUnit(pointerPosition);
+                UpdateHighlight(PlacementUIManager.Instance.CurrentPlacementTeamID, pointerPosition);
+                return;
             }
-            return;
+
+            if (isDraggingForReposition && unitToReposition != null)
+            {
+                UpdateRepositioningUnit(pointerPosition);
+                if (playerControls.Gameplay.Click.WasReleasedThisFrame())
+                {
+                    DropRepositionedUnit(pointerPosition);
+                }
+                return;
+            }
+            HandleBoardInteraction(pointerPosition);
         }
-        HandleBoardInteraction(pointerPosition);
+        // --- NUEVA LÓGICA DE FASE DE COMBATE ---
+        else if (GameManager.Instance.CurrentState == GameManager.GameState.Combat)
+        {
+            HandleCombatInteraction(pointerPosition);
+        }
     }
+
+    private void HandleCombatInteraction(Vector2 pointerPosition)
+{
+    // Solo nos interesa el momento exacto del clic
+    if (playerControls.Gameplay.Click.WasPressedThisFrame())
+    {
+        Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            UnitController unit = hit.collider.GetComponent<UnitController>();
+            if (unit != null)
+            {
+                // Si hacemos clic en una unidad, le pasamos la responsabilidad al UI Manager
+                PlacementUIManager.Instance.SelectUnitForDetails(unit);
+            }
+        }
+    }
+}
 
     public void ClearInteractionState()
     {
