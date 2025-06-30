@@ -199,6 +199,7 @@ public class UnitController : MonoBehaviour
         StopAllCoroutines();
         if (currentNode != null) currentNode.isWalkable = true;
         GameManager.Instance.UnregisterUnit(this);
+        GameManager.Instance.CheckForCombatEnd();
         Destroy(gameObject);
     }
      public static string GetTeamTag(int teamID)

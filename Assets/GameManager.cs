@@ -208,6 +208,41 @@ public class GameManager : MonoBehaviour
         Debug.Log("Tablero Reiniciado. Fase de Colocación activada.");
     }
 
+    public void CheckForCombatEnd()
+    {
+        // Solo hacemos esta comprobación si estamos en pleno combate.
+        if (CurrentState != GameState.Combat) return;
+
+        int team0Count = allUnits.Count(u => u.teamID == 0);
+        int team1Count = allUnits.Count(u => u.teamID == 1);
+
+        // Si alguno de los equipos se ha quedado sin unidades, termina el combate.
+        if (team0Count == 0 || team1Count == 0)
+        {
+            EndCombatImmediately("Un equipo ha sido eliminado.");
+        }
+    }
+
+    public void EndCombatImmediately(string reason)
+    {
+        // Evita que se ejecute varias veces si dos unidades mueren en el mismo frame.
+        if (CurrentState != GameState.Combat) return;
+
+        Debug.Log($"Combate finalizado: {reason}");
+
+        // 1. Detenemos el bucle de combate principal.
+        StopAllCoroutines();
+
+        // 2. Limpiamos todos los proyectiles activos de la escena.
+        if (ObjectPooler.Instance != null)
+        {
+            ObjectPooler.Instance.ResetAllPools();
+        }
+
+        // 3. Iniciamos la secuencia de reseteo para la siguiente ronda.
+        ResetBoardAfterCombat();
+    }
+
     private void UpdateHarmonyBonuses(UnitController unit, bool isAdding)
     {
         int teamID = unit.teamID;
@@ -267,22 +302,32 @@ public class GameManager : MonoBehaviour
         }
     }
     private IEnumerator CombatLoop()
-    {
-        yield return new WaitForSeconds(1.0f);
+{
+    yield return new WaitForSeconds(1.0f);
 
-        while (CurrentState == GameState.Combat && allUnits.Any(u => u.teamID == 0) && allUnits.Any(u => u.teamID == 1) && battleTimer < BATTLE_TIME_LIMIT)
+    // El bucle ahora solo depende del estado y del temporizador.
+    // La condición de "unidades vivas" se manejará por el evento de muerte.
+    while (CurrentState == GameState.Combat && battleTimer < BATTLE_TIME_LIMIT)
+    {
+        battleTimer += Time.deltaTime;
+        // Hacemos una copia de la lista para evitar errores si una unidad muere
+        // y modifica la lista mientras la estamos recorriendo.
+        foreach (var unit in allUnits.ToList())
         {
-            battleTimer += Time.deltaTime;
-            foreach (var unit in allUnits.ToList())
+            if (unit != null)
             {
-                if (unit != null) unit.EvaluateAction();
+                unit.EvaluateAction();
             }
-            yield return null;
         }
-        
-        yield return new WaitForSeconds(1.5f);
-        ResetBoardAfterCombat();
+        yield return null;
     }
+    
+    // Si el bucle termina por el temporizador, también finalizamos el combate.
+    if (CurrentState == GameState.Combat)
+    {
+        EndCombatImmediately("Límite de tiempo alcanzado.");
+    }
+}
     public void EndCombatEarly()
     {
         if (CurrentState == GameState.Combat)
