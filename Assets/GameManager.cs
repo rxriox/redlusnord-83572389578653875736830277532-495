@@ -175,33 +175,55 @@ public class GameManager : MonoBehaviour
 
     public void ResetBoardButton()
 {
+    // Medida de seguridad si se presiona durante el combate
     if (CurrentState == GameState.Combat)
     {
         StopAllCoroutines();
     }
-    
-    List<UnitController> unitsToDestroy = new List<UnitController>(allUnits);
-    foreach (UnitController unit in unitsToDestroy)
+
+    // 1. Destruir todos los GameObjects de las unidades en la escena
+    // Hacemos una copia de la lista para iterar de forma segura, ya que vamos a destruir los objetos.
+    foreach (var unit in allUnits.ToList())
     {
-        if (unit != null) 
+        if (unit != null)
         {
-            unit.Die(null); 
+            Destroy(unit.gameObject);
         }
     }
 
+    // 2. Resetear todos los nodos del tablero a "transitables"
+    // Esto es CRUCIAL para que el tablero quede realmente vacío.
+    if (gridManager != null && gridManager.grid != null)
+    {
+        foreach (Node node in gridManager.grid)
+        {
+            if (node != null)
+            {
+                node.isWalkable = true;
+            }
+        }
+    }
+    
+    // 3. Limpiar TODAS las listas de estado para un reseteo completo
     allUnits.Clear();
-    harmonyCounts.Clear();
-    activeHarmonyTiers.Clear();
     teamUnitCount.Clear();
     if (teamCategoryCounts != null) teamCategoryCounts.Clear();
-    
+    harmonyCounts.Clear();
+    activeHarmonyTiers.Clear();
+    unitsAtCombatStart.Clear(); // Muy importante limpiar la lista de guardado
+
+    // 4. Resetear los iconos de la UI en la banca
     UnitIconController[] icons = FindObjectsByType<UnitIconController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-    foreach (UnitIconController icon in icons) icon.ResetIcon();
-    
+    foreach (UnitIconController icon in icons)
+    {
+        icon.ResetIcon();
+    }
+
+    // 5. Actualizar el estado final del juego y notificar a la UI
     CurrentState = GameState.Placement;
-    OnHarmoniesUpdated?.Invoke();
-    unitsAtCombatStart.Clear();
-    Debug.Log("Tablero Reiniciado. Fase de Colocación activada.");
+    OnHarmoniesUpdated?.Invoke(); // Esto actualizará los contadores de la UI a "0/X"
+    
+    Debug.Log("Tablero completamente limpiado por el botón.");
 }
 
     public void CheckForCombatEnd()
