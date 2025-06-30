@@ -47,7 +47,7 @@ public class PlacementUIManager : MonoBehaviour
     public GameObject detailsPanel;
     public TextMeshProUGUI unitNameText;
     public Button closeDetailsButton;
-    public GameObject panelBlocker;
+    public bool IsDetailsPanelActive => detailsPanel != null && detailsPanel.activeSelf;
 
     [Header("Animación")]
     [Tooltip("La duración en segundos del desvanecimiento (fade).")]
@@ -79,11 +79,6 @@ public class PlacementUIManager : MonoBehaviour
         {
             closeDetailsButton.onClick.AddListener(HideDetailsPanel);
         }
-
-        if (panelBlocker != null && panelBlocker.GetComponent<Button>() != null)
-        {
-            panelBlocker.GetComponent<Button>().onClick.AddListener(HideDetailsPanel);
-        }
         HideDetailsPanel();
     }
 
@@ -93,13 +88,16 @@ public class PlacementUIManager : MonoBehaviour
 
         unitNameText.text = stats.unitName;
         detailsPanel.SetActive(true);
-        if (panelBlocker != null) panelBlocker.SetActive(true);
     }
 
     public void HideDetailsPanel()
     {
         if (detailsPanel != null) detailsPanel.SetActive(false);
-        if (panelBlocker != null) panelBlocker.SetActive(false);
+        if (PlayerController.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Placement)
+        {
+            PlayerController.Instance.HideSelectionHighlight();
+            PlayerController.Instance.ClearInteractionState();
+        }
         if (activeSelectionHighlight != null)
         {
             Destroy(activeSelectionHighlight);
