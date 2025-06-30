@@ -174,39 +174,42 @@ public class GameManager : MonoBehaviour
     }
 
     public void ResetBoardButton()
+{
+    if (CurrentState == GameState.Combat)
     {
-        if (CurrentState == GameState.Combat)
-        {
-            StopAllCoroutines();
-        }
-        if (ObjectPooler.Instance != null)
-    {
-        ObjectPooler.Instance.ResetAllPools();
+        StopAllCoroutines();
     }
-        List<UnitController> unitsToDestroy = new List<UnitController>(allUnits);
-        foreach (UnitController unit in unitsToDestroy)
+    
+    // --- CORRECCIÓN: Destruimos las unidades PRIMERO ---
+    // Hacemos una copia para iterar de forma segura, ya que `Die` modifica la lista original.
+    List<UnitController> unitsToDestroy = new List<UnitController>(allUnits);
+    foreach (UnitController unit in unitsToDestroy)
+    {
+        if (unit != null) 
         {
-            if (unit != null) unit.Die(null); 
+            // Die() ya llama a UnregisterUnit(), que limpia los contadores uno por uno.
+            unit.Die(null); 
         }
-        allUnits.Clear();
-        harmonyCounts.Clear();
-        activeHarmonyTiers.Clear();
-        teamUnitCount.Clear();
-        if (teamCategoryCounts != null) teamCategoryCounts.Clear();
-        if (PlacementUIManager.Instance != null)
-        {
-            PlacementUIManager.Instance.ShowAllyBench();
-        }
+    }
 
-        UnitIconController[] icons = FindObjectsByType<UnitIconController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        foreach (UnitIconController icon in icons) icon.ResetIcon();
-        CurrentState = GameState.Placement;
-        OnHarmoniesUpdated?.Invoke();
-        unitsAtCombatStart.Clear();
-        teamUnitCount.Clear();
-        if (teamCategoryCounts != null) teamCategoryCounts.Clear();
-        Debug.Log("Tablero Reiniciado. Fase de Colocación activada.");
-    }
+    // --- CORRECCIÓN: Limpiamos las listas DESPUÉS de que todo se haya destruido ---
+    // Esto actúa como una red de seguridad para garantizar que todo esté vacío.
+    allUnits.Clear();
+    harmonyCounts.Clear();
+    activeHarmonyTiers.Clear();
+    teamUnitCount.Clear();
+    if (teamCategoryCounts != null) teamCategoryCounts.Clear();
+    
+    // Resetear los iconos de la UI
+    UnitIconController[] icons = FindObjectsByType<UnitIconController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+    foreach (UnitIconController icon in icons) icon.ResetIcon();
+    
+    // Actualizar estado y UI
+    CurrentState = GameState.Placement;
+    OnHarmoniesUpdated?.Invoke();
+    unitsAtCombatStart.Clear(); // Limpiamos la lista de guardado
+    Debug.Log("Tablero Reiniciado. Fase de Colocación activada.");
+}
 
     public void CheckForCombatEnd()
     {
@@ -343,44 +346,49 @@ public class GameManager : MonoBehaviour
     }
 
     private void ResetBoardAfterCombat()
+{
+    CurrentState = GameState.Result;
+    Debug.Log("Reconstruyendo tablero para la siguiente ronda...");
+
+    // --- CORRECCIÓN: Limpiamos los contadores ANTES de hacer cualquier otra cosa ---
+    teamUnitCount.Clear();
+    if (teamCategoryCounts != null) teamCategoryCounts.Clear();
+    harmonyCounts.Clear();
+    activeHarmonyTiers.Clear();
+    
+    // Ahora destruimos los objetos viejos
+    foreach (var unit in allUnits.ToList())
     {
-        CurrentState = GameState.Result;
-        Debug.Log("Reconstruyendo tablero para la siguiente ronda...");
-        if (ObjectPooler.Instance != null)
+        if (unit != null) Destroy(unit.gameObject);
+    }
+    allUnits.Clear();
+
+    // Resetamos las propiedades de los nodos
+    if (gridManager != null && gridManager.grid != null)
     {
-        ObjectPooler.Instance.ResetAllPools();
+        foreach (Node node in gridManager.grid)
+        {
+            node.isWalkable = true;
+        }
     }
-        foreach (var unit in allUnits.ToList())
+
+    // Y AHORA repoblamos. RegisterUnit reconstruirá los contadores correctamente.
+    foreach (var unitInfo in unitsAtCombatStart)
+    {
+        if (gridManager != null && unitInfo.startingNode != null)
         {
-            if (unit != null) Destroy(unit.gameObject);
+            gridManager.SpawnUnit(unitInfo.stats, unitInfo.teamID, unitInfo.startingNode, unitInfo.originatingIcon);
         }
-
-        allUnits.Clear();
-        harmonyCounts.Clear();
-        activeHarmonyTiers.Clear();
-
-        if (gridManager != null && gridManager.grid != null)
-        {
-            foreach (Node node in gridManager.grid)
-            {
-                node.isWalkable = true;
-            }
-        }
-
-        foreach (var unitInfo in unitsAtCombatStart)
-        {
-            if (gridManager != null && unitInfo.startingNode != null)
-            {
-                gridManager.SpawnUnit(unitInfo.stats, unitInfo.teamID, unitInfo.startingNode, unitInfo.originatingIcon);
-            }
-        }
-
-        if (OnHarmoniesUpdated != null) OnHarmoniesUpdated.Invoke();
-        CurrentState = GameState.Placement;
-        teamUnitCount.Clear();
-        if (teamCategoryCounts != null) teamCategoryCounts.Clear();
-        Debug.Log("Fase de colocación reanudada.");
     }
+
+    // --- ELIMINADO: Ya no limpiamos los contadores aquí al final ---
+    // teamUnitCount.Clear();
+    // if (teamCategoryCounts != null) teamCategoryCounts.Clear();
+
+    OnHarmoniesUpdated?.Invoke();
+    CurrentState = GameState.Placement;
+    Debug.Log("Fase de colocación reanudada.");
+}
 
     public UnitController GetUnitAtNode(Node node)
 {

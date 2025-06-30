@@ -149,33 +149,41 @@ public class UnitController : MonoBehaviour
 
 
     private IEnumerator MoveToNode(Node targetNode)
+{
+    currentState = State.MOVING;
+
+    Vector3 startPosition = transform.position;
+    Vector3 endPosition = targetNode.worldPosition;
+    
+    // --- LÓGICA DE NODOS MODIFICADA ---
+    Node originNode = currentNode; // Guardamos el nodo de origen
+
+    // Marcamos el NODO DE DESTINO como no transitable para que otros no intenten ir allí.
+    targetNode.isWalkable = false; 
+    
+    float time = 0f;
+    if(endPosition - startPosition != Vector3.zero)
     {
-        currentState = State.MOVING;
-
-        if (currentNode != null) currentNode.isWalkable = true;
-        currentNode = targetNode;
-        currentNode.isWalkable = false;
-
-        Vector3 startPosition = transform.position;
-        Vector3 endPosition = targetNode.worldPosition;
-        float time = 0f;
-        if(endPosition - startPosition != Vector3.zero)
-        {
-            transform.rotation = Quaternion.LookRotation(endPosition - startPosition);
-        }
-
-        while (time < 1f / unitStats.moveSpeed)
-        {
-            transform.position = Vector3.Lerp(startPosition, endPosition, time * unitStats.moveSpeed);
-            time += Time.deltaTime;
-            yield return null;
-        }
-
-        transform.position = endPosition;
-        // Al terminar de moverse a UNA casilla, vuelve a IDLE para REEVALUAR.
-        // Aquí está la clave: después de cada paso, mira a su alrededor de nuevo.
-        currentState = State.IDLE; 
+        transform.rotation = Quaternion.LookRotation(endPosition - startPosition);
     }
+
+    while (time < 1f / unitStats.moveSpeed)
+    {
+        transform.position = Vector3.Lerp(startPosition, endPosition, time * unitStats.moveSpeed);
+        time += Time.deltaTime;
+        yield return null;
+    }
+
+    transform.position = endPosition;
+    
+    // --- AHORA, AL LLEGAR AL DESTINO, LIBERAMOS EL DE ORIGEN ---
+    if (originNode != null) originNode.isWalkable = true;
+    
+    // Actualizamos nuestro nodo actual
+    currentNode = targetNode;
+    
+    currentState = State.IDLE; 
+}
 
     public void TakeDamage(float damage, UnitController attacker)
     {
