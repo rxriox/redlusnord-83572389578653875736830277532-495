@@ -38,9 +38,6 @@ public class ObjectPooler : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Pide un objeto del pool, lo activa y lo devuelve listo para usar.
-    /// </summary>
     public GameObject SpawnFromPool(string tag, Vector3 position, Quaternion rotation)
     {
         if (!poolDictionary.ContainsKey(tag))
@@ -52,11 +49,9 @@ public class ObjectPooler : MonoBehaviour
         if (poolDictionary[tag].Count == 0)
         {
             Debug.LogWarning("El Pool con el tag " + tag + " se ha quedado sin objetos. Considera aumentar su tamaño inicial.");
-            // Opcional: podrías crear un objeto nuevo aquí si quieres que el pool sea expandible.
             return null;
         }
 
-        // Saca un objeto de la cola ("pila").
         GameObject objectToSpawn = poolDictionary[tag].Dequeue();
 
         objectToSpawn.SetActive(true);
@@ -66,9 +61,6 @@ public class ObjectPooler : MonoBehaviour
         return objectToSpawn;
     }
 
-    /// <summary>
-    /// Desactiva un objeto y lo devuelve a la piscina para ser reutilizado.
-    /// </summary>
     public void ReturnToPool(string tag, GameObject objectToReturn)
     {
         if (!poolDictionary.ContainsKey(tag))
@@ -79,20 +71,14 @@ public class ObjectPooler : MonoBehaviour
         }
 
         objectToReturn.SetActive(false);
-        // Devuelve el objeto a la cola ("pila").
         poolDictionary[tag].Enqueue(objectToReturn);
     }
     
     public void ResetAllPools()
 {
-    // Recorremos cada tipo de pool que hemos definido (ej. "Proyectil")
     foreach (var pool in pools)
     {
-        // Usamos FindGameObjectsWithTag para encontrar todos los objetos activos con ese tag.
-        // ¡Esto es crucial! Solo funciona si el prefab del proyectil tiene el tag correcto.
         GameObject[] activeObjects = GameObject.FindGameObjectsWithTag(pool.tag);
-
-        // Forzamos a cada objeto activo encontrado a volver a la piscina.
         foreach (var obj in activeObjects)
         {
             ReturnToPool(pool.tag, obj);

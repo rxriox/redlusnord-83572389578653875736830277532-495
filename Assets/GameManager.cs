@@ -180,46 +180,35 @@ public class GameManager : MonoBehaviour
         StopAllCoroutines();
     }
     
-    // --- CORRECCIÓN: Destruimos las unidades PRIMERO ---
-    // Hacemos una copia para iterar de forma segura, ya que `Die` modifica la lista original.
     List<UnitController> unitsToDestroy = new List<UnitController>(allUnits);
     foreach (UnitController unit in unitsToDestroy)
     {
         if (unit != null) 
         {
-            // Die() ya llama a UnregisterUnit(), que limpia los contadores uno por uno.
             unit.Die(null); 
         }
     }
 
-    // --- CORRECCIÓN: Limpiamos las listas DESPUÉS de que todo se haya destruido ---
-    // Esto actúa como una red de seguridad para garantizar que todo esté vacío.
     allUnits.Clear();
     harmonyCounts.Clear();
     activeHarmonyTiers.Clear();
     teamUnitCount.Clear();
     if (teamCategoryCounts != null) teamCategoryCounts.Clear();
     
-    // Resetear los iconos de la UI
     UnitIconController[] icons = FindObjectsByType<UnitIconController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
     foreach (UnitIconController icon in icons) icon.ResetIcon();
     
-    // Actualizar estado y UI
     CurrentState = GameState.Placement;
     OnHarmoniesUpdated?.Invoke();
-    unitsAtCombatStart.Clear(); // Limpiamos la lista de guardado
+    unitsAtCombatStart.Clear();
     Debug.Log("Tablero Reiniciado. Fase de Colocación activada.");
 }
 
     public void CheckForCombatEnd()
     {
-        // Solo hacemos esta comprobación si estamos en pleno combate.
-        if (CurrentState != GameState.Combat) return;
-
         int team0Count = allUnits.Count(u => u.teamID == 0);
         int team1Count = allUnits.Count(u => u.teamID == 1);
-
-        // Si alguno de los equipos se ha quedado sin unidades, termina el combate.
+        if (CurrentState != GameState.Combat) return;
         if (team0Count == 0 || team1Count == 0)
         {
             EndCombatImmediately("Un equipo ha sido eliminado.");
@@ -228,21 +217,16 @@ public class GameManager : MonoBehaviour
 
     public void EndCombatImmediately(string reason)
     {
-        // Evita que se ejecute varias veces si dos unidades mueren en el mismo frame.
         if (CurrentState != GameState.Combat) return;
-
         Debug.Log($"Combate finalizado: {reason}");
 
-        // 1. Detenemos el bucle de combate principal.
         StopAllCoroutines();
 
-        // 2. Limpiamos todos los proyectiles activos de la escena.
         if (ObjectPooler.Instance != null)
         {
             ObjectPooler.Instance.ResetAllPools();
         }
 
-        // 3. Iniciamos la secuencia de reseteo para la siguiente ronda.
         ResetBoardAfterCombat();
     }
 
@@ -307,14 +291,9 @@ public class GameManager : MonoBehaviour
     private IEnumerator CombatLoop()
 {
     yield return new WaitForSeconds(1.0f);
-
-    // El bucle ahora solo depende del estado y del temporizador.
-    // La condición de "unidades vivas" se manejará por el evento de muerte.
     while (CurrentState == GameState.Combat && battleTimer < BATTLE_TIME_LIMIT)
     {
         battleTimer += Time.deltaTime;
-        // Hacemos una copia de la lista para evitar errores si una unidad muere
-        // y modifica la lista mientras la estamos recorriendo.
         foreach (var unit in allUnits.ToList())
         {
             if (unit != null)
@@ -325,7 +304,6 @@ public class GameManager : MonoBehaviour
         yield return null;
     }
     
-    // Si el bucle termina por el temporizador, también finalizamos el combate.
     if (CurrentState == GameState.Combat)
     {
         EndCombatImmediately("Límite de tiempo alcanzado.");
@@ -349,21 +327,15 @@ public class GameManager : MonoBehaviour
 {
     CurrentState = GameState.Result;
     Debug.Log("Reconstruyendo tablero para la siguiente ronda...");
-
-    // --- CORRECCIÓN: Limpiamos los contadores ANTES de hacer cualquier otra cosa ---
     teamUnitCount.Clear();
     if (teamCategoryCounts != null) teamCategoryCounts.Clear();
     harmonyCounts.Clear();
     activeHarmonyTiers.Clear();
-    
-    // Ahora destruimos los objetos viejos
     foreach (var unit in allUnits.ToList())
     {
         if (unit != null) Destroy(unit.gameObject);
     }
     allUnits.Clear();
-
-    // Resetamos las propiedades de los nodos
     if (gridManager != null && gridManager.grid != null)
     {
         foreach (Node node in gridManager.grid)
@@ -372,7 +344,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Y AHORA repoblamos. RegisterUnit reconstruirá los contadores correctamente.
     foreach (var unitInfo in unitsAtCombatStart)
     {
         if (gridManager != null && unitInfo.startingNode != null)
@@ -380,10 +351,6 @@ public class GameManager : MonoBehaviour
             gridManager.SpawnUnit(unitInfo.stats, unitInfo.teamID, unitInfo.startingNode, unitInfo.originatingIcon);
         }
     }
-
-    // --- ELIMINADO: Ya no limpiamos los contadores aquí al final ---
-    // teamUnitCount.Clear();
-    // if (teamCategoryCounts != null) teamCategoryCounts.Clear();
 
     OnHarmoniesUpdated?.Invoke();
     CurrentState = GameState.Placement;
@@ -394,17 +361,14 @@ public class GameManager : MonoBehaviour
 {
     if (node == null) return null;
 
-    // Busca en tu lista "allUnits"
     foreach (UnitController unit in allUnits)
     {
-        // Si el nodo actual de una unidad coincide con el que buscamos, la hemos encontrado.
         if (unit != null && unit.currentNode == node)
         {
             return unit;
         }
     }
 
-    // Si el bucle termina y no se encuentra ninguna unidad, devuelve null.
     return null;
 }
 

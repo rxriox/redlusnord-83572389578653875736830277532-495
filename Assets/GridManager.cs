@@ -136,7 +136,6 @@ public class GridManager : MonoBehaviour
     }
     public List<Node> FindPath(Node startNode, Node targetNode)
 {
-    // Obtenemos la unidad que está en el nodo de destino, si la hay.
     UnitController targetUnit = GameManager.Instance.GetUnitAtNode(targetNode);
 
     List<Node> openSet = new List<Node>();
@@ -160,10 +159,7 @@ public class GridManager : MonoBehaviour
 
         if (currentNode == targetNode)
         {
-            // RetracePath no necesita cambios.
             List<Node> path = RetracePath(startNode, targetNode);
-            // El último nodo del camino es la casilla del enemigo, no queremos entrar en ella,
-            // sino en una adyacente. Por eso, lo eliminamos si el camino tiene más de un nodo.
             if (path.Count > 0)
             {
                 path.RemoveAt(path.Count - 1);
@@ -173,30 +169,19 @@ public class GridManager : MonoBehaviour
 
         foreach (Node neighbour in GetNeighbours(currentNode))
         {
-            // --- INICIO DE LA LÓGICA DE OBSTÁCULOS MEJORADA ---
-
-            // Comprobamos si hay una unidad ocupando la casilla vecina.
             UnitController occupant = GameManager.Instance.GetUnitAtNode(neighbour);
 
-            // La casilla es un obstáculo si:
-            // 1. Ya está en el closedSet.
-            // 2. No es transitable (ej. un muro).
-            // 3. Está ocupada por CUALQUIER unidad.
             if (closedSet.Contains(neighbour) || !neighbour.isWalkable || occupant != null)
             {
-                // EXCEPCIÓN: Permitimos que el destino final sea el nodo del enemigo.
-                // Si el vecino es el nodo objetivo, no lo consideramos un obstáculo.
                 if (neighbour == targetNode)
                 {
                     // Es el destino, podemos pathfind hacia él.
                 }
                 else
                 {
-                    // Si no es el destino, es un obstáculo (otra unidad o un muro). Lo saltamos.
                     continue;
                 }
             }
-            // --- FIN DE LA LÓGICA DE OBSTÁCULOS MEJORADA ---
 
             int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
             if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
@@ -208,13 +193,12 @@ public class GridManager : MonoBehaviour
                 if (!openSet.Contains(neighbour))
                     openSet.Add(neighbour);
                 else
-                    // Si ya está en el openSet, lo actualizamos.
                     openSet.Sort((a, b) => a.fCost.CompareTo(b.fCost));
             }
         }
     }
 
-    return null; // No se encontró camino
+    return null;
 }
     
     public Node FindClosestValidNode(Vector3 worldPosition, int teamID)

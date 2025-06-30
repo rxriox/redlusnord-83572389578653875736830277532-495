@@ -100,16 +100,12 @@ public class PlacementUIManager : MonoBehaviour
     {
         if (detailsPanel != null) detailsPanel.SetActive(false);
         if (panelBlocker != null) panelBlocker.SetActive(false);
-
-        // --- LÓGICA MODIFICADA ---
-        // Si hay un highlight de seguidor activo, lo destruimos.
         if (activeSelectionHighlight != null)
         {
             Destroy(activeSelectionHighlight);
-            activeSelectionHighlight = null; // Limpiamos la referencia
+            activeSelectionHighlight = null;
         }
 
-        // La lógica de la fase de colocación sigue siendo necesaria
         if (PlayerController.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Placement)
         {
             PlayerController.Instance.HideSelectionHighlight();
@@ -251,21 +247,15 @@ public class PlacementUIManager : MonoBehaviour
     }
     public void SelectUnitForDetails(UnitController unit)
     {
-        // Si ya había un highlight, lo destruimos para crear uno nuevo
         if (activeSelectionHighlight != null)
         {
             Destroy(activeSelectionHighlight);
         }
 
-        // Mostramos el panel de detalles con la info de la unidad
         ShowDetailsPanel(unit.unitStats);
-
-        // Creamos la instancia del highlight seguidor
         if (selectionHighlightPrefab != null)
         {
             activeSelectionHighlight = Instantiate(selectionHighlightPrefab, unit.transform.position, Quaternion.identity);
-            
-            // Le decimos al highlight a quién debe seguir
             HighlightFollower follower = activeSelectionHighlight.GetComponent<HighlightFollower>();
             if (follower != null)
             {

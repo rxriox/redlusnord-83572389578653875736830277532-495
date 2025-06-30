@@ -11,8 +11,6 @@ public class UnitController : MonoBehaviour
     public UnitIconController originatingIcon;
     public float CurrentHealth { get; private set; }
 
-    // --- MODIFICACIÓN 1: Simplificamos los estados ---
-    // Ya no necesitamos CHASING. IDLE se encargará de decidir si moverse o atacar.
     private enum State { IDLE, MOVING, ATTACKING }
     private State currentState = State.IDLE;
 
@@ -29,8 +27,6 @@ public class UnitController : MonoBehaviour
 
     public void EvaluateAction()
     {
-        // Si estamos en medio de una acción (movimiento o ataque), no reevaluamos.
-        // La reevaluación ocurrirá cuando estas acciones terminen y el estado vuelva a IDLE.
         if (currentState == State.MOVING || currentState == State.ATTACKING) return;
         
         if (attackCooldown > 0)
@@ -38,54 +34,43 @@ public class UnitController : MonoBehaviour
             attackCooldown -= Time.deltaTime;
         }
 
-        // --- LÓGICA DE PRIORIDADES ---
-
-        // PRIORIDAD 1: ¿HAY ALGUIEN A QUIEN ATACAR EN MI RANGO AHORA MISMO?
         UnitController immediateTarget = FindEnemyInAttackRange();
         if (immediateTarget != null)
         {
-            currentTarget = immediateTarget; // Fijamos este como nuestro objetivo
+            currentTarget = immediateTarget;
             if (attackCooldown <= 0)
             {
                 PerformAttack();
             }
-            return; // Acción del frame decidida, salimos.
+            return;
         }
 
-        // PRIORIDAD 2: SI NO HAY NADIE CERCA, ¿TENGO UN OBJETIVO A LARGO PLAZO?
-        // Si no tenemos un objetivo o el que teníamos murió, buscamos uno nuevo.
         if (currentTarget == null || currentTarget.CurrentHealth <= 0)
         {
             FindClosestEnemy();
             if (currentTarget == null)
             {
-                // No quedan enemigos en el mapa.
                 currentState = State.IDLE;
                 return;
             }
         }
-
-        // PRIORIDAD 3: MOVERSE HACIA EL OBJETIVO A LARGO PLAZO
-        // Si llegamos aquí, significa que tenemos un objetivo, pero no está en rango.
         MoveTowardsTarget();
     }
 
     private UnitController FindEnemyInAttackRange()
     {
-        // Busca en todas las unidades la más cercana que esté DENTRO de nuestro rango de ataque.
         return GameManager.Instance.GetAllUnits()
             .Where(unit => unit != null && unit.teamID != this.teamID && unit.CurrentHealth > 0 && IsUnitWithinAttackRange(unit))
             .OrderBy(unit => Vector3.Distance(transform.position, unit.transform.position))
             .FirstOrDefault();
     }
     
-    // --- MÉTODO AYUDANTE: Comprueba si una unidad específica está en rango ---
     private bool IsUnitWithinAttackRange(UnitController unit)
     {
         if (unit == null || unit.currentNode == null || this.currentNode == null) return false;
         int dist_x = Mathf.Abs(currentNode.gridX - unit.currentNode.gridX);
         int dist_z = Mathf.Abs(currentNode.gridZ - unit.currentNode.gridZ);
-        int distance = Mathf.Max(dist_x, dist_z); // Distancia de Chebyshev para cuadrículas
+        int distance = Mathf.Max(dist_x, dist_z);
 
         return distance <= unitStats.attackRange;
     }
@@ -100,7 +85,6 @@ public class UnitController : MonoBehaviour
 
     private bool IsTargetInAttackRange()
     {
-        // Reutilizamos nuestro nuevo método ayudante.
         return IsUnitWithinAttackRange(currentTarget);
     }
 
@@ -154,11 +138,7 @@ public class UnitController : MonoBehaviour
 
     Vector3 startPosition = transform.position;
     Vector3 endPosition = targetNode.worldPosition;
-    
-    // --- LÓGICA DE NODOS MODIFICADA ---
-    Node originNode = currentNode; // Guardamos el nodo de origen
-
-    // Marcamos el NODO DE DESTINO como no transitable para que otros no intenten ir allí.
+    Node originNode = currentNode;
     targetNode.isWalkable = false; 
     
     float time = 0f;
@@ -176,12 +156,8 @@ public class UnitController : MonoBehaviour
 
     transform.position = endPosition;
     
-    // --- AHORA, AL LLEGAR AL DESTINO, LIBERAMOS EL DE ORIGEN ---
     if (originNode != null) originNode.isWalkable = true;
-    
-    // Actualizamos nuestro nodo actual
     currentNode = targetNode;
-    
     currentState = State.IDLE; 
 }
 
