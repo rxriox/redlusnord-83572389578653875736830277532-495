@@ -111,19 +111,50 @@ public class UnitController : MonoBehaviour
     }
 
     private void MoveTowardsTarget()
-    {
-        if (gridManager == null || currentTarget == null || currentState == State.MOVING) return;
-        currentPath = gridManager.FindPath(currentNode, currentTarget.currentNode);
+{
+    if (gridManager == null || currentTarget == null || currentState == State.MOVING) return;
+    
+    // 1. Calculamos la ruta usando nuestro A* estricto.
+    currentPath = gridManager.FindPath(currentNode, currentTarget.currentNode);
 
-        if (currentPath != null && currentPath.Count > 0)
+    if (currentPath != null && currentPath.Count > 0)
+    {
+        Node nextNodeInPath = currentPath[0];
+
+        // 2. Comprobación de seguridad: Le preguntamos al GameManager si la casilla está realmente libre.
+        UnitController occupant = GameManager.Instance.GetUnitAtNode(nextNodeInPath);
+        if (occupant == null)
         {
-            StartCoroutine(MoveToNode(currentPath[0]));
+            // 3. ¡Lógica de Reserva! La casilla está libre, la reclamamos.
+            
+            // a) Liberamos nuestra casilla actual.
+            if (currentNode != null)
+            {
+                currentNode.isWalkable = true;
+            }
+            
+            // b) Reservamos la casilla de destino INMEDIATAMENTE.
+            nextNodeInPath.isWalkable = false;
+
+            // c) Actualizamos nuestro nodo de referencia lógico. Ahora "somos" de esa casilla.
+            currentNode = nextNodeInPath;
+
+            // 4. Ahora que el estado del tablero está actualizado, iniciamos el movimiento físico.
+            StartCoroutine(AnimateMoveToPosition(nextNodeInPath.worldPosition));
         }
         else
         {
+            // El camino está bloqueado por un aliado que se movió.
+            // Nos quedamos en IDLE para recalcular en el siguiente frame.
             currentState = State.IDLE;
         }
     }
+    else
+    {
+        // No hay camino disponible. Nos quedamos en IDLE.
+        currentState = State.IDLE;
+    }
+}
     
     private IEnumerator ResetStateAfterAction(float delay)
     {
@@ -132,32 +163,30 @@ public class UnitController : MonoBehaviour
     }
 
 
-    private IEnumerator MoveToNode(Node targetNode)
+    private IEnumerator AnimateMoveToPosition(Vector3 targetPosition)
 {
     currentState = State.MOVING;
 
     Vector3 startPosition = transform.position;
-    Vector3 endPosition = targetNode.worldPosition;
-    Node originNode = currentNode;
-    targetNode.isWalkable = false; 
+    
+    if(targetPosition - startPosition != Vector3.zero)
+    {
+        transform.rotation = Quaternion.LookRotation(targetPosition - startPosition);
+    }
     
     float time = 0f;
-    if(endPosition - startPosition != Vector3.zero)
+    float moveDuration = 1f / unitStats.moveSpeed;
+    while (time < moveDuration)
     {
-        transform.rotation = Quaternion.LookRotation(endPosition - startPosition);
-    }
-
-    while (time < 1f / unitStats.moveSpeed)
-    {
-        transform.position = Vector3.Lerp(startPosition, endPosition, time * unitStats.moveSpeed);
+        transform.position = Vector3.Lerp(startPosition, targetPosition, time / moveDuration);
         time += Time.deltaTime;
         yield return null;
     }
 
-    transform.position = endPosition;
+    // Aseguramos la posición final
+    transform.position = targetPosition;
     
-    if (originNode != null) originNode.isWalkable = true;
-    currentNode = targetNode;
+    // Al terminar el movimiento físico, volvemos a IDLE para reevaluar la situación.
     currentState = State.IDLE; 
 }
 

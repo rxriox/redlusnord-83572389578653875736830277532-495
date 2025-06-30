@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Cirno
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   category: 0
-  unitType: 1
+  unitType: 0
   naturalHarmonies: []
   characterPrefab: {fileID: 3805343749917133435, guid: eab7ba07f21aaf3479c263681b385953, type: 3}
   projectilePrefab: {fileID: 4570334888300365644, guid: e0775eba1bb45214f9851bad6110993a, type: 3}
@@ -22,5 +22,5 @@ MonoBehaviour:
   maxMana: 100
   attackDamage: 10
   attackSpeed: 1
-  attackRange: 1.5
+  attackRange: 1
   moveSpeed: 3
