@@ -49,6 +49,10 @@ public class PlacementUIManager : MonoBehaviour
     public Button closeDetailsButton;
     [Tooltip("Arrastra aquí el componente 'PanelInGameGradient' del objeto del panel de detalles.")]
     public PanelInGameGradient detailsPanelGradient;
+    [Tooltip("Arrastra aquí el componente CanvasGroup del panel de detalles.")]
+    public CanvasGroup detailsPanelCanvasGroup;
+    [Tooltip("La duración en segundos de la animación de fade.")]
+    public float panelFadeDuration = 0.1f;
     public bool IsDetailsPanelActive => detailsPanel != null && detailsPanel.activeSelf;
 
     [Header("Configuración de Degradados de Rareza")]
@@ -101,40 +105,42 @@ public class PlacementUIManager : MonoBehaviour
     }
 
     public void ShowDetailsPanel(UnitStats stats)
-{
-    if (stats == null || detailsPanel == null || unitNameText == null) return;
-
-    unitNameText.text = stats.unitName;
-
-    if (detailsPanelGradient != null)
     {
-        switch (stats.category)
-        {
-            case UnitStats.UnitCategory.Fabulosa:
-                detailsPanelGradient.m_color1 = fabulosaColorTop;
-                detailsPanelGradient.m_color2 = fabulosaColorBottom;
-                break;
-            case UnitStats.UnitCategory.Magnifica:
-                detailsPanelGradient.m_color1 = magnificaColorTop;
-                detailsPanelGradient.m_color2 = magnificaColorBottom;
-                break;
-            case UnitStats.UnitCategory.Suprema:
-                detailsPanelGradient.m_color1 = supremaColorTop;
-                detailsPanelGradient.m_color2 = supremaColorBottom;
-                break;
-            default:
-                detailsPanelGradient.m_color1 = Color.grey;
-                detailsPanelGradient.m_color2 = Color.black;
-                break;
-        }
+        if (stats == null || detailsPanel == null || unitNameText == null) return;
+        StopAllCoroutines();
+        unitNameText.text = stats.unitName;
 
-        detailsPanelGradient.Refresh();
-    }
-    detailsPanel.SetActive(true);
+        if (detailsPanelGradient != null)
+        {
+            switch (stats.category)
+            {
+                case UnitStats.UnitCategory.Fabulosa:
+                    detailsPanelGradient.m_color1 = fabulosaColorTop;
+                    detailsPanelGradient.m_color2 = fabulosaColorBottom;
+                    break;
+                case UnitStats.UnitCategory.Magnifica:
+                    detailsPanelGradient.m_color1 = magnificaColorTop;
+                    detailsPanelGradient.m_color2 = magnificaColorBottom;
+                    break;
+                case UnitStats.UnitCategory.Suprema:
+                    detailsPanelGradient.m_color1 = supremaColorTop;
+                    detailsPanelGradient.m_color2 = supremaColorBottom;
+                    break;
+                default:
+                    detailsPanelGradient.m_color1 = Color.grey;
+                    detailsPanelGradient.m_color2 = Color.black;
+                    break;
+            }
+
+            detailsPanelGradient.Refresh();
+        }
+        detailsPanel.SetActive(true);
+        StartCoroutine(FadePanelCoroutine(true));
 }
 
     public void HideDetailsPanel()
     {
+        StopAllCoroutines();
         if (detailsPanel != null) detailsPanel.SetActive(false);
         if (PlayerController.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Placement)
         {
@@ -151,6 +157,52 @@ public class PlacementUIManager : MonoBehaviour
         {
             PlayerController.Instance.HideSelectionHighlight();
             PlayerController.Instance.ClearInteractionState();
+        }
+        StartCoroutine(FadePanelCoroutine(false));
+    }
+
+    private IEnumerator FadePanelCoroutine(bool fadeIn)
+    {
+        float startAlpha = detailsPanelCanvasGroup.alpha;
+        float endAlpha = fadeIn ? 1f : 0f;
+        float elapsedTime = 0f;
+
+        // Si vamos a aparecer, nos aseguramos de que el objeto esté activo.
+        if (fadeIn)
+        {
+            detailsPanel.SetActive(true);
+            detailsPanelCanvasGroup.interactable = true;
+            detailsPanelCanvasGroup.blocksRaycasts = true;
+        }
+
+        while (elapsedTime < panelFadeDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            detailsPanelCanvasGroup.alpha = Mathf.Lerp(startAlpha, endAlpha, elapsedTime / panelFadeDuration);
+            yield return null;
+        }
+
+        // Aseguramos el valor final.
+        detailsPanelCanvasGroup.alpha = endAlpha;
+
+        // Si hemos desaparecido, ahora desactivamos las interacciones y el objeto.
+        if (!fadeIn)
+        {
+            detailsPanelCanvasGroup.interactable = false;
+            detailsPanelCanvasGroup.blocksRaycasts = false;
+            detailsPanel.SetActive(false);
+            
+            // Aquí es un buen lugar para la lógica de limpieza
+            if (activeSelectionHighlight != null)
+            {
+                Destroy(activeSelectionHighlight);
+                activeSelectionHighlight = null;
+            }
+            if (PlayerController.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Placement)
+            {
+                PlayerController.Instance.HideSelectionHighlight();
+                PlayerController.Instance.ClearInteractionState();
+            }
         }
     }
 
