@@ -11592,12 +11592,12 @@ MonoBehaviour:
   unitNameText: {fileID: 1582174263}
   closeDetailsButton: {fileID: 655488640}
   detailsPanelGradient: {fileID: 1786596560}
-  fabulosaColorTop: {r: 0.1, g: 0.2, b: 0.6, a: 1}
-  fabulosaColorBottom: {r: 0, g: 0, b: 0, a: 1}
+  fabulosaColorTop: {r: 0.12224099, g: 0.22260205, b: 0.6320754, a: 1}
+  fabulosaColorBottom: {r: 0, g: 0, b: 0.2830189, a: 1}
   magnificaColorTop: {r: 0.4, g: 0.1, b: 0.6, a: 1}
-  magnificaColorBottom: {r: 0, g: 0, b: 0, a: 1}
+  magnificaColorBottom: {r: 0.093980886, g: 0, b: 0.20754719, a: 1}
   supremaColorTop: {r: 0.7, g: 0.6, b: 0.1, a: 1}
-  supremaColorBottom: {r: 0, g: 0, b: 0, a: 1}
+  supremaColorBottom: {r: 0.2924528, g: 0.18635982, b: 0, a: 1}
   fadeDuration: 0.2
   selectionHighlightPrefab: {fileID: 5090270939071943840, guid: c51d1aea6ca007a4c8e7ce2a016e225e, type: 3}
 --- !u!4 &2071166982
