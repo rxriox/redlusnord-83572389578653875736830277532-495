@@ -16,9 +16,7 @@ public class PlacementUIManager : MonoBehaviour
     public Color inactiveTabColor = Color.white;
 
     [Header("Contadores de Unidades")]
-    [Tooltip("El texto que mostrará el contador de unidades aliadas (ej. 5/10).")]
     public TextMeshProUGUI allyUnitCountText;
-    [Tooltip("El texto que mostrará el contador de unidades enemigas.")]
     public TextMeshProUGUI enemyUnitCountText;
 
     [Header("Banca Aliada")]
@@ -34,50 +32,38 @@ public class PlacementUIManager : MonoBehaviour
     public CanvasGroup enemyBenchCanvasGroup;
 
     [Header("Banca de Artefactos")]
-    [Tooltip("El objeto GameObject del ScrollView de los artefactos.")]
     public GameObject artifactsBenchScrollView;
-    [Tooltip("El objeto 'Content' dentro del ScrollView de artefactos.")]
     public Transform artifactsBenchContent;
-    [Tooltip("Arrastra aquí tus PREFABS de iconos de artefactos.")]
     public GameObject[] artifactIconPrefabs;
-    [Tooltip("El CanvasGroup del ScrollView de los artefactos para la animación.")]
     public CanvasGroup artifactsBenchCanvasGroup;
 
     [Header("Panel de Detalles de Unidad")]
     public GameObject detailsPanel;
     public TextMeshProUGUI unitNameText;
     public Button closeDetailsButton;
-    [Tooltip("Arrastra aquí el componente 'PanelInGameGradient' del objeto del panel de detalles.")]
     public PanelInGameGradient detailsPanelGradient;
-    [Tooltip("Arrastra aquí el componente CanvasGroup del panel de detalles.")]
+    
+    // --- AÑADIDO: Referencia al CanvasGroup y variable de control ---
+    [Tooltip("Arrastra aquí el componente CanvasGroup del detailsPanel.")]
     public CanvasGroup detailsPanelCanvasGroup;
-    [Tooltip("La duración en segundos de la animación de fade.")]
-    public float panelFadeDuration = 0.1f;
-    public bool IsDetailsPanelActive => detailsPanel != null && detailsPanel.activeSelf;
+    private Coroutine panelFadeCoroutine;
+    // La propiedad IsDetailsPanelActive ahora comprueba el alpha
+    public bool IsDetailsPanelActive => detailsPanelCanvasGroup != null && detailsPanelCanvasGroup.alpha > 0;
 
     [Header("Configuración de Degradados de Rareza")]
-    [Tooltip("El color superior del degradado para la rareza 'Fabulosa'")]
-    public Color fabulosaColorTop = new Color(0.1f, 0.2f, 0.6f); // Azul oscuro
-    [Tooltip("El color inferior del degradado para la rareza 'Fabulosa'")]
+    public Color fabulosaColorTop = new Color(0.1f, 0.2f, 0.6f);
     public Color fabulosaColorBottom = Color.black;
-
-    [Tooltip("El color superior para 'Magnífica'")]
-    public Color magnificaColorTop = new Color(0.4f, 0.1f, 0.6f); // Morado oscuro
-    [Tooltip("El color inferior para 'Magnífica'")]
+    public Color magnificaColorTop = new Color(0.4f, 0.1f, 0.6f);
     public Color magnificaColorBottom = Color.black;
-
-    [Tooltip("El color superior para 'Suprema'")]
-    public Color supremaColorTop = new Color(0.7f, 0.6f, 0.1f); // Amarillo oscuro
-    [Tooltip("El color inferior para 'Suprema'")]
+    public Color supremaColorTop = new Color(0.7f, 0.6f, 0.1f);
     public Color supremaColorBottom = Color.black;
 
     [Header("Animación")]
-    [Tooltip("La duración en segundos del desvanecimiento (fade).")]
-    public float fadeDuration = 0.2f;
+    public float fadeDuration = 0.2f; // Puedes usar esta para los bancos
+    public float panelFadeDuration = 0.2f; // Duración específica para el panel
     public enum ActiveBench { Allies, Enemies, Artifacts }
 
     [Header("Highlight de Selección en Combate")]
-    [Tooltip("Arrastra aquí el prefab 'SelectionHighlightFollower_Prefab'")]
     public GameObject selectionHighlightPrefab;
     private GameObject activeSelectionHighlight;
 
@@ -101,15 +87,31 @@ public class PlacementUIManager : MonoBehaviour
         {
             closeDetailsButton.onClick.AddListener(HideDetailsPanel);
         }
-        HideDetailsPanel();
+        if (detailsPanelCanvasGroup != null)
+        {
+            detailsPanelCanvasGroup.alpha = 0f;
+            detailsPanelCanvasGroup.interactable = false;
+            detailsPanelCanvasGroup.blocksRaycasts = false;
+        }
+        else
+        {
+            // Si no hay CanvasGroup, usamos la lógica antigua como fallback.
+            detailsPanel.SetActive(false);
+        }
     }
 
     public void ShowDetailsPanel(UnitStats stats)
     {
-        if (stats == null || detailsPanel == null || unitNameText == null) return;
-        StopAllCoroutines();
-        unitNameText.text = stats.unitName;
+        if (stats == null || detailsPanelCanvasGroup == null) return;
+        
+        // Detenemos cualquier animación anterior para evitar conflictos
+        if (panelFadeCoroutine != null)
+        {
+            StopCoroutine(panelFadeCoroutine);
+        }
 
+        // Preparamos el contenido del panel
+        unitNameText.text = stats.unitName;
         if (detailsPanelGradient != null)
         {
             switch (stats.category)
@@ -126,22 +128,18 @@ public class PlacementUIManager : MonoBehaviour
                     detailsPanelGradient.m_color1 = supremaColorTop;
                     detailsPanelGradient.m_color2 = supremaColorBottom;
                     break;
-                default:
-                    detailsPanelGradient.m_color1 = Color.grey;
-                    detailsPanelGradient.m_color2 = Color.black;
-                    break;
             }
-
             detailsPanelGradient.Refresh();
         }
-        detailsPanel.SetActive(true);
-        StartCoroutine(FadePanelCoroutine(true));
-}
+
+        // Iniciamos la animación de fade-in
+        panelFadeCoroutine = StartCoroutine(FadeDetailsPanel(true));
+    }
 
     public void HideDetailsPanel()
     {
-        StopAllCoroutines();
-        if (detailsPanel != null) detailsPanel.SetActive(false);
+        
+        if (detailsPanelCanvasGroup == null || detailsPanelCanvasGroup.alpha == 0) return;
         if (PlayerController.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Placement)
         {
             PlayerController.Instance.HideSelectionHighlight();
@@ -158,22 +156,14 @@ public class PlacementUIManager : MonoBehaviour
             PlayerController.Instance.HideSelectionHighlight();
             PlayerController.Instance.ClearInteractionState();
         }
-        StartCoroutine(FadePanelCoroutine(false));
+        panelFadeCoroutine = StartCoroutine(FadeDetailsPanel(false));
     }
 
-    private IEnumerator FadePanelCoroutine(bool fadeIn)
+    private IEnumerator FadeDetailsPanel(bool fadeIn)
     {
         float startAlpha = detailsPanelCanvasGroup.alpha;
         float endAlpha = fadeIn ? 1f : 0f;
         float elapsedTime = 0f;
-
-        // Si vamos a aparecer, nos aseguramos de que el objeto esté activo.
-        if (fadeIn)
-        {
-            detailsPanel.SetActive(true);
-            detailsPanelCanvasGroup.interactable = true;
-            detailsPanelCanvasGroup.blocksRaycasts = true;
-        }
 
         while (elapsedTime < panelFadeDuration)
         {
@@ -182,17 +172,19 @@ public class PlacementUIManager : MonoBehaviour
             yield return null;
         }
 
-        // Aseguramos el valor final.
         detailsPanelCanvasGroup.alpha = endAlpha;
 
-        // Si hemos desaparecido, ahora desactivamos las interacciones y el objeto.
-        if (!fadeIn)
+        if (fadeIn)
+        {
+            detailsPanelCanvasGroup.interactable = true;
+            detailsPanelCanvasGroup.blocksRaycasts = true;
+        }
+        else
         {
             detailsPanelCanvasGroup.interactable = false;
             detailsPanelCanvasGroup.blocksRaycasts = false;
-            detailsPanel.SetActive(false);
             
-            // Aquí es un buen lugar para la lógica de limpieza
+            // Lógica de limpieza que se ejecuta después de que el panel se ha desvanecido
             if (activeSelectionHighlight != null)
             {
                 Destroy(activeSelectionHighlight);
@@ -204,6 +196,8 @@ public class PlacementUIManager : MonoBehaviour
                 PlayerController.Instance.ClearInteractionState();
             }
         }
+        
+        panelFadeCoroutine = null;
     }
 
     void PopulateBench(Transform content, GameObject[] iconPrefabs)
