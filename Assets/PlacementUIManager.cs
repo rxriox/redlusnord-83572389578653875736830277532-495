@@ -47,6 +47,7 @@ public class PlacementUIManager : MonoBehaviour
     [Tooltip("Arrastra aquí el componente CanvasGroup del detailsPanel.")]
     public CanvasGroup detailsPanelCanvasGroup;
     private Coroutine panelFadeCoroutine;
+    private Coroutine benchFadeCoroutine; 
     // La propiedad IsDetailsPanelActive ahora comprueba el alpha
     public bool IsDetailsPanelActive => detailsPanelCanvasGroup != null && detailsPanelCanvasGroup.alpha > 0;
 
@@ -267,9 +268,15 @@ public class PlacementUIManager : MonoBehaviour
         if (enemyBenchButton != null) enemyBenchButton.GetComponent<Image>().color = inactiveTabColor;
         if (ArtifactsBenchButton != null) ArtifactsBenchButton.GetComponent<Image>().color = activeTabColor;
     }
-    private void SetBenchVisibility(CanvasGroup toShow, params CanvasGroup[] toHide)
+     private void SetBenchVisibility(CanvasGroup toShow, params CanvasGroup[] toHide)
     {
-        StopAllCoroutines();
+        // Detenemos SOLO la animación de las bancas, si está en curso.
+        if (benchFadeCoroutine != null)
+        {
+            StopCoroutine(benchFadeCoroutine);
+        }
+        
+        // El resto de la función es para establecer el estado inicial, no animado.
         var allBenches = new List<CanvasGroup> { allyBenchCanvasGroup, enemyBenchCanvasGroup, artifactsBenchCanvasGroup };
         foreach (var bench in allBenches)
         {
@@ -280,14 +287,60 @@ public class PlacementUIManager : MonoBehaviour
             bench.interactable = isActive;
             bench.blocksRaycasts = isActive;
         }
-
     }
     public void HideBenchesForDrag()
     {
-        StopAllCoroutines();
-        if (allyBenchCanvasGroup != null) StartCoroutine(FadeCanvasGroup(allyBenchCanvasGroup, allyBenchCanvasGroup.alpha, 0f));
-        if (enemyBenchCanvasGroup != null) StartCoroutine(FadeCanvasGroup(enemyBenchCanvasGroup, enemyBenchCanvasGroup.alpha, 0f));
-        if (artifactsBenchCanvasGroup != null) StartCoroutine(FadeCanvasGroup(artifactsBenchCanvasGroup, artifactsBenchCanvasGroup.alpha, 0f));
+        // Detenemos SOLO la animación de las bancas, si está en curso.
+        if (benchFadeCoroutine != null)
+        {
+            StopCoroutine(benchFadeCoroutine);
+        }
+
+        // Creamos una lista de todas las bancas para la corrutina.
+        var allBenches = new List<CanvasGroup> { allyBenchCanvasGroup, enemyBenchCanvasGroup, artifactsBenchCanvasGroup };
+        
+        // Iniciamos la nueva corrutina para animar todas las bancas a la vez.
+        benchFadeCoroutine = StartCoroutine(FadeMultipleBenches(allBenches, false, fadeDuration));
+    }
+
+    private IEnumerator FadeMultipleBenches(List<CanvasGroup> groups, bool fadeIn, float duration)
+    {
+        // Guardamos los alphas iniciales para un fade suave
+        Dictionary<CanvasGroup, float> startAlphas = new Dictionary<CanvasGroup, float>();
+        foreach (var group in groups)
+        {
+            if (group != null) startAlphas[group] = group.alpha;
+        }
+
+        float endAlpha = fadeIn ? 1f : 0f;
+        float elapsedTime = 0f;
+        
+        while(elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / duration;
+            foreach (var group in groups)
+            {
+                if (group != null)
+                {
+                    group.alpha = Mathf.Lerp(startAlphas[group], endAlpha, t);
+                }
+            }
+            yield return null;
+        }
+
+        // Aseguramos los valores finales
+        foreach (var group in groups)
+        {
+            if (group != null)
+            {
+                group.alpha = endAlpha;
+                group.interactable = fadeIn;
+                group.blocksRaycasts = fadeIn;
+            }
+        }
+        
+        benchFadeCoroutine = null;
     }
 
     public void ShowBenchesAfterDrag()
