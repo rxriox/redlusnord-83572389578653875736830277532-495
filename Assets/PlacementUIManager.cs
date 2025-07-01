@@ -52,7 +52,6 @@ public class PlacementUIManager : MonoBehaviour
     public bool IsDetailsPanelActive => detailsPanel != null && detailsPanel.activeSelf;
 
     [Header("Configuración de Degradados de Rareza")]
-    // --- AÑADIDO: Colores para el degradado de cada rareza ---
     [Tooltip("El color superior del degradado para la rareza 'Fabulosa'")]
     public Color fabulosaColorTop = new Color(0.1f, 0.2f, 0.6f); // Azul oscuro
     [Tooltip("El color inferior del degradado para la rareza 'Fabulosa'")]
@@ -64,7 +63,7 @@ public class PlacementUIManager : MonoBehaviour
     public Color magnificaColorBottom = Color.black;
 
     [Tooltip("El color superior para 'Suprema'")]
-    public Color supremaColorTop = new Color(0.7f, 0.6f, 0.1f); // Amarillo/Dorado oscuro
+    public Color supremaColorTop = new Color(0.7f, 0.6f, 0.1f); // Amarillo oscuro
     [Tooltip("El color inferior para 'Suprema'")]
     public Color supremaColorBottom = Color.black;
 
@@ -131,8 +130,6 @@ public class PlacementUIManager : MonoBehaviour
 
         detailsPanelGradient.Refresh();
     }
-
-    // Finalmente, nos aseguramos de que el panel esté activo
     detailsPanel.SetActive(true);
 }
 

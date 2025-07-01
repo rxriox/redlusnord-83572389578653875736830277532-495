@@ -72,10 +72,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
 {
-    // --- CORRECCIÓN: Declaramos la posición del puntero al PRINCIPIO de todo. ---
     Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
-
-    // Ahora, la nueva lógica para cerrar el panel puede usarla sin problemas.
     if (PlacementUIManager.Instance.IsDetailsPanelActive && playerControls.Gameplay.Click.WasPressedThisFrame())
     {
         if (ShouldClosePanelOnClick(pointerPosition))
@@ -85,7 +82,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // La lógica de la fase de colocación también puede usarla.
     if (GameManager.Instance.CurrentState == GameManager.GameState.Placement)
     {
         if (currentlyDraggedIcon != null || isDraggingForReposition)
@@ -113,7 +109,6 @@ public class PlayerController : MonoBehaviour
         }
         HandleBoardInteraction(pointerPosition);
     }
-    // Y la lógica de combate también.
     else if (GameManager.Instance.CurrentState == GameManager.GameState.Combat)
     {
         HandleCombatInteraction(pointerPosition);
@@ -138,7 +133,6 @@ public class PlayerController : MonoBehaviour
 
     private bool ShouldClosePanelOnClick(Vector2 pointerPosition)
 {
-    // 1. Comprobamos si el clic fue sobre un elemento de la UI.
     PointerEventData eventData = new PointerEventData(EventSystem.current);
     eventData.position = pointerPosition;
     List<RaycastResult> uiResults = new List<RaycastResult>();
@@ -146,41 +140,30 @@ public class PlayerController : MonoBehaviour
 
     if (uiResults.Count > 0)
     {
-        // El clic fue sobre la UI. Ahora averiguamos sobre qué.
         foreach (var result in uiResults)
         {
-            // EXCEPCIÓN 1: ¿Es el panel de detalles o algo dentro de él?
-            // Si es así, NO cerramos el panel.
             if (result.gameObject.transform.IsChildOf(PlacementUIManager.Instance.detailsPanel.transform) || 
                 result.gameObject == PlacementUIManager.Instance.detailsPanel)
             {
-                return false; // No cerrar
+                return false;
             }
 
-            // EXCEPCIÓN 2: ¿Es un icono de unidad en la banca?
-            // Si es así, NO cerramos el panel (el icono se encargará de mostrar los nuevos detalles).
             if (result.gameObject.GetComponentInParent<UnitIconController>() != null)
             {
-                return false; // No cerrar
+                return false;
             }
         }
     }
 
-    // 2. Comprobamos si el clic fue sobre una unidad en el tablero (un objeto 3D).
     Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
     if (Physics.Raycast(ray, out RaycastHit hit))
     {
-        // EXCEPCIÓN 3: ¿Es una unidad en el tablero?
-        // Si es así, NO cerramos el panel (la lógica de selección se encargará).
         if (hit.collider.GetComponent<UnitController>() != null)
         {
-            return false; // No cerrar
+            return false;
         }
     }
-
-    // 3. Si hemos pasado todas las excepciones, significa que el clic fue en un "área vacía"
-    // (ya sea UI vacía o espacio 3D vacío). Por lo tanto, SÍ debemos cerrar el panel.
-    return true; // Sí, cerrar
+    return true;
 }
 
     public void ClearInteractionState()

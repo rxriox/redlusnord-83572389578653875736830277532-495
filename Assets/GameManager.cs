@@ -175,14 +175,11 @@ public class GameManager : MonoBehaviour
 
     public void ResetBoardButton()
 {
-    // Medida de seguridad si se presiona durante el combate
     if (CurrentState == GameState.Combat)
     {
         StopAllCoroutines();
     }
 
-    // 1. Destruir todos los GameObjects de las unidades en la escena
-    // Hacemos una copia de la lista para iterar de forma segura, ya que vamos a destruir los objetos.
     foreach (var unit in allUnits.ToList())
     {
         if (unit != null)
@@ -191,8 +188,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // 2. Resetear todos los nodos del tablero a "transitables"
-    // Esto es CRUCIAL para que el tablero quede realmente vacío.
     if (gridManager != null && gridManager.grid != null)
     {
         foreach (Node node in gridManager.grid)
@@ -204,24 +199,21 @@ public class GameManager : MonoBehaviour
         }
     }
     
-    // 3. Limpiar TODAS las listas de estado para un reseteo completo
     allUnits.Clear();
     teamUnitCount.Clear();
     if (teamCategoryCounts != null) teamCategoryCounts.Clear();
     harmonyCounts.Clear();
     activeHarmonyTiers.Clear();
-    unitsAtCombatStart.Clear(); // Muy importante limpiar la lista de guardado
+    unitsAtCombatStart.Clear();
 
-    // 4. Resetear los iconos de la UI en la banca
     UnitIconController[] icons = FindObjectsByType<UnitIconController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
     foreach (UnitIconController icon in icons)
     {
         icon.ResetIcon();
     }
 
-    // 5. Actualizar el estado final del juego y notificar a la UI
     CurrentState = GameState.Placement;
-    OnHarmoniesUpdated?.Invoke(); // Esto actualizará los contadores de la UI a "0/X"
+    OnHarmoniesUpdated?.Invoke();
     
     Debug.Log("Tablero completamente limpiado por el botón.");
 }

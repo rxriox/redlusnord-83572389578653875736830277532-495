@@ -138,8 +138,6 @@ public class GridManager : MonoBehaviour
 {
     List<Node> openSet = new List<Node>();
     HashSet<Node> closedSet = new HashSet<Node>();
-
-    // Reiniciamos todos los nodos para un cálculo limpio
     for (int x = 0; x < gridWidth; x++)
     {
         for (int z = 0; z < gridHeight; z++)
@@ -167,12 +165,9 @@ public class GridManager : MonoBehaviour
 
         openSet.Remove(currentNode);
         closedSet.Add(currentNode);
-
-        // Si hemos llegado al destino, construimos y devolvemos el camino
         if (currentNode == targetNode)
         {
             List<Node> path = RetracePath(startNode, targetNode);
-            // Quitamos el último nodo (la casilla del enemigo) para movernos a una adyacente
             if (path.Count > 0)
             {
                 path.RemoveAt(path.Count - 1);
@@ -182,9 +177,6 @@ public class GridManager : MonoBehaviour
 
         foreach (Node neighbour in GetNeighbours(currentNode))
         {
-            // LÓGICA DE OBSTÁCULO ESTRICTA:
-            // Si el vecino ya ha sido evaluado o no es transitable, lo ignoramos.
-            // La única excepción es si se trata del nodo objetivo final.
             if (closedSet.Contains(neighbour) || (!neighbour.isWalkable && neighbour != targetNode))
             {
                 continue;
@@ -205,7 +197,7 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    return null; // No se encontró un camino válido
+    return null;
 }
     
     public Node FindClosestValidNode(Vector3 worldPosition, int teamID)

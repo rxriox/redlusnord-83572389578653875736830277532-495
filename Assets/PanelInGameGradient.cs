@@ -11,7 +11,7 @@ public class PanelInGameGradient : BaseMeshEffect
     public Color m_color2 = Color.white;
     [Tooltip("El ángulo del degradado en grados.")]
     [Range(-180f, 180f)]
-    public float m_angle = -90f; // -90 para que sea vertical (de arriba a abajo)
+    public float m_angle = -90f;
     public bool m_ignoreRatio = true;
 
     public override void ModifyMesh(VertexHelper vh)
@@ -63,7 +63,6 @@ public class PanelInGameGradient : BaseMeshEffect
     }
     public void Refresh()
     {
-        // Comprobamos que el componente gráfico esté activo antes de marcarlo como "sucio".
         if (graphic != null)
         {
             graphic.SetVerticesDirty();

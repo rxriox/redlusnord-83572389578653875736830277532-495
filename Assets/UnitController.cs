@@ -112,62 +112,36 @@ public class UnitController : MonoBehaviour
 
     private void MoveTowardsTarget()
 {
-    // Solo procedemos si estamos en IDLE y tenemos un objetivo y un GridManager.
     if (gridManager == null || currentTarget == null || currentState != State.IDLE) return;
-    
-    // 1. Calculamos la ruta.
     currentPath = gridManager.FindPath(currentNode, currentTarget.currentNode);
-
-    // 2. Verificamos si se encontró una ruta válida.
     if (currentPath != null && currentPath.Count > 0)
     {
         Node nextNodeInPath = currentPath[0];
-
-        // 3. Bloqueo Atómico: La sección crítica para evitar colisiones.
-        // Hacemos una comprobación final y, si la casilla está libre, la reservamos.
-        // Todo esto ocurre en un solo bloque de código para ser lo más rápido posible.
-
-        // Le preguntamos al GameManager si la casilla está realmente libre.
         bool isNextNodeOccupied = (GameManager.Instance.GetUnitAtNode(nextNodeInPath) != null);
-        
-        // La casilla debe estar marcada como 'walkable' y no tener una unidad según el GameManager.
         if (nextNodeInPath.isWalkable && !isNextNodeOccupied)
         {
-            // --- INICIO DE LA OPERACIÓN ATÓMICA DE RESERVA ---
-
-            // a) Reservamos la casilla de destino INMEDIATAMENTE. Nadie más puede ir aquí.
             nextNodeInPath.isWalkable = false;
 
-            // b) Liberamos nuestra casilla de origen.
             if (currentNode != null)
             {
                 currentNode.isWalkable = true;
             }
             
-            // c) Actualizamos nuestro nodo de referencia lógico. Ahora "pertenecemos" a la nueva casilla.
             Node previousNode = currentNode;
             currentNode = nextNodeInPath;
 
-            // d) Iniciamos la animación visual de movimiento.
             StartCoroutine(AnimateMove(previousNode, nextNodeInPath));
-
-            // --- FIN DE LA OPERACIÓN ATÓMICA DE RESERVA ---
         }
         else
         {
-            // La casilla está bloqueada. Nos quedamos en IDLE para recalcular en el siguiente frame.
-            // Esto es importante para que las unidades "esperen" su turno si el camino está congestionado.
             currentState = State.IDLE;
         }
     }
     else
     {
-        // No hay camino disponible. Nos quedamos en IDLE.
         currentState = State.IDLE;
     }
 }
-
-// CORRUTINA DE ANIMACIÓN: Su única responsabilidad es mover el objeto visualmente.
 private IEnumerator AnimateMove(Node from, Node to)
 {
     currentState = State.MOVING;
@@ -175,7 +149,7 @@ private IEnumerator AnimateMove(Node from, Node to)
     Vector3 startPosition = from.worldPosition;
     Vector3 endPosition = to.worldPosition;
     
-    // Rotación
+    // Rotacion
     if(endPosition - startPosition != Vector3.zero)
     {
         transform.rotation = Quaternion.LookRotation(endPosition - startPosition);
@@ -192,8 +166,6 @@ private IEnumerator AnimateMove(Node from, Node to)
     }
 
     transform.position = endPosition;
-    
-    // Al terminar la animación, volvemos a IDLE para tomar la siguiente decisión.
     currentState = State.IDLE; 
 }
     
@@ -224,10 +196,7 @@ private IEnumerator AnimateMove(Node from, Node to)
         yield return null;
     }
 
-    // Aseguramos la posición final
     transform.position = targetPosition;
-    
-    // Al terminar el movimiento físico, volvemos a IDLE para reevaluar la situación.
     currentState = State.IDLE; 
 }
 
