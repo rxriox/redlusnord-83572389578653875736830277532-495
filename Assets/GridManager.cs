@@ -138,17 +138,20 @@ public class GridManager : MonoBehaviour
 {
     List<Node> openSet = new List<Node>();
     HashSet<Node> closedSet = new HashSet<Node>();
-    openSet.Add(startNode);
 
-    // Reiniciamos los costos de los nodos para un nuevo cálculo
-    foreach(Node node in grid)
+    // Reiniciamos todos los nodos para un cálculo limpio
+    for (int x = 0; x < gridWidth; x++)
     {
-        node.gCost = int.MaxValue;
-        node.parent = null;
+        for (int z = 0; z < gridHeight; z++)
+        {
+            grid[x, z].gCost = int.MaxValue;
+            grid[x, z].parent = null;
+        }
     }
+
     startNode.gCost = 0;
     startNode.hCost = GetDistance(startNode, targetNode);
-
+    openSet.Add(startNode);
 
     while (openSet.Count > 0)
     {
@@ -156,7 +159,7 @@ public class GridManager : MonoBehaviour
         for (int i = 1; i < openSet.Count; i++)
         {
             if (openSet[i].fCost < currentNode.fCost || 
-                (openSet[i].fCost == currentNode.fCost && openSet[i].hCost < currentNode.hCost))
+               (openSet[i].fCost == currentNode.fCost && openSet[i].hCost < currentNode.hCost))
             {
                 currentNode = openSet[i];
             }
@@ -165,10 +168,11 @@ public class GridManager : MonoBehaviour
         openSet.Remove(currentNode);
         closedSet.Add(currentNode);
 
+        // Si hemos llegado al destino, construimos y devolvemos el camino
         if (currentNode == targetNode)
         {
             List<Node> path = RetracePath(startNode, targetNode);
-            // El último nodo es la casilla del enemigo. Lo quitamos para que se mueva a una casilla adyacente.
+            // Quitamos el último nodo (la casilla del enemigo) para movernos a una adyacente
             if (path.Count > 0)
             {
                 path.RemoveAt(path.Count - 1);
@@ -178,15 +182,12 @@ public class GridManager : MonoBehaviour
 
         foreach (Node neighbour in GetNeighbours(currentNode))
         {
-            // LÓGICA DE OBSTÁCULO ESTRICTA Y SIMPLE:
-            // Un vecino es un obstáculo si ya está en la lista cerrada O si no es transitable.
-            // La única excepción es que el vecino sea nuestro objetivo final.
-            if (closedSet.Contains(neighbour) || !neighbour.isWalkable)
+            // LÓGICA DE OBSTÁCULO ESTRICTA:
+            // Si el vecino ya ha sido evaluado o no es transitable, lo ignoramos.
+            // La única excepción es si se trata del nodo objetivo final.
+            if (closedSet.Contains(neighbour) || (!neighbour.isWalkable && neighbour != targetNode))
             {
-                if (neighbour != targetNode)
-                {
-                    continue; 
-                }
+                continue;
             }
 
             int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
@@ -197,12 +198,14 @@ public class GridManager : MonoBehaviour
                 neighbour.parent = currentNode;
 
                 if (!openSet.Contains(neighbour))
+                {
                     openSet.Add(neighbour);
+                }
             }
         }
     }
 
-    return null; // No se encontró camino
+    return null; // No se encontró un camino válido
 }
     
     public Node FindClosestValidNode(Vector3 worldPosition, int teamID)

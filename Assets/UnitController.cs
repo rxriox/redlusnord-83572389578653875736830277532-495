@@ -112,40 +112,51 @@ public class UnitController : MonoBehaviour
 
     private void MoveTowardsTarget()
 {
-    if (gridManager == null || currentTarget == null || currentState == State.MOVING) return;
+    // Solo procedemos si estamos en IDLE y tenemos un objetivo y un GridManager.
+    if (gridManager == null || currentTarget == null || currentState != State.IDLE) return;
     
-    // 1. Calculamos la ruta usando nuestro A* estricto.
+    // 1. Calculamos la ruta.
     currentPath = gridManager.FindPath(currentNode, currentTarget.currentNode);
 
+    // 2. Verificamos si se encontró una ruta válida.
     if (currentPath != null && currentPath.Count > 0)
     {
         Node nextNodeInPath = currentPath[0];
 
-        // 2. Comprobación de seguridad: Le preguntamos al GameManager si la casilla está realmente libre.
-        UnitController occupant = GameManager.Instance.GetUnitAtNode(nextNodeInPath);
-        if (occupant == null)
+        // 3. Bloqueo Atómico: La sección crítica para evitar colisiones.
+        // Hacemos una comprobación final y, si la casilla está libre, la reservamos.
+        // Todo esto ocurre en un solo bloque de código para ser lo más rápido posible.
+
+        // Le preguntamos al GameManager si la casilla está realmente libre.
+        bool isNextNodeOccupied = (GameManager.Instance.GetUnitAtNode(nextNodeInPath) != null);
+        
+        // La casilla debe estar marcada como 'walkable' y no tener una unidad según el GameManager.
+        if (nextNodeInPath.isWalkable && !isNextNodeOccupied)
         {
-            // 3. ¡Lógica de Reserva! La casilla está libre, la reclamamos.
-            
-            // a) Liberamos nuestra casilla actual.
+            // --- INICIO DE LA OPERACIÓN ATÓMICA DE RESERVA ---
+
+            // a) Reservamos la casilla de destino INMEDIATAMENTE. Nadie más puede ir aquí.
+            nextNodeInPath.isWalkable = false;
+
+            // b) Liberamos nuestra casilla de origen.
             if (currentNode != null)
             {
                 currentNode.isWalkable = true;
             }
             
-            // b) Reservamos la casilla de destino INMEDIATAMENTE.
-            nextNodeInPath.isWalkable = false;
-
-            // c) Actualizamos nuestro nodo de referencia lógico. Ahora "somos" de esa casilla.
+            // c) Actualizamos nuestro nodo de referencia lógico. Ahora "pertenecemos" a la nueva casilla.
+            Node previousNode = currentNode;
             currentNode = nextNodeInPath;
 
-            // 4. Ahora que el estado del tablero está actualizado, iniciamos el movimiento físico.
-            StartCoroutine(AnimateMoveToPosition(nextNodeInPath.worldPosition));
+            // d) Iniciamos la animación visual de movimiento.
+            StartCoroutine(AnimateMove(previousNode, nextNodeInPath));
+
+            // --- FIN DE LA OPERACIÓN ATÓMICA DE RESERVA ---
         }
         else
         {
-            // El camino está bloqueado por un aliado que se movió.
-            // Nos quedamos en IDLE para recalcular en el siguiente frame.
+            // La casilla está bloqueada. Nos quedamos en IDLE para recalcular en el siguiente frame.
+            // Esto es importante para que las unidades "esperen" su turno si el camino está congestionado.
             currentState = State.IDLE;
         }
     }
@@ -154,6 +165,36 @@ public class UnitController : MonoBehaviour
         // No hay camino disponible. Nos quedamos en IDLE.
         currentState = State.IDLE;
     }
+}
+
+// CORRUTINA DE ANIMACIÓN: Su única responsabilidad es mover el objeto visualmente.
+private IEnumerator AnimateMove(Node from, Node to)
+{
+    currentState = State.MOVING;
+
+    Vector3 startPosition = from.worldPosition;
+    Vector3 endPosition = to.worldPosition;
+    
+    // Rotación
+    if(endPosition - startPosition != Vector3.zero)
+    {
+        transform.rotation = Quaternion.LookRotation(endPosition - startPosition);
+    }
+    
+    // Movimiento
+    float time = 0f;
+    float moveDuration = 1f / unitStats.moveSpeed;
+    while (time < moveDuration)
+    {
+        transform.position = Vector3.Lerp(startPosition, endPosition, time / moveDuration);
+        time += Time.deltaTime;
+        yield return null;
+    }
+
+    transform.position = endPosition;
+    
+    // Al terminar la animación, volvemos a IDLE para tomar la siguiente decisión.
+    currentState = State.IDLE; 
 }
     
     private IEnumerator ResetStateAfterAction(float delay)
