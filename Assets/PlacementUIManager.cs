@@ -47,7 +47,26 @@ public class PlacementUIManager : MonoBehaviour
     public GameObject detailsPanel;
     public TextMeshProUGUI unitNameText;
     public Button closeDetailsButton;
+    [Tooltip("Arrastra aquí el componente 'PanelInGameGradient' del objeto del panel de detalles.")]
+    public PanelInGameGradient detailsPanelGradient;
     public bool IsDetailsPanelActive => detailsPanel != null && detailsPanel.activeSelf;
+
+    [Header("Configuración de Degradados de Rareza")]
+    // --- AÑADIDO: Colores para el degradado de cada rareza ---
+    [Tooltip("El color superior del degradado para la rareza 'Fabulosa'")]
+    public Color fabulosaColorTop = new Color(0.1f, 0.2f, 0.6f); // Azul oscuro
+    [Tooltip("El color inferior del degradado para la rareza 'Fabulosa'")]
+    public Color fabulosaColorBottom = Color.black;
+
+    [Tooltip("El color superior para 'Magnífica'")]
+    public Color magnificaColorTop = new Color(0.4f, 0.1f, 0.6f); // Morado oscuro
+    [Tooltip("El color inferior para 'Magnífica'")]
+    public Color magnificaColorBottom = Color.black;
+
+    [Tooltip("El color superior para 'Suprema'")]
+    public Color supremaColorTop = new Color(0.7f, 0.6f, 0.1f); // Amarillo/Dorado oscuro
+    [Tooltip("El color inferior para 'Suprema'")]
+    public Color supremaColorBottom = Color.black;
 
     [Header("Animación")]
     [Tooltip("La duración en segundos del desvanecimiento (fade).")]
@@ -83,12 +102,39 @@ public class PlacementUIManager : MonoBehaviour
     }
 
     public void ShowDetailsPanel(UnitStats stats)
-    {
-        if (stats == null || detailsPanel == null || unitNameText == null) return;
+{
+    if (stats == null || detailsPanel == null || unitNameText == null) return;
 
-        unitNameText.text = stats.unitName;
-        detailsPanel.SetActive(true);
+    unitNameText.text = stats.unitName;
+
+    if (detailsPanelGradient != null)
+    {
+        switch (stats.category)
+        {
+            case UnitStats.UnitCategory.Fabulosa:
+                detailsPanelGradient.m_color1 = fabulosaColorTop;
+                detailsPanelGradient.m_color2 = fabulosaColorBottom;
+                break;
+            case UnitStats.UnitCategory.Magnifica:
+                detailsPanelGradient.m_color1 = magnificaColorTop;
+                detailsPanelGradient.m_color2 = magnificaColorBottom;
+                break;
+            case UnitStats.UnitCategory.Suprema:
+                detailsPanelGradient.m_color1 = supremaColorTop;
+                detailsPanelGradient.m_color2 = supremaColorBottom;
+                break;
+            default:
+                detailsPanelGradient.m_color1 = Color.grey;
+                detailsPanelGradient.m_color2 = Color.black;
+                break;
+        }
+
+        detailsPanelGradient.Refresh();
     }
+
+    // Finalmente, nos aseguramos de que el panel esté activo
+    detailsPanel.SetActive(true);
+}
 
     public void HideDetailsPanel()
     {
