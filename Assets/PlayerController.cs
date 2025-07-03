@@ -266,7 +266,7 @@ public class PlayerController : MonoBehaviour
             if (potentialRepositionTarget != null && !isDraggingForReposition)
             {
                 ShowSelectionHighlight(potentialRepositionTarget.currentNode);
-                PlacementUIManager.Instance.ShowDetailsPanel(potentialRepositionTarget.unitStats);
+                PlacementUIManager.Instance.SelectUnitForDetails(potentialRepositionTarget);
             }
             ResetInteractionState();
         }

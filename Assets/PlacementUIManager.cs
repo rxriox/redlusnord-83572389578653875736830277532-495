@@ -40,6 +40,11 @@ public class PlacementUIManager : MonoBehaviour
     [Header("Panel de Detalles de Unidad")]
     public GameObject detailsPanel;
     public TextMeshProUGUI unitNameText;
+    public TextMeshProUGUI attackDamageText;
+    public TextMeshProUGUI attackSpeedText;
+    public TextMeshProUGUI moveSpeedText;
+    private UnitController selectedUnitForDetails; //new func
+
     public Button closeDetailsButton;
     public PanelInGameGradient detailsPanelGradient;
     
@@ -100,11 +105,24 @@ public class PlacementUIManager : MonoBehaviour
             detailsPanel.SetActive(false);
         }
     }
+    
+    void Update()
+{
+    // Si hay una unidad seleccionada en el panel y el panel está visible...
+    if (selectedUnitForDetails != null && IsDetailsPanelActive)
+    {
+        // ...actualizamos los textos en tiempo real.
+        attackDamageText.text = selectedUnitForDetails.CurrentAttackDamage.ToString();
+        attackSpeedText.text = selectedUnitForDetails.CurrentAttackSpeed.ToString("F2"); // "F2" para mostrar 2 decimales
+        moveSpeedText.text = selectedUnitForDetails.CurrentMoveSpeed.ToString("F1"); // "F1" para mostrar 1 decimal
+    }
+}
 
     public void ShowDetailsPanel(UnitStats stats)
     {
         if (stats == null || detailsPanelCanvasGroup == null) return;
-        
+        selectedUnitForDetails = null;
+
         // Detenemos cualquier animación anterior para evitar conflictos
         if (panelFadeCoroutine != null)
         {
@@ -113,6 +131,9 @@ public class PlacementUIManager : MonoBehaviour
 
         // Preparamos el contenido del panel
         unitNameText.text = stats.unitName;
+        attackDamageText.text = stats.attackDamage.ToString();
+        attackSpeedText.text = stats.attackSpeed.ToString("F2");
+        moveSpeedText.text = stats.moveSpeed.ToString("F1");
         if (detailsPanelGradient != null)
         {
             switch (stats.category)
@@ -139,6 +160,7 @@ public class PlacementUIManager : MonoBehaviour
 
     public void HideDetailsPanel()
     {
+        selectedUnitForDetails = null;
         
         if (detailsPanelCanvasGroup == null || detailsPanelCanvasGroup.alpha == 0) return;
         if (PlayerController.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Placement)
@@ -393,6 +415,7 @@ public class PlacementUIManager : MonoBehaviour
         }
 
         ShowDetailsPanel(unit.unitStats);
+        this.selectedUnitForDetails = unit;
         if (selectionHighlightPrefab != null)
         {
             activeSelectionHighlight = Instantiate(selectionHighlightPrefab, unit.transform.position, Quaternion.identity);

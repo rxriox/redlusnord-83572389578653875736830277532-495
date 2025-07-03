@@ -10,6 +10,9 @@ public class UnitController : MonoBehaviour
     public Node currentNode;
     public UnitIconController originatingIcon;
     public float CurrentHealth { get; private set; }
+    public int CurrentAttackDamage => unitStats.attackDamage;
+    public float CurrentAttackSpeed => unitStats.attackSpeed;
+    public float CurrentMoveSpeed => unitStats.moveSpeed;
 
     private enum State { IDLE, MOVING, ATTACKING }
     private State currentState = State.IDLE;

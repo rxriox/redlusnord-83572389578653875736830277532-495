@@ -875,7 +875,7 @@ GameObject:
   - component: {fileID: 126744282}
   - component: {fileID: 126744281}
   m_Layer: 5
-  m_Name: Abilties (6)
+  m_Name: Harmony2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3003,7 +3003,7 @@ GameObject:
   - component: {fileID: 597070443}
   - component: {fileID: 597070442}
   m_Layer: 5
-  m_Name: Text (TMP) (1)
+  m_Name: AttackSpeedValue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4593,7 +4593,7 @@ GameObject:
   - component: {fileID: 870271327}
   - component: {fileID: 870271326}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: AttackDamageValue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5458,7 +5458,7 @@ GameObject:
   - component: {fileID: 960715997}
   - component: {fileID: 960715996}
   m_Layer: 5
-  m_Name: Text (TMP) (2)
+  m_Name: MoveSpeedValue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7128,7 +7128,7 @@ GameObject:
   - component: {fileID: 1322374139}
   - component: {fileID: 1322374138}
   m_Layer: 5
-  m_Name: Abilties (7)
+  m_Name: Harmony3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7600,7 +7600,7 @@ GameObject:
   - component: {fileID: 1422942670}
   - component: {fileID: 1422942669}
   m_Layer: 5
-  m_Name: Abilties (5)
+  m_Name: Harmony1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8181,7 +8181,7 @@ GameObject:
   - component: {fileID: 1505959805}
   - component: {fileID: 1505959804}
   m_Layer: 5
-  m_Name: Abilties (8)
+  m_Name: Harmony4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9910,6 +9910,7 @@ GameObject:
   - component: {fileID: 1786596558}
   - component: {fileID: 1786596557}
   - component: {fileID: 1786596560}
+  - component: {fileID: 1786596561}
   m_Layer: 5
   m_Name: Panel_Unit_Details
   m_TagString: Untagged
@@ -10021,6 +10022,18 @@ MonoBehaviour:
   m_color2: {r: 1, g: 1, b: 1, a: 1}
   m_angle: -90
   m_ignoreRatio: 1
+--- !u!225 &1786596561
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1786596555}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1797918323
 GameObject:
   m_ObjectHideFlags: 0
@@ -11590,8 +11603,12 @@ MonoBehaviour:
   artifactsBenchCanvasGroup: {fileID: 1343948396}
   detailsPanel: {fileID: 1786596555}
   unitNameText: {fileID: 1582174263}
+  attackDamageText: {fileID: 870271326}
+  attackSpeedText: {fileID: 597070442}
+  moveSpeedText: {fileID: 960715996}
   closeDetailsButton: {fileID: 655488640}
   detailsPanelGradient: {fileID: 1786596560}
+  detailsPanelCanvasGroup: {fileID: 1786596561}
   fabulosaColorTop: {r: 0.12224099, g: 0.22260205, b: 0.6320754, a: 1}
   fabulosaColorBottom: {r: 0, g: 0, b: 0.2830189, a: 1}
   magnificaColorTop: {r: 0.4, g: 0.1, b: 0.6, a: 1}
@@ -11599,6 +11616,7 @@ MonoBehaviour:
   supremaColorTop: {r: 0.7, g: 0.6, b: 0.1, a: 1}
   supremaColorBottom: {r: 0.2924528, g: 0.18635982, b: 0, a: 1}
   fadeDuration: 0.2
+  panelFadeDuration: 0.2
   selectionHighlightPrefab: {fileID: 5090270939071943840, guid: c51d1aea6ca007a4c8e7ce2a016e225e, type: 3}
 --- !u!4 &2071166982
 Transform:
