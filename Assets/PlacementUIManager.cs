@@ -40,6 +40,7 @@ public class PlacementUIManager : MonoBehaviour
     [Header("Panel de Detalles de Unidad")]
     public GameObject detailsPanel;
     public TextMeshProUGUI unitNameText;
+    public TextMeshProUGUI healthText;
     public TextMeshProUGUI attackDamageText;
     public TextMeshProUGUI attackSpeedText;
     public TextMeshProUGUI moveSpeedText;
@@ -111,10 +112,10 @@ public class PlacementUIManager : MonoBehaviour
     // Si hay una unidad seleccionada en el panel y el panel está visible...
     if (selectedUnitForDetails != null && IsDetailsPanelActive)
     {
-        // ...actualizamos los textos en tiempo real.
+        healthText.text = $"{selectedUnitForDetails.CurrentHealth} / {selectedUnitForDetails.MaxHealth}";
         attackDamageText.text = selectedUnitForDetails.CurrentAttackDamage.ToString();
-        attackSpeedText.text = selectedUnitForDetails.CurrentAttackSpeed.ToString("F2"); // "F2" para mostrar 2 decimales
-        moveSpeedText.text = selectedUnitForDetails.CurrentMoveSpeed.ToString("F1"); // "F1" para mostrar 1 decimal
+        attackSpeedText.text = selectedUnitForDetails.CurrentAttackSpeed.ToString("F0"); // "F2" para mostrar 2 decimales
+        moveSpeedText.text = selectedUnitForDetails.CurrentMoveSpeed.ToString("F0"); // "F1" para mostrar 1 decimal
     }
 }
 
@@ -131,6 +132,7 @@ public class PlacementUIManager : MonoBehaviour
 
         // Preparamos el contenido del panel
         unitNameText.text = stats.unitName;
+        healthText.text = $"{stats.maxHealth} / {stats.maxHealth}";
         attackDamageText.text = stats.attackDamage.ToString();
         attackSpeedText.text = stats.attackSpeed.ToString("F2");
         moveSpeedText.text = stats.moveSpeed.ToString("F1");

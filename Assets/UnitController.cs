@@ -9,6 +9,7 @@ public class UnitController : MonoBehaviour
     public int teamID;
     public Node currentNode;
     public UnitIconController originatingIcon;
+    public int MaxHealth => unitStats.maxHealth;
     public float CurrentHealth { get; private set; }
     public int CurrentAttackDamage => unitStats.attackDamage;
     public float CurrentAttackSpeed => unitStats.attackSpeed;
