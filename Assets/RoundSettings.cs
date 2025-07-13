@@ -17,4 +17,9 @@ public class RoundSettings : ScriptableObject
 
     [Tooltip("Límite de unidades de rareza Suprema.")]
     public int supremaLimit = 0;
+
+    [Header("Niveles por Rareza en esta Ronda")]
+    [Range(1, 3)] public int fabulosaLevel = 1;
+    [Range(1, 3)] public int magnificaLevel = 1;
+    [Range(1, 3)] public int supremaLevel = 1;
 }

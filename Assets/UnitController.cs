@@ -9,9 +9,10 @@ public class UnitController : MonoBehaviour
     public int teamID;
     public Node currentNode;
     public UnitIconController originatingIcon;
-    public int MaxHealth => unitStats.maxHealth;
+    public int CurrentLevel { get; private set; }
+    public int MaxHealth => (unitStats.maxHealthByLevel.Count >= CurrentLevel && CurrentLevel > 0) ? unitStats.maxHealthByLevel[CurrentLevel - 1] : 0;
     public float CurrentHealth { get; private set; }
-    public int CurrentAttackDamage => unitStats.attackDamage;
+    public int CurrentAttackDamage => (unitStats.attackDamageByLevel.Count >= CurrentLevel && CurrentLevel > 0) ? unitStats.attackDamageByLevel[CurrentLevel - 1] : 0;
     public float CurrentAttackSpeed => unitStats.attackSpeed;
     public float CurrentMoveSpeed => unitStats.moveSpeed;
 
@@ -26,13 +27,19 @@ public class UnitController : MonoBehaviour
     void Start()
     {
         gridManager = FindFirstObjectByType<GridManager>();
-        CurrentHealth = unitStats.maxHealth;
+        
+    }
+    
+    public void Initialize(int level)
+    {
+        this.CurrentLevel = level;
+        this.CurrentHealth = this.MaxHealth;
     }
 
     public void EvaluateAction()
     {
         if (currentState == State.MOVING || currentState == State.ATTACKING) return;
-        
+
         if (attackCooldown > 0)
         {
             attackCooldown -= Time.deltaTime;
@@ -93,26 +100,28 @@ public class UnitController : MonoBehaviour
     }
 
     private void PerformAttack()
+{
+    currentState = State.ATTACKING;
+    transform.LookAt(new Vector3(currentTarget.transform.position.x, transform.position.y, currentTarget.transform.position.z));
+
+    if (unitStats.unitType == UnitStats.UnitType.Ranged && unitStats.projectilePrefab != null)
     {
-        currentState = State.ATTACKING;
-        transform.LookAt(new Vector3(currentTarget.transform.position.x, transform.position.y, currentTarget.transform.position.z));
-
-        if (unitStats.unitType == UnitStats.UnitType.Ranged && unitStats.projectilePrefab != null)
-        {
-            GameObject projGO = ObjectPooler.Instance.SpawnFromPool("Proyectil", transform.position + Vector3.up * 0.5f, Quaternion.identity);
-            Projectile projectile = projGO.GetComponent<Projectile>();
-            if (projectile != null)
-                projectile.Initialize(this, currentTarget, unitStats.attackDamage);
-        }
-        else
-        {
-            Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ataca a {GetTeamTag(currentTarget.teamID)} {currentTarget.unitStats.unitName}");
-            currentTarget.TakeDamage(unitStats.attackDamage, this);
-        }
-
-        attackCooldown = 1f / unitStats.attackSpeed;
-        StartCoroutine(ResetStateAfterAction(0.1f));
+        GameObject projGO = ObjectPooler.Instance.SpawnFromPool("Proyectil", transform.position + Vector3.up * 0.5f, Quaternion.identity);
+        Projectile projectile = projGO.GetComponent<Projectile>();
+        if (projectile != null)
+            // --- CAMBIO AQUÍ ---
+            projectile.Initialize(this, currentTarget, CurrentAttackDamage);
     }
+    else
+    {
+        Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ataca a {GetTeamTag(currentTarget.teamID)} {currentTarget.unitStats.unitName}");
+        // --- Y CAMBIO AQUÍ ---
+        currentTarget.TakeDamage(CurrentAttackDamage, this);
+    }
+
+    attackCooldown = 1f / unitStats.attackSpeed;
+    StartCoroutine(ResetStateAfterAction(0.1f));
+}
 
     private void MoveTowardsTarget()
 {

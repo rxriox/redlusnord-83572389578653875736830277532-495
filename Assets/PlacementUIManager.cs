@@ -40,6 +40,7 @@ public class PlacementUIManager : MonoBehaviour
     [Header("Panel de Detalles de Unidad")]
     public GameObject detailsPanel;
     public TextMeshProUGUI unitNameText;
+    public TextMeshProUGUI levelText;
     public TextMeshProUGUI healthText;
     public TextMeshProUGUI attackDamageText;
     public TextMeshProUGUI attackSpeedText;
@@ -109,14 +110,15 @@ public class PlacementUIManager : MonoBehaviour
 {
     if (selectedUnitForDetails != null && IsDetailsPanelActive)
     {
+        levelText.text = $"{selectedUnitForDetails.CurrentLevel}";
         if (selectedUnitForDetails.CurrentHealth < selectedUnitForDetails.MaxHealth)
-        {
-            healthText.text = $"{Mathf.CeilToInt(selectedUnitForDetails.CurrentHealth)} / {selectedUnitForDetails.MaxHealth}";
-        }
-        else
-        {
-            healthText.text = selectedUnitForDetails.MaxHealth.ToString();
-        }
+            {
+                healthText.text = $"{Mathf.CeilToInt(selectedUnitForDetails.CurrentHealth)} / {selectedUnitForDetails.MaxHealth}";
+            }
+            else
+            {
+                healthText.text = selectedUnitForDetails.MaxHealth.ToString();
+            }
 
         attackDamageText.text = selectedUnitForDetails.CurrentAttackDamage.ToString();
         attackSpeedText.text = selectedUnitForDetails.CurrentAttackSpeed.ToString("F0");
@@ -132,9 +134,16 @@ public class PlacementUIManager : MonoBehaviour
         {
             StopCoroutine(panelFadeCoroutine);
         }
+
+        int currentLevel = GameManager.Instance.GetCurrentLevelForUnit(stats);
         unitNameText.text = stats.unitName;
-        healthText.text = stats.maxHealth.ToString();
-        attackDamageText.text = stats.attackDamage.ToString();
+        levelText.text = $"{currentLevel}";
+
+        int maxHealth = (stats.maxHealthByLevel.Count >= currentLevel && currentLevel > 0) ? stats.maxHealthByLevel[currentLevel - 1] : 0;
+        int attackDamage = (stats.attackDamageByLevel.Count >= currentLevel && currentLevel > 0) ? stats.attackDamageByLevel[currentLevel - 1] : 0;
+
+        healthText.text = maxHealth.ToString();
+        attackDamageText.text = attackDamage.ToString();
         attackSpeedText.text = stats.attackSpeed.ToString("F2");
         moveSpeedText.text = stats.moveSpeed.ToString("F1");
         if (detailsPanelGradient != null)

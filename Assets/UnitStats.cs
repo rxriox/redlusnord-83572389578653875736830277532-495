@@ -27,9 +27,10 @@ public class UnitStats : ScriptableObject
 
     [Header("Combat Statistics")]
     public string unitName = "New Unit";
-    public int maxHealth = 100;
-    public int maxMana = 100;
-    public int attackDamage = 10;
+    [Tooltip("Vida máxima de la unidad para los niveles 1, 2 y 3.")]
+    public List<int> maxHealthByLevel = new List<int> { 100, 150, 225 };
+    [Tooltip("Daño de ataque de la unidad para los niveles 1, 2 y 3.")]
+    public List<int> attackDamageByLevel = new List<int> { 10, 15, 25 };
     public float attackSpeed = 1.0f;
     public float attackRange = 1.5f;
 

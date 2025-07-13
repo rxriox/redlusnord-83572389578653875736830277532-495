@@ -436,6 +436,7 @@ public class PlayerController : MonoBehaviour
                 unitController.unitStats = unitStats;
                 unitController.currentNode = node;
                 unitController.teamID = PlacementUIManager.Instance.CurrentPlacementTeamID;
+                unitController.Initialize(GameManager.Instance.GetCurrentLevelForUnit(unitStats));
                 unitController.originatingIcon = currentlyDraggedIcon;
                 GameManager.Instance.RegisterUnit(unitController);
             }

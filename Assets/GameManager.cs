@@ -39,6 +39,7 @@ public class GameManager : MonoBehaviour
     [Header("Reglas del Juego")]
     public int maxUnitsPerTeam;
     private Dictionary<UnitStats.UnitCategory, int> categoryLimitsDict = new Dictionary<UnitStats.UnitCategory, int>();
+    private Dictionary<UnitStats.UnitCategory, int> categoryLevelsDict = new Dictionary<UnitStats.UnitCategory, int>();
 
     private List<UnitController> allUnits = new List<UnitController>();
     private Dictionary<int, int> teamUnitCount = new Dictionary<int, int>();
@@ -61,22 +62,36 @@ public class GameManager : MonoBehaviour
     }
 
     public void ApplyRoundSettings(RoundSettings settings)
-{
-    if (settings == null)
     {
-        Debug.LogError("Se intentó aplicar una configuración de ronda nula.");
-        return;
+        if (settings == null)
+        {
+            Debug.LogError("Se intentó aplicar una configuración de ronda nula.");
+            return;
+        }
+
+        maxUnitsPerTeam = settings.maxTotalUnits;
+
+        categoryLimitsDict.Clear();
+        categoryLimitsDict[UnitStats.UnitCategory.Fabulosa] = settings.fabulosaLimit;
+        categoryLimitsDict[UnitStats.UnitCategory.Magnifica] = settings.magnificaLimit;
+        categoryLimitsDict[UnitStats.UnitCategory.Suprema] = settings.supremaLimit;
+
+        categoryLevelsDict.Clear();
+        categoryLevelsDict[UnitStats.UnitCategory.Fabulosa] = settings.fabulosaLevel;
+        categoryLevelsDict[UnitStats.UnitCategory.Magnifica] = settings.magnificaLevel;
+        categoryLevelsDict[UnitStats.UnitCategory.Suprema] = settings.supremaLevel;
+
+        Debug.Log($"Límites de tablero actualizados a: {settings.roundName}. Total: {maxUnitsPerTeam}, Fabulosa: {settings.fabulosaLimit}, Magnífica: {settings.magnificaLimit}, Suprema: {settings.supremaLimit}");
     }
 
-    maxUnitsPerTeam = settings.maxTotalUnits;
-
-    categoryLimitsDict.Clear();
-    categoryLimitsDict[UnitStats.UnitCategory.Fabulosa] = settings.fabulosaLimit;
-    categoryLimitsDict[UnitStats.UnitCategory.Magnifica] = settings.magnificaLimit;
-    categoryLimitsDict[UnitStats.UnitCategory.Suprema] = settings.supremaLimit;
-
-    Debug.Log($"Límites de tablero actualizados a: {settings.roundName}. Total: {maxUnitsPerTeam}, Fabulosa: {settings.fabulosaLimit}, Magnífica: {settings.magnificaLimit}, Suprema: {settings.supremaLimit}");
-}
+    public int GetCurrentLevelForUnit(UnitStats stats)
+    {
+        if (stats != null && categoryLevelsDict.TryGetValue(stats.category, out int level))
+        {
+            return level;
+        }
+        return 1; // Devuelve 1 como valor por defecto si algo falla
+    }
 
     public Dictionary<HarmonyType, int> GetHarmonyCountsForTeam(int teamID)
     {

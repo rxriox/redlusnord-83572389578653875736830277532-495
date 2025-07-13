@@ -73,6 +73,7 @@ public class GridManager : MonoBehaviour
             {
                 unitController.unitStats = stats;
                 unitController.teamID = team;
+                unitController.Initialize(GameManager.Instance.GetCurrentLevelForUnit(stats));
                 unitController.currentNode = node;
                 unitController.originatingIcon = originatingIcon;
                 node.isWalkable = false;
