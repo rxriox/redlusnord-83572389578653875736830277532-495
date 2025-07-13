@@ -31,12 +31,13 @@ public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHan
     }
     public void OnBeginDrag(PointerEventData eventData)
     {
+
+        if (isPlaced) return;
+        
         if (artifactData == null) return;
         
-        // Notificamos al manager, pasándole una referencia a este mismo icono.
         TabGroupManager.Instance.OnArtifactDragStart(this);
         
-        // Hacemos que el icono original se vuelva semitransparente durante el arrastre.
         canvasGroup.alpha = 0.4f;
         canvasGroup.blocksRaycasts = false;
     }

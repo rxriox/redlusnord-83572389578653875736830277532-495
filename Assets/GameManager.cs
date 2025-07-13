@@ -47,6 +47,8 @@ public class GameManager : MonoBehaviour
 
     private Dictionary<HarmonyType, Dictionary<int, int>> harmonyCounts = new Dictionary<HarmonyType, Dictionary<int, int>>();
     private Dictionary<HarmonyType, Dictionary<int, int>> activeHarmonyTiers = new Dictionary<HarmonyType, Dictionary<int, int>>();
+    [HideInInspector] public int maxArtifacts;
+    private Dictionary<ArtifactCategory, int> artifactCategoryLimitsDict = new Dictionary<ArtifactCategory, int>();
     public int GetUnitCountForTeam(int teamID)
     {
         teamUnitCount.TryGetValue(teamID, out int count);
@@ -81,6 +83,18 @@ public class GameManager : MonoBehaviour
         categoryLevelsDict[UnitStats.UnitCategory.Magnifica] = settings.magnificaLevel;
         categoryLevelsDict[UnitStats.UnitCategory.Suprema] = settings.supremaLevel;
 
+        maxArtifacts = settings.maxArtifacts;
+        artifactCategoryLimitsDict.Clear();
+        artifactCategoryLimitsDict[ArtifactCategory.Categoria1] = settings.artifactCat1Limit;
+        artifactCategoryLimitsDict[ArtifactCategory.Categoria2] = settings.artifactCat2Limit;
+        artifactCategoryLimitsDict[ArtifactCategory.Categoria3] = settings.artifactCat3Limit;
+        artifactCategoryLimitsDict[ArtifactCategory.Categoria4] = settings.artifactCat4Limit;
+
+        if (ArtifactManager.Instance != null)
+    {
+        ArtifactManager.Instance.ValidateActiveArtifacts();
+    }
+    
         Debug.Log($"Límites de tablero actualizados a: {settings.roundName}. Total: {maxUnitsPerTeam}, Fabulosa: {settings.fabulosaLimit}, Magnífica: {settings.magnificaLimit}, Suprema: {settings.supremaLimit}");
     }
 
@@ -402,6 +416,15 @@ public class GameManager : MonoBehaviour
 }
 
     #endregion
+
+    public int GetArtifactLimitForCategory(ArtifactCategory category)
+    {
+        if (artifactCategoryLimitsDict.TryGetValue(category, out int limit))
+        {
+            return limit;
+        }
+        return 0;
+    }
     public List<UnitController> GetAllUnits()
     {
         return allUnits;

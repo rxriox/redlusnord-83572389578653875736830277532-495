@@ -6,6 +6,11 @@ public class ArtifactDropZone : MonoBehaviour, IDropHandler
     public void OnDrop(PointerEventData eventData)
     {
         Artifact droppedArtifact = TabGroupManager.Instance.draggedArtifact;
+        if (droppedArtifact == null)
+    {
+        TabGroupManager.Instance.SetArtifactDropSuccessful(); // Aún consideramos el drop "exitoso" para que la UI se resetee bien.
+        return;
+    }
         ArtifactIconController benchIcon = eventData.pointerDrag.GetComponent<ArtifactIconController>();
         if (benchIcon != null)
         {

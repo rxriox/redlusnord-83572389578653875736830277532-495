@@ -12,11 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7230d5a83b637a04bb852165f48f121a, type: 3}
   m_Name: Rounds 9
   m_EditorClassIdentifier: Assembly-CSharp::RoundSettings
-  roundName: Rounds 8
+  roundName: Rounds 9
   maxTotalUnits: 10
   fabulosaLimit: 5
   magnificaLimit: 4
   supremaLimit: 1
-  fabulosaLevel: 2
-  magnificaLevel: 2
-  supremaLevel: 2
+  fabulosaLevel: 3
+  magnificaLevel: 3
+  supremaLevel: 3
+  maxArtifacts: 8
+  artifactCat1Limit: 2
+  artifactCat2Limit: 2
+  artifactCat3Limit: 2
+  artifactCat4Limit: 2
