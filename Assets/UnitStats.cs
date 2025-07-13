@@ -5,34 +5,32 @@ using System.Collections.Generic;
 public class UnitStats : ScriptableObject
 {
     public enum UnitCategory { Fabulosa, Magnifica, Suprema }
-
     public enum UnitType { Melee, Ranged }
 
     [Header("Unit Configuration")]
-    [Tooltip("La categoría de la unidad, que afecta a los límites en el tablero.")]
     public UnitCategory category = UnitCategory.Fabulosa;
-    
-    [Tooltip("Define if the unit is melee or ranged.")]
     public UnitType unitType = UnitType.Melee;
-
-    [Tooltip("The harmonies this unit naturally belongs to.")]
     public List<HarmonyType> naturalHarmonies = new List<HarmonyType>();
 
-    [Header("Visuals & Prefabs")]
-    [Tooltip("El Prefab del modelo del personaje que se instancia en el tablero.")]
+    [Header("Visuals & UI")]
     public GameObject characterPrefab;
-
-    [Tooltip("El Prefab del proyectil que dispara la unidad si es de Rango.")]
     public GameObject projectilePrefab;
+    public Sprite portrait;
 
-    [Header("Combat Statistics")]
+    [Header("Level-Based Statistics")]
     public string unitName = "New Unit";
-    public int maxHealth = 100;
-    public int maxMana = 100;
+    
+    // --- MODIFICADO: Ahora son arrays para 3 niveles/rondas ---
+    [Tooltip("Vida máxima en cada nivel (Ronda 1, Ronda 2, Ronda 3).")]
+    public int[] maxHealthByLevel = new int[3] { 100, 150, 200 };
+    
+    [Tooltip("Daño de ataque en cada nivel (Ronda 1, Ronda 2, Ronda 3).")]
+    public int[] attackDamageByLevel = new int[3] { 10, 15, 20 };
+
+    // --- Las siguientes estadísticas se mantienen fijas por ahora ---
+    [Header("Fixed Statistics")]
     public int attackDamage = 10;
     public float attackSpeed = 1.0f;
-    public float attackRange = 1.5f;
-
-    [Header("Movement Statistics")]
+    public int attackRange = 1;
     public float moveSpeed = 3f;
 }

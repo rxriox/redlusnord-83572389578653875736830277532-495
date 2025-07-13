@@ -20,6 +20,9 @@ public class GameManager : MonoBehaviour
     private List<CombatStartInfo> unitsAtCombatStart = new List<CombatStartInfo>();
     public static event System.Action OnHarmoniesUpdated;
     public static GameManager Instance { get; private set; }
+    [Header("Game State")]
+    [Tooltip("La ronda actual del juego (0 para Ronda 1, 1 para Ronda 2, etc.).")]
+    public int currentRoundIndex = 0; // Se empieza en 0
     public enum GameState { Placement, Combat, Result }
     private GameState _currentState;
     public GameState CurrentState

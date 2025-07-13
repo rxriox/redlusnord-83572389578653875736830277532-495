@@ -9,10 +9,11 @@ public class UnitController : MonoBehaviour
     public int teamID;
     public Node currentNode;
     public UnitIconController originatingIcon;
+    public float MaxHealth { get; private set; }
     public float CurrentHealth { get; private set; }
-    public int CurrentAttackDamage => unitStats.attackDamage;
-    public float CurrentAttackSpeed => unitStats.attackSpeed;
-    public float CurrentMoveSpeed => unitStats.moveSpeed;
+    public float CurrentAttackDamage { get; private set; }
+    public float CurrentAttackSpeed { get; private set; }
+    public float CurrentMoveSpeed { get; private set; }
 
     private enum State { IDLE, MOVING, ATTACKING }
     private State currentState = State.IDLE;
@@ -25,7 +26,17 @@ public class UnitController : MonoBehaviour
     void Start()
     {
         gridManager = FindFirstObjectByType<GridManager>();
-        CurrentHealth = unitStats.maxHealth;
+        int roundIndex = GameManager.Instance.currentRoundIndex;
+        if (roundIndex < 0 || roundIndex >= unitStats.maxHealthByLevel.Length)
+        {
+            Debug.LogError($"Índice de ronda ({roundIndex}) fuera de rango para la unidad {unitStats.unitName}. Usando el nivel 0 como fallback.");
+            roundIndex = 0;
+        }
+        MaxHealth = unitStats.maxHealthByLevel[roundIndex];
+        CurrentHealth = MaxHealth; // Al empezar, la vida actual es la máxima.
+        CurrentAttackDamage = unitStats.attackDamageByLevel[roundIndex];
+        CurrentAttackSpeed = unitStats.attackSpeed;
+        CurrentMoveSpeed = unitStats.moveSpeed;
     }
 
     public void EvaluateAction()
