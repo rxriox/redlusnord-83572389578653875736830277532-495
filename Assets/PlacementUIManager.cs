@@ -44,12 +44,11 @@ public class PlacementUIManager : MonoBehaviour
     public TextMeshProUGUI attackDamageText;
     public TextMeshProUGUI attackSpeedText;
     public TextMeshProUGUI moveSpeedText;
-    private UnitController selectedUnitForDetails; //new func
+    private UnitController selectedUnitForDetails;
 
     public Button closeDetailsButton;
     public PanelInGameGradient detailsPanelGradient;
-    
-    // --- AÑADIDO: Referencia al CanvasGroup y variable de control ---
+
     [Tooltip("Arrastra aquí el componente CanvasGroup del detailsPanel.")]
     public CanvasGroup detailsPanelCanvasGroup;
     private Coroutine panelFadeCoroutine;
@@ -66,8 +65,8 @@ public class PlacementUIManager : MonoBehaviour
     public Color supremaColorBottom = Color.black;
 
     [Header("Animación")]
-    public float fadeDuration = 0.2f; // Puedes usar esta para los bancos
-    public float panelFadeDuration = 0.2f; // Duración específica para el panel
+    public float fadeDuration = 0.1f; 
+    public float panelFadeDuration = 0.1f;
     public enum ActiveBench { Allies, Enemies, Artifacts }
 
     [Header("Highlight de Selección en Combate")]
@@ -102,20 +101,26 @@ public class PlacementUIManager : MonoBehaviour
         }
         else
         {
-            // Si no hay CanvasGroup, usamos la lógica antigua como fallback.
             detailsPanel.SetActive(false);
         }
     }
     
     void Update()
 {
-    // Si hay una unidad seleccionada en el panel y el panel está visible...
     if (selectedUnitForDetails != null && IsDetailsPanelActive)
     {
-        healthText.text = $"{selectedUnitForDetails.CurrentHealth} / {selectedUnitForDetails.MaxHealth}";
+        if (selectedUnitForDetails.CurrentHealth < selectedUnitForDetails.MaxHealth)
+        {
+            healthText.text = $"{Mathf.CeilToInt(selectedUnitForDetails.CurrentHealth)} / {selectedUnitForDetails.MaxHealth}";
+        }
+        else
+        {
+            healthText.text = selectedUnitForDetails.MaxHealth.ToString();
+        }
+
         attackDamageText.text = selectedUnitForDetails.CurrentAttackDamage.ToString();
-        attackSpeedText.text = selectedUnitForDetails.CurrentAttackSpeed.ToString("F0"); // "F2" para mostrar 2 decimales
-        moveSpeedText.text = selectedUnitForDetails.CurrentMoveSpeed.ToString("F0"); // "F1" para mostrar 1 decimal
+        attackSpeedText.text = selectedUnitForDetails.CurrentAttackSpeed.ToString("F0");
+        moveSpeedText.text = selectedUnitForDetails.CurrentMoveSpeed.ToString("F0");
     }
 }
 
@@ -123,16 +128,12 @@ public class PlacementUIManager : MonoBehaviour
     {
         if (stats == null || detailsPanelCanvasGroup == null) return;
         selectedUnitForDetails = null;
-
-        // Detenemos cualquier animación anterior para evitar conflictos
         if (panelFadeCoroutine != null)
         {
             StopCoroutine(panelFadeCoroutine);
         }
-
-        // Preparamos el contenido del panel
         unitNameText.text = stats.unitName;
-        healthText.text = $"{stats.maxHealth} / {stats.maxHealth}";
+        healthText.text = stats.maxHealth.ToString();
         attackDamageText.text = stats.attackDamage.ToString();
         attackSpeedText.text = stats.attackSpeed.ToString("F2");
         moveSpeedText.text = stats.moveSpeed.ToString("F1");
@@ -156,7 +157,6 @@ public class PlacementUIManager : MonoBehaviour
             detailsPanelGradient.Refresh();
         }
 
-        // Iniciamos la animación de fade-in
         panelFadeCoroutine = StartCoroutine(FadeDetailsPanel(true));
     }
 
@@ -209,12 +209,12 @@ public class PlacementUIManager : MonoBehaviour
             detailsPanelCanvasGroup.interactable = false;
             detailsPanelCanvasGroup.blocksRaycasts = false;
             
-            // Lógica de limpieza que se ejecuta después de que el panel se ha desvanecido
             if (activeSelectionHighlight != null)
             {
                 Destroy(activeSelectionHighlight);
                 activeSelectionHighlight = null;
             }
+
             if (PlayerController.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Placement)
             {
                 PlayerController.Instance.HideSelectionHighlight();
@@ -224,6 +224,29 @@ public class PlacementUIManager : MonoBehaviour
         
         panelFadeCoroutine = null;
     }
+
+    public void ForceDetailsPanelUpdate(UnitController unit)
+{
+    if (unit != null && selectedUnitForDetails == unit && IsDetailsPanelActive)
+    {
+        if (unit.CurrentHealth <= 0)
+        {
+            healthText.text = $"0 / {unit.MaxHealth}";
+        }
+        else if (unit.CurrentHealth < unit.MaxHealth)
+        {
+            healthText.text = $"{Mathf.CeilToInt(unit.CurrentHealth)} / {unit.MaxHealth}";
+        }
+        else
+        {
+            healthText.text = unit.MaxHealth.ToString();
+        }
+
+        attackDamageText.text = unit.CurrentAttackDamage.ToString();
+        attackSpeedText.text = unit.CurrentAttackSpeed.ToString("F0");
+        moveSpeedText.text = unit.CurrentMoveSpeed.ToString("F0");
+    }
+}
 
     void PopulateBench(Transform content, GameObject[] iconPrefabs)
     {
@@ -294,13 +317,11 @@ public class PlacementUIManager : MonoBehaviour
     }
      private void SetBenchVisibility(CanvasGroup toShow, params CanvasGroup[] toHide)
     {
-        // Detenemos SOLO la animación de las bancas, si está en curso.
         if (benchFadeCoroutine != null)
         {
             StopCoroutine(benchFadeCoroutine);
         }
         
-        // El resto de la función es para establecer el estado inicial, no animado.
         var allBenches = new List<CanvasGroup> { allyBenchCanvasGroup, enemyBenchCanvasGroup, artifactsBenchCanvasGroup };
         foreach (var bench in allBenches)
         {
@@ -314,22 +335,16 @@ public class PlacementUIManager : MonoBehaviour
     }
     public void HideBenchesForDrag()
     {
-        // Detenemos SOLO la animación de las bancas, si está en curso.
         if (benchFadeCoroutine != null)
         {
             StopCoroutine(benchFadeCoroutine);
         }
-
-        // Creamos una lista de todas las bancas para la corrutina.
         var allBenches = new List<CanvasGroup> { allyBenchCanvasGroup, enemyBenchCanvasGroup, artifactsBenchCanvasGroup };
-        
-        // Iniciamos la nueva corrutina para animar todas las bancas a la vez.
         benchFadeCoroutine = StartCoroutine(FadeMultipleBenches(allBenches, false, fadeDuration));
     }
 
     private IEnumerator FadeMultipleBenches(List<CanvasGroup> groups, bool fadeIn, float duration)
     {
-        // Guardamos los alphas iniciales para un fade suave
         Dictionary<CanvasGroup, float> startAlphas = new Dictionary<CanvasGroup, float>();
         foreach (var group in groups)
         {
@@ -353,7 +368,6 @@ public class PlacementUIManager : MonoBehaviour
             yield return null;
         }
 
-        // Aseguramos los valores finales
         foreach (var group in groups)
         {
             if (group != null)

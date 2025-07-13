@@ -1,5 +1,5 @@
 using UnityEngine;
-using TMPro; // Necesario para TextMeshPro
+using TMPro;
 using System.Collections.Generic;
 using System.Linq;
 

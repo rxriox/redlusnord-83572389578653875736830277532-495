@@ -211,8 +211,13 @@ private IEnumerator AnimateMove(Node from, Node to)
         if (CurrentHealth <= 0)
         {
             CurrentHealth = 0;
+            PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
             Die(attacker);
         }
+        else
+    {
+        PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
+    }
     }
 
     public void Die(UnitController killer)
