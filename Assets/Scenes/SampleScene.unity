@@ -10800,7 +10800,7 @@ GameObject:
   - component: {fileID: 1875635095}
   - component: {fileID: 1875635094}
   m_Layer: 5
-  m_Name: Abilties (4)
+  m_Name: ArtifactIconSlot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11894,6 +11894,8 @@ MonoBehaviour:
   attackDamageText: {fileID: 870271326}
   attackSpeedText: {fileID: 597070442}
   moveSpeedText: {fileID: 960715996}
+  equippedArtifactImage: {fileID: 1875635095}
+  defaultArtifactSprite: {fileID: 21300000, guid: 0b5fe413506a0c046a65a388d3e85919, type: 3}
   closeDetailsButton: {fileID: 655488640}
   detailsPanelGradient: {fileID: 1786596560}
   detailsPanelCanvasGroup: {fileID: 1786596561}

@@ -46,6 +46,10 @@ public class PlacementUIManager : MonoBehaviour
     public TextMeshProUGUI attackSpeedText;
     public TextMeshProUGUI moveSpeedText;
     private UnitController selectedUnitForDetails;
+    [Tooltip("La imagen en la UI que mostrará el icono del artefacto equipado.")]
+    public Image equippedArtifactImage;
+    [Tooltip("El sprite que se muestra cuando no hay ningún artefacto equipado.")]
+    public Sprite defaultArtifactSprite;
 
     public Button closeDetailsButton;
     public PanelInGameGradient detailsPanelGradient;
@@ -105,13 +109,13 @@ public class PlacementUIManager : MonoBehaviour
             detailsPanel.SetActive(false);
         }
     }
-    
+
     void Update()
-{
-    if (selectedUnitForDetails != null && IsDetailsPanelActive)
     {
-        levelText.text = $"{selectedUnitForDetails.CurrentLevel}";
-        if (selectedUnitForDetails.CurrentHealth < selectedUnitForDetails.MaxHealth)
+        if (selectedUnitForDetails != null && IsDetailsPanelActive)
+        {
+            levelText.text = $"{selectedUnitForDetails.CurrentLevel}";
+            if (selectedUnitForDetails.CurrentHealth < selectedUnitForDetails.MaxHealth)
             {
                 healthText.text = $"{Mathf.CeilToInt(selectedUnitForDetails.CurrentHealth)} / {selectedUnitForDetails.MaxHealth}";
             }
@@ -120,12 +124,23 @@ public class PlacementUIManager : MonoBehaviour
                 healthText.text = selectedUnitForDetails.MaxHealth.ToString();
             }
 
-        attackDamageText.text = selectedUnitForDetails.CurrentAttackDamage.ToString();
-        attackSpeedText.text = selectedUnitForDetails.CurrentAttackSpeed.ToString("F0");
-        moveSpeedText.text = selectedUnitForDetails.CurrentMoveSpeed.ToString("F0");
-    }
-}
+            attackDamageText.text = selectedUnitForDetails.CurrentAttackDamage.ToString();
+            attackSpeedText.text = selectedUnitForDetails.CurrentAttackSpeed.ToString("F0");
+            moveSpeedText.text = selectedUnitForDetails.CurrentMoveSpeed.ToString("F0");
 
+            if (selectedUnitForDetails.EquippedArtifact != null)
+        {
+            // Si la unidad tiene un artefacto, muestra su icono.
+            equippedArtifactImage.sprite = selectedUnitForDetails.EquippedArtifact.icon;
+        }
+        else
+        {
+            // Si no, muestra el icono por defecto.
+            equippedArtifactImage.sprite = defaultArtifactSprite;
+        }
+        }
+    }
+    
     public void ShowDetailsPanel(UnitStats stats)
     {
         if (stats == null || detailsPanelCanvasGroup == null) return;
@@ -133,6 +148,11 @@ public class PlacementUIManager : MonoBehaviour
         if (panelFadeCoroutine != null)
         {
             StopCoroutine(panelFadeCoroutine);
+        }
+
+        if (equippedArtifactImage != null)
+        {
+            equippedArtifactImage.sprite = defaultArtifactSprite;
         }
 
         int currentLevel = GameManager.Instance.GetCurrentLevelForUnit(stats);
