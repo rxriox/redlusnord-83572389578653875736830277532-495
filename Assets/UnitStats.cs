@@ -19,6 +19,8 @@ public class UnitStats : ScriptableObject
     public List<HarmonyType> naturalHarmonies = new List<HarmonyType>();
 
     [Header("Visuals & Prefabs")]
+    [Tooltip("Icono pequeño que representa a la unidad en la UI.")]
+    public Sprite unitIcon;
     [Tooltip("El Prefab del modelo del personaje que se instancia en el tablero.")]
     public GameObject characterPrefab;
 

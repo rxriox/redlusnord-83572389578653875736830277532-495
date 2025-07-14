@@ -97,48 +97,60 @@ public class ArtifactManager : MonoBehaviour
     }
 
     public void ValidateActiveArtifacts()
+    {
+        // Creamos un diccionario temporal para contar cuántos artefactos de cada categoría vamos a conservar.
+        Dictionary<ArtifactCategory, int> keptCategoryCounts = new Dictionary<ArtifactCategory, int>();
+
+        // Es crucial iterar sobre una COPIA de la lista (.ToList()) porque vamos a eliminar
+        // elementos de la lista original mientras la recorremos, lo que causaría errores.
+        foreach (var activeIcon in activeArtifacts.ToList())
+        {
+            if (activeIcon == null || activeIcon.originatingBenchIcon == null) continue;
+
+            Artifact artifact = activeIcon.originatingBenchIcon.artifactData;
+            int limitForCategory = GameManager.Instance.GetArtifactLimitForCategory(artifact.category);
+
+            // Obtenemos el recuento actual de artefactos que hemos decidido conservar para esta categoría.
+            int currentKeptCount = keptCategoryCounts.ContainsKey(artifact.category) ? keptCategoryCounts[artifact.category] : 0;
+
+            // Si ya hemos conservado el número máximo permitido para esta categoría, este artefacto debe ser eliminado.
+            if (currentKeptCount >= limitForCategory)
+            {
+                // La función RemoveArtifact se encarga de todo: actualizar contadores, destruir el objeto y resetear el icono de la banca.
+                RemoveArtifact(activeIcon);
+            }
+            else
+            {
+                // Si aún hay espacio, conservamos este artefacto y aumentamos nuestro contador de "conservados".
+                keptCategoryCounts[artifact.category] = currentKeptCount + 1;
+            }
+        }
+
+        // Una vez validadas las categorías, hacemos una última comprobación del límite total.
+        // Esto es útil si la suma de los límites de categoría es mayor que el límite total permitido.
+        while (activeArtifacts.Count > GameManager.Instance.maxArtifacts)
+        {
+            // Si todavía estamos por encima del límite, eliminamos el último artefacto de la lista.
+            if (activeArtifacts.Count > 0)
+            {
+                RemoveArtifact(activeArtifacts[activeArtifacts.Count - 1]);
+            }
+        }
+
+        // La función RemoveArtifact ya llama a UpdateUI, pero una llamada final asegura que el contador total esté correcto.
+        UpdateUI();
+    }
+
+    public void FindAndClearEquippedIcon(Artifact artifactToFind)
 {
-    // Creamos un diccionario temporal para contar cuántos artefactos de cada categoría vamos a conservar.
-    Dictionary<ArtifactCategory, int> keptCategoryCounts = new Dictionary<ArtifactCategory, int>();
-
-    // Es crucial iterar sobre una COPIA de la lista (.ToList()) porque vamos a eliminar
-    // elementos de la lista original mientras la recorremos, lo que causaría errores.
-    foreach (var activeIcon in activeArtifacts.ToList())
+    foreach (var activeIcon in activeArtifacts)
     {
-        if (activeIcon == null || activeIcon.originatingBenchIcon == null) continue;
-
-        Artifact artifact = activeIcon.originatingBenchIcon.artifactData;
-        int limitForCategory = GameManager.Instance.GetArtifactLimitForCategory(artifact.category);
-        
-        // Obtenemos el recuento actual de artefactos que hemos decidido conservar para esta categoría.
-        int currentKeptCount = keptCategoryCounts.ContainsKey(artifact.category) ? keptCategoryCounts[artifact.category] : 0;
-
-        // Si ya hemos conservado el número máximo permitido para esta categoría, este artefacto debe ser eliminado.
-        if (currentKeptCount >= limitForCategory)
+        if (activeIcon.originatingBenchIcon.artifactData == artifactToFind)
         {
-            // La función RemoveArtifact se encarga de todo: actualizar contadores, destruir el objeto y resetear el icono de la banca.
-            RemoveArtifact(activeIcon);
-        }
-        else
-        {
-            // Si aún hay espacio, conservamos este artefacto y aumentamos nuestro contador de "conservados".
-            keptCategoryCounts[artifact.category] = currentKeptCount + 1;
+            activeIcon.ClearEquippedStatus();
+            return;
         }
     }
-
-    // Una vez validadas las categorías, hacemos una última comprobación del límite total.
-    // Esto es útil si la suma de los límites de categoría es mayor que el límite total permitido.
-    while (activeArtifacts.Count > GameManager.Instance.maxArtifacts)
-    {
-        // Si todavía estamos por encima del límite, eliminamos el último artefacto de la lista.
-        if (activeArtifacts.Count > 0)
-        {
-            RemoveArtifact(activeArtifacts[activeArtifacts.Count - 1]);
-        }
-    }
-    
-    // La función RemoveArtifact ya llama a UpdateUI, pero una llamada final asegura que el contador total esté correcto.
-    UpdateUI();
 }
 
     private void UpdateUI()

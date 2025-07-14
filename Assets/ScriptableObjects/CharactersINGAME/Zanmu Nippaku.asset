@@ -15,12 +15,12 @@ MonoBehaviour:
   category: 2
   unitType: 0
   naturalHarmonies: []
+  unitIcon: {fileID: 21300000, guid: c91b9cf695ea5e44f901ab2261a5521b, type: 3}
   characterPrefab: {fileID: 3805343749917133435, guid: 18ade4fd881a5aa48a34e7dce76acf23, type: 3}
   projectilePrefab: {fileID: 0}
   unitName: hong meiling
-  maxHealth: 2000
-  maxMana: 100
-  attackDamage: 50
+  maxHealthByLevel: 6400000096000000e1000000
+  attackDamageByLevel: 0a0000000f00000019000000
   attackSpeed: 1
   attackRange: 1.5
   moveSpeed: 3

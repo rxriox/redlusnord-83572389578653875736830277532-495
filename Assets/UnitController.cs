@@ -9,6 +9,7 @@ public class UnitController : MonoBehaviour
     public int teamID;
     public Node currentNode;
     public UnitIconController originatingIcon;
+    public Artifact EquippedArtifact { get; private set; }
     public int CurrentLevel { get; private set; }
     public int MaxHealth => (unitStats.maxHealthByLevel.Count >= CurrentLevel && CurrentLevel > 0) ? unitStats.maxHealthByLevel[CurrentLevel - 1] : 0;
     public float CurrentHealth { get; private set; }
@@ -27,9 +28,9 @@ public class UnitController : MonoBehaviour
     void Start()
     {
         gridManager = FindFirstObjectByType<GridManager>();
-        
+
     }
-    
+
     public void Initialize(int level)
     {
         this.CurrentLevel = level;
@@ -75,7 +76,7 @@ public class UnitController : MonoBehaviour
             .OrderBy(unit => Vector3.Distance(transform.position, unit.transform.position))
             .FirstOrDefault();
     }
-    
+
     private bool IsUnitWithinAttackRange(UnitController unit)
     {
         if (unit == null || unit.currentNode == null || this.currentNode == null) return false;
@@ -100,88 +101,88 @@ public class UnitController : MonoBehaviour
     }
 
     private void PerformAttack()
-{
-    currentState = State.ATTACKING;
-    transform.LookAt(new Vector3(currentTarget.transform.position.x, transform.position.y, currentTarget.transform.position.z));
-
-    if (unitStats.unitType == UnitStats.UnitType.Ranged && unitStats.projectilePrefab != null)
     {
-        GameObject projGO = ObjectPooler.Instance.SpawnFromPool("Proyectil", transform.position + Vector3.up * 0.5f, Quaternion.identity);
-        Projectile projectile = projGO.GetComponent<Projectile>();
-        if (projectile != null)
-            // --- CAMBIO AQUÍ ---
-            projectile.Initialize(this, currentTarget, CurrentAttackDamage);
-    }
-    else
-    {
-        Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ataca a {GetTeamTag(currentTarget.teamID)} {currentTarget.unitStats.unitName}");
-        // --- Y CAMBIO AQUÍ ---
-        currentTarget.TakeDamage(CurrentAttackDamage, this);
-    }
+        currentState = State.ATTACKING;
+        transform.LookAt(new Vector3(currentTarget.transform.position.x, transform.position.y, currentTarget.transform.position.z));
 
-    attackCooldown = 1f / unitStats.attackSpeed;
-    StartCoroutine(ResetStateAfterAction(0.1f));
-}
+        if (unitStats.unitType == UnitStats.UnitType.Ranged && unitStats.projectilePrefab != null)
+        {
+            GameObject projGO = ObjectPooler.Instance.SpawnFromPool("Proyectil", transform.position + Vector3.up * 0.5f, Quaternion.identity);
+            Projectile projectile = projGO.GetComponent<Projectile>();
+            if (projectile != null)
+                // --- CAMBIO AQUÍ ---
+                projectile.Initialize(this, currentTarget, CurrentAttackDamage);
+        }
+        else
+        {
+            Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ataca a {GetTeamTag(currentTarget.teamID)} {currentTarget.unitStats.unitName}");
+            // --- Y CAMBIO AQUÍ ---
+            currentTarget.TakeDamage(CurrentAttackDamage, this);
+        }
+
+        attackCooldown = 1f / unitStats.attackSpeed;
+        StartCoroutine(ResetStateAfterAction(0.1f));
+    }
 
     private void MoveTowardsTarget()
-{
-    if (gridManager == null || currentTarget == null || currentState != State.IDLE) return;
-    currentPath = gridManager.FindPath(currentNode, currentTarget.currentNode);
-    if (currentPath != null && currentPath.Count > 0)
     {
-        Node nextNodeInPath = currentPath[0];
-        bool isNextNodeOccupied = (GameManager.Instance.GetUnitAtNode(nextNodeInPath) != null);
-        if (nextNodeInPath.isWalkable && !isNextNodeOccupied)
+        if (gridManager == null || currentTarget == null || currentState != State.IDLE) return;
+        currentPath = gridManager.FindPath(currentNode, currentTarget.currentNode);
+        if (currentPath != null && currentPath.Count > 0)
         {
-            nextNodeInPath.isWalkable = false;
-
-            if (currentNode != null)
+            Node nextNodeInPath = currentPath[0];
+            bool isNextNodeOccupied = (GameManager.Instance.GetUnitAtNode(nextNodeInPath) != null);
+            if (nextNodeInPath.isWalkable && !isNextNodeOccupied)
             {
-                currentNode.isWalkable = true;
-            }
-            
-            Node previousNode = currentNode;
-            currentNode = nextNodeInPath;
+                nextNodeInPath.isWalkable = false;
 
-            StartCoroutine(AnimateMove(previousNode, nextNodeInPath));
+                if (currentNode != null)
+                {
+                    currentNode.isWalkable = true;
+                }
+
+                Node previousNode = currentNode;
+                currentNode = nextNodeInPath;
+
+                StartCoroutine(AnimateMove(previousNode, nextNodeInPath));
+            }
+            else
+            {
+                currentState = State.IDLE;
+            }
         }
         else
         {
             currentState = State.IDLE;
         }
     }
-    else
+    private IEnumerator AnimateMove(Node from, Node to)
     {
+        currentState = State.MOVING;
+
+        Vector3 startPosition = from.worldPosition;
+        Vector3 endPosition = to.worldPosition;
+
+        // Rotacion
+        if (endPosition - startPosition != Vector3.zero)
+        {
+            transform.rotation = Quaternion.LookRotation(endPosition - startPosition);
+        }
+
+        // Movimiento
+        float time = 0f;
+        float moveDuration = 1f / unitStats.moveSpeed;
+        while (time < moveDuration)
+        {
+            transform.position = Vector3.Lerp(startPosition, endPosition, time / moveDuration);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = endPosition;
         currentState = State.IDLE;
     }
-}
-private IEnumerator AnimateMove(Node from, Node to)
-{
-    currentState = State.MOVING;
 
-    Vector3 startPosition = from.worldPosition;
-    Vector3 endPosition = to.worldPosition;
-    
-    // Rotacion
-    if(endPosition - startPosition != Vector3.zero)
-    {
-        transform.rotation = Quaternion.LookRotation(endPosition - startPosition);
-    }
-    
-    // Movimiento
-    float time = 0f;
-    float moveDuration = 1f / unitStats.moveSpeed;
-    while (time < moveDuration)
-    {
-        transform.position = Vector3.Lerp(startPosition, endPosition, time / moveDuration);
-        time += Time.deltaTime;
-        yield return null;
-    }
-
-    transform.position = endPosition;
-    currentState = State.IDLE; 
-}
-    
     private IEnumerator ResetStateAfterAction(float delay)
     {
         yield return new WaitForSeconds(delay);
@@ -190,28 +191,28 @@ private IEnumerator AnimateMove(Node from, Node to)
 
 
     private IEnumerator AnimateMoveToPosition(Vector3 targetPosition)
-{
-    currentState = State.MOVING;
-
-    Vector3 startPosition = transform.position;
-    
-    if(targetPosition - startPosition != Vector3.zero)
     {
-        transform.rotation = Quaternion.LookRotation(targetPosition - startPosition);
-    }
-    
-    float time = 0f;
-    float moveDuration = 1f / unitStats.moveSpeed;
-    while (time < moveDuration)
-    {
-        transform.position = Vector3.Lerp(startPosition, targetPosition, time / moveDuration);
-        time += Time.deltaTime;
-        yield return null;
-    }
+        currentState = State.MOVING;
 
-    transform.position = targetPosition;
-    currentState = State.IDLE; 
-}
+        Vector3 startPosition = transform.position;
+
+        if (targetPosition - startPosition != Vector3.zero)
+        {
+            transform.rotation = Quaternion.LookRotation(targetPosition - startPosition);
+        }
+
+        float time = 0f;
+        float moveDuration = 1f / unitStats.moveSpeed;
+        while (time < moveDuration)
+        {
+            transform.position = Vector3.Lerp(startPosition, targetPosition, time / moveDuration);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = targetPosition;
+        currentState = State.IDLE;
+    }
 
     public void TakeDamage(float damage, UnitController attacker)
     {
@@ -224,9 +225,9 @@ private IEnumerator AnimateMove(Node from, Node to)
             Die(attacker);
         }
         else
-    {
-        PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
-    }
+        {
+            PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
+        }
     }
 
     public void Die(UnitController killer)
@@ -236,17 +237,33 @@ private IEnumerator AnimateMove(Node from, Node to)
         {
             Debug.Log($"{GetTeamTag(killer.teamID)} {killer.unitStats.unitName} ha eliminado a {GetTeamTag(this.teamID)} {this.unitStats.unitName}");
         }
-        
+
         StopAllCoroutines();
         if (currentNode != null) currentNode.isWalkable = true;
         GameManager.Instance.UnregisterUnit(this);
         GameManager.Instance.CheckForCombatEnd();
         Destroy(gameObject);
     }
-     public static string GetTeamTag(int teamID)
+    public static string GetTeamTag(int teamID)
     {
         if (teamID == 0) return "<color=#42A5F5>[Aliada]</color>";   // BLUE = ALLIES
         if (teamID == 1) return "<color=#EF5350>[Enemiga]</color>";   // RED = ENEMIES
         return "[Equipo ?]";
+    }
+    public void EquipArtifact(Artifact artifact)
+    {
+        EquippedArtifact = artifact;
+        // Futuro: Aquí aplicarías los efectos del artefacto (ej. +10 de daño).
+        Debug.Log($"{unitStats.unitName} ha equipado {artifact.artifactName}");
+    }
+
+    public void UnequipArtifact()
+    {
+        if (EquippedArtifact != null)
+        {
+            Debug.Log($"{unitStats.unitName} se ha desequipado {EquippedArtifact.artifactName}");
+            // Futuro: Aquí revertirías los efectos.
+            EquippedArtifact = null;
+        }
     }
 }
