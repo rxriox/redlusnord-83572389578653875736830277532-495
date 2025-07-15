@@ -79,6 +79,9 @@ public class PlacementUIManager : MonoBehaviour
     [Header("Animación")]
     public float fadeDuration = 0.1f;
     public float panelFadeDuration = 0.1f;
+    [Tooltip("La distancia que se desplazará el panel al aparecer/desaparecer.")]
+    public float panelSlideOffset = 50f;
+    private Vector2 panelOriginalPosition;
     public enum ActiveBench { Allies, Enemies, Artifacts }
 
     [Header("Highlight de Selección en Combate")]
@@ -114,6 +117,10 @@ public class PlacementUIManager : MonoBehaviour
         else
         {
             detailsPanel.SetActive(false);
+        }
+        if (detailsPanel != null)
+        {
+            panelOriginalPosition = detailsPanel.GetComponent<RectTransform>().anchoredPosition;
         }
     }
 
@@ -237,7 +244,7 @@ public class PlacementUIManager : MonoBehaviour
             }
         }
 
-        panelFadeCoroutine = StartCoroutine(FadeDetailsPanel(true));
+        panelFadeCoroutine = StartCoroutine(AnimateDetailsPanel(true));
     }
 
     public void HideDetailsPanel()
@@ -261,23 +268,41 @@ public class PlacementUIManager : MonoBehaviour
             PlayerController.Instance.HideSelectionHighlight();
             PlayerController.Instance.ClearInteractionState();
         }
-        panelFadeCoroutine = StartCoroutine(FadeDetailsPanel(false));
+        panelFadeCoroutine = StartCoroutine(AnimateDetailsPanel(false));
     }
 
-    private IEnumerator FadeDetailsPanel(bool fadeIn)
+    private IEnumerator AnimateDetailsPanel(bool fadeIn)
     {
+        RectTransform panelRect = detailsPanel.GetComponent<RectTransform>();
         float startAlpha = detailsPanelCanvasGroup.alpha;
         float endAlpha = fadeIn ? 1f : 0f;
-        float elapsedTime = 0f;
+        Vector2 startPosition = panelRect.anchoredPosition;
+        Vector2 endPosition;
 
+        if (fadeIn)
+        {
+            startPosition = panelOriginalPosition + new Vector2(panelSlideOffset, 0);
+            endPosition = panelOriginalPosition;
+        }
+        else
+        {
+            endPosition = panelOriginalPosition + new Vector2(panelSlideOffset, 0);
+        }
+
+        float elapsedTime = 0f;
         while (elapsedTime < panelFadeDuration)
         {
             elapsedTime += Time.deltaTime;
-            detailsPanelCanvasGroup.alpha = Mathf.Lerp(startAlpha, endAlpha, elapsedTime / panelFadeDuration);
+            float t = elapsedTime / panelFadeDuration;
+
+            detailsPanelCanvasGroup.alpha = Mathf.Lerp(startAlpha, endAlpha, t);
+            panelRect.anchoredPosition = Vector2.Lerp(startPosition, endPosition, t);
+
             yield return null;
         }
 
         detailsPanelCanvasGroup.alpha = endAlpha;
+        panelRect.anchoredPosition = endPosition;
 
         if (fadeIn)
         {
@@ -288,18 +313,7 @@ public class PlacementUIManager : MonoBehaviour
         {
             detailsPanelCanvasGroup.interactable = false;
             detailsPanelCanvasGroup.blocksRaycasts = false;
-
-            if (activeSelectionHighlight != null)
-            {
-                Destroy(activeSelectionHighlight);
-                activeSelectionHighlight = null;
-            }
-
-            if (PlayerController.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Placement)
-            {
-                PlayerController.Instance.HideSelectionHighlight();
-                PlayerController.Instance.ClearInteractionState();
-            }
+            HideSelectionHighlight();
         }
 
         panelFadeCoroutine = null;
