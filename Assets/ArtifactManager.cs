@@ -58,6 +58,8 @@ public class ArtifactManager : MonoBehaviour
     {
         if (activeIcon == null || activeIcon.originatingBenchIcon == null) return;
 
+        activeIcon.ClearEquippedStatus();
+
         Artifact artifactToRemove = activeIcon.originatingBenchIcon.artifactData;
 
         if (activeCategoryCounts.ContainsKey(artifactToRemove.category))
