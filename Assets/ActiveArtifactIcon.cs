@@ -15,11 +15,12 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
     private Transform originalParent;
     private UnitController equippedUnit;
 
+    private UnitController lastHighlightedUnit = null;
+
     private Image iconImage;
     private CanvasGroup canvasGroup;
     private Vector3 startPosition;
 
-    // Nueva variable para restaurar la posición relativa en la jerarquía
     private int originalSiblingIndex;
 
     public bool IsEquipped => equippedUnit != null;
@@ -56,7 +57,6 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
         originalParent = transform.parent;
         startPosition = transform.position;
 
-        // Guardamos el índice del icono en su contenedor original
         originalSiblingIndex = transform.GetSiblingIndex();
 
         transform.SetParent(transform.root);
@@ -66,11 +66,33 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
 
         PlayerController.Instance?.ShowTrashZone();
         PlacementUIManager.Instance?.HideBenchesForDrag();
+
+        lastHighlightedUnit = null;
+        PlayerController.Instance?.HideSelectionHighlight();
     }
 
     public void OnDrag(PointerEventData eventData)
     {
         transform.position = eventData.position;
+
+        UnitController unitUnderCursor = null;
+
+        Ray ray = Camera.main.ScreenPointToRay(eventData.position);
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            unitUnderCursor = hit.collider.GetComponent<UnitController>();
+        }
+
+        if (unitUnderCursor != null && unitUnderCursor != lastHighlightedUnit)
+        {
+            PlayerController.Instance.ShowSelectionHighlight(unitUnderCursor.currentNode);
+            lastHighlightedUnit = unitUnderCursor;
+        }
+        else if (unitUnderCursor == null && lastHighlightedUnit != null)
+        {
+            PlayerController.Instance.HideSelectionHighlight();
+            lastHighlightedUnit = null;
+        }
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -80,7 +102,8 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
 
         canvasGroup.blocksRaycasts = true;
 
-        // Soltar en la papelera
+        PlayerController.Instance?.HideSelectionHighlight();
+
         if (eventData.pointerEnter != null &&
             eventData.pointerEnter.GetComponent<TrashZoneController>() != null)
         {
@@ -88,7 +111,6 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
             return;
         }
 
-        // Soltar sobre unidad
         Ray ray = Camera.main.ScreenPointToRay(eventData.position);
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
@@ -104,7 +126,6 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
             }
         }
 
-        // Restaurar si no se suelta sobre unidad ni papelera
         transform.SetParent(originalParent);
         transform.SetSiblingIndex(originalSiblingIndex);
         transform.position = startPosition;
