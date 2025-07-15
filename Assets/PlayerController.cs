@@ -25,7 +25,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Configuración de Interacción")]
     [Tooltip("Tiempo en segundos para que un clic se convierta en arrastre.")]
-    public float dragDelay = 0.1f;
+    public float dragDelay = 0.01f;
 
     private float pointerDownTimer = 0f;
     private bool isDraggingForReposition = false;

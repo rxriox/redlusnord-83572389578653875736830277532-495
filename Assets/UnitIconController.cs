@@ -14,7 +14,7 @@ public class UnitIconController : MonoBehaviour, IPointerDownHandler, IDragHandl
     public Sprite dragCursorSprite;
 
     [Tooltip("Tiempo en segundos para que un clic en el icono se convierta en arrastre.")]
-    public float dragDelay = 0.2f;
+    public float dragDelay = 0.01f;
     private float pointerDownTimer = 0f;
     private bool isDragging = false;
     private bool isPointerDown = false;

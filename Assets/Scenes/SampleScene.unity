@@ -5541,7 +5541,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 86787064}
   m_HandleRect: {fileID: 86787063}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -5647,7 +5647,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1442320814}
   m_HandleRect: {fileID: 1442320812}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -10371,7 +10371,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1099664654}
   m_HandleRect: {fileID: 1099664653}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -12150,8 +12150,8 @@ MonoBehaviour:
   magnificaColorBottom: {r: 0.093980886, g: 0, b: 0.20754719, a: 1}
   supremaColorTop: {r: 0.7, g: 0.6, b: 0.1, a: 1}
   supremaColorBottom: {r: 0.2924528, g: 0.18635982, b: 0, a: 1}
-  fadeDuration: 0.1
-  panelFadeDuration: 0.1
+  fadeDuration: 0.08
+  panelFadeDuration: 0.08
   selectionHighlightPrefab: {fileID: 5090270939071943840, guid: c51d1aea6ca007a4c8e7ce2a016e225e, type: 3}
 --- !u!4 &2071166982
 Transform:
