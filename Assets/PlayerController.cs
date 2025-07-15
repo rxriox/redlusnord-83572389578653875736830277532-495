@@ -327,102 +327,114 @@ public class PlayerController : MonoBehaviour
     }
 
     void DropRepositionedUnit(Vector2 pointerPosition)
-{
-    PlacementUIManager.Instance.HideDetailsPanel();
-    PointerEventData pointerData = new PointerEventData(EventSystem.current) { position = pointerPosition };
-    List<RaycastResult> results = new List<RaycastResult>();
-    EventSystem.current.RaycastAll(pointerData, results);
-    bool droppedOnTrash = results.Any(r => r.gameObject.GetComponent<TrashZoneController>() != null);
-
-    if (droppedOnTrash)
     {
-        if (unitToReposition.originatingIcon != null) { unitToReposition.originatingIcon.ResetIcon(); }
-        if(GameManager.Instance != null) GameManager.Instance.UnregisterUnit(unitToReposition);
-        Destroy(unitToReposition.gameObject);
+        PlacementUIManager.Instance.HideDetailsPanel();
+        PointerEventData pointerData = new PointerEventData(EventSystem.current) { position = pointerPosition };
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(pointerData, results);
+        bool droppedOnTrash = results.Any(r => r.gameObject.GetComponent<TrashZoneController>() != null);
+
+        if (droppedOnTrash)
+        {
+            // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
+            // Antes de eliminar la unidad, comprobamos si llevaba un artefacto.
+            if (unitToReposition.EquippedArtifact != null)
+            {
+                // Si es así, le decimos al ArtifactManager que encuentre el icono de ese
+                // artefacto y limpie su estado (quitando el icono de la unidad).
+                ArtifactManager.Instance.FindAndClearEquippedIcon(unitToReposition.EquippedArtifact);
+            }
+
+            if (unitToReposition.originatingIcon != null) { unitToReposition.originatingIcon.ResetIcon(); }
+            if (GameManager.Instance != null) GameManager.Instance.UnregisterUnit(unitToReposition);
+            Destroy(unitToReposition.gameObject);
+        }
+        else
+        {
+            Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+            Node destinationNode = null;
+            if (Physics.Raycast(ray, out RaycastHit hit))
+            {
+                destinationNode = gridManager.NodeFromWorldPoint(hit.point);
+            }
+
+            bool actionTaken = false;
+            if (destinationNode != null && !actionTaken)
+            {
+                UnitController otherUnit = GameManager.Instance.GetUnitAtNode(destinationNode);
+                if (otherUnit != null && otherUnit != unitToReposition && otherUnit.teamID == unitToReposition.teamID)
+                {
+                    Node originalNode = originalNodeOfRepositionedUnit;
+
+                    otherUnit.transform.position = originalNode.worldPosition;
+                    otherUnit.currentNode = originalNode;
+
+                    unitToReposition.transform.position = destinationNode.worldPosition;
+                    unitToReposition.currentNode = destinationNode;
+
+                    actionTaken = true;
+                }
+            }
+
+            if (!actionTaken)
+            {
+                if (gridManager.IsNodeValidForPlacement(destinationNode, unitToReposition.teamID))
+                {
+                    originalNodeOfRepositionedUnit.isWalkable = true;
+
+                    unitToReposition.transform.position = destinationNode.worldPosition;
+                    unitToReposition.currentNode = destinationNode;
+
+                    destinationNode.isWalkable = false;
+
+                    actionTaken = true;
+                }
+            }
+
+            if (!actionTaken)
+            {
+                Vector3 dropWorldPosition = Vector3.zero;
+                Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+                if (groundPlane.Raycast(ray, out float distance))
+                {
+                    dropWorldPosition = ray.GetPoint(distance);
+                }
+
+                Node closestNode = gridManager.FindClosestValidNode(dropWorldPosition, unitToReposition.teamID);
+
+                if (closestNode == null)
+                {
+                    closestNode = originalNodeOfRepositionedUnit;
+                }
+
+                if (closestNode.isWalkable)
+                {
+                    originalNodeOfRepositionedUnit.isWalkable = true;
+                    unitToReposition.transform.position = closestNode.worldPosition;
+                    unitToReposition.currentNode = closestNode;
+                    closestNode.isWalkable = false;
+                }
+                else
+                {
+                    unitToReposition.transform.position = originalNodeOfRepositionedUnit.worldPosition;
+                    unitToReposition.currentNode = originalNodeOfRepositionedUnit;
+                    originalNodeOfRepositionedUnit.isWalkable = false;
+                }
+            }
+
+            unitToReposition.gameObject.SetActive(true);
+        }
+
+        isDraggingForReposition = false;
+        unitToReposition = null;
+        originalNodeOfRepositionedUnit = null;
+        PlacementUIManager.Instance.ShowBenchesAfterDrag();
+        if (trashZoneCanvasGroup != null) StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 1f, 0f));
+        if (dragCursorImage != null) dragCursorImage.gameObject.SetActive(false);
+        if (highlightInstance != null) highlightInstance.SetActive(false);
+        if (allyDragIndicatorPlane != null) allyDragIndicatorPlane.SetActive(false);
+        if (enemyDragIndicatorPlane != null) enemyDragIndicatorPlane.SetActive(false);
     }
-    else
-    {
-        Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
-        Node destinationNode = null;
-        if (Physics.Raycast(ray, out RaycastHit hit))
-        {
-            destinationNode = gridManager.NodeFromWorldPoint(hit.point);
-        }
-
-        bool actionTaken = false;
-        if (destinationNode != null && !actionTaken)
-        {
-            UnitController otherUnit = GameManager.Instance.GetUnitAtNode(destinationNode);
-            if (otherUnit != null && otherUnit != unitToReposition && otherUnit.teamID == unitToReposition.teamID)
-            {
-                Node originalNode = originalNodeOfRepositionedUnit;
-
-                otherUnit.transform.position = originalNode.worldPosition;
-                otherUnit.currentNode = originalNode;
-
-                unitToReposition.transform.position = destinationNode.worldPosition;
-                unitToReposition.currentNode = destinationNode;
-                
-                actionTaken = true; 
-            }
-        }
-        
-        if (!actionTaken)
-        {
-            if (gridManager.IsNodeValidForPlacement(destinationNode, unitToReposition.teamID))
-            {
-                originalNodeOfRepositionedUnit.isWalkable = true;
-                
-                unitToReposition.transform.position = destinationNode.worldPosition;
-                unitToReposition.currentNode = destinationNode;
-                
-                destinationNode.isWalkable = false;
-
-                actionTaken = true;
-            }
-        }
-
-        if (!actionTaken)
-        {
-            Vector3 dropWorldPosition = Vector3.zero;
-            Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-            if (groundPlane.Raycast(ray, out float distance))
-            {
-                dropWorldPosition = ray.GetPoint(distance);
-            }
-            
-            Node closestNode = gridManager.FindClosestValidNode(dropWorldPosition, unitToReposition.teamID);
-            
-            if (closestNode == null)
-            {
-                closestNode = originalNodeOfRepositionedUnit; 
-            }
-            
-            if (closestNode.isWalkable) {
-                originalNodeOfRepositionedUnit.isWalkable = true;
-                unitToReposition.transform.position = closestNode.worldPosition;
-                unitToReposition.currentNode = closestNode;
-                closestNode.isWalkable = false;
-            } else {
-                 unitToReposition.transform.position = originalNodeOfRepositionedUnit.worldPosition;
-                 unitToReposition.currentNode = originalNodeOfRepositionedUnit;
-                 originalNodeOfRepositionedUnit.isWalkable = false;
-            }
-        }
-        
-        unitToReposition.gameObject.SetActive(true);
-    }
-
-    isDraggingForReposition = false;
-    unitToReposition = null;
-    originalNodeOfRepositionedUnit = null;
-    PlacementUIManager.Instance.ShowBenchesAfterDrag();
-    if (trashZoneCanvasGroup != null) StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 1f, 0f));
-    if (dragCursorImage != null) dragCursorImage.gameObject.SetActive(false);
-    if (highlightInstance != null) highlightInstance.SetActive(false);
-    if (allyDragIndicatorPlane != null) allyDragIndicatorPlane.SetActive(false);
-    if (enemyDragIndicatorPlane != null) enemyDragIndicatorPlane.SetActive(false);
-}
 
     private void PlaceUnitOnNode(Node node, UnitStats unitStats)
     {
