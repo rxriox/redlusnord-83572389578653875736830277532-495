@@ -71,39 +71,53 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
     }
 
     public void OnEndDrag(PointerEventData eventData)
+{
+    // Restaura la visibilidad de la UI y los raycasts del icono.
+    PlayerController.Instance?.HideTrashZone();
+    PlacementUIManager.Instance?.ShowBenchesAfterDrag();
+    canvasGroup.blocksRaycasts = true;
+
+    // Comprueba si se soltó en la papelera para eliminar el artefacto.
+    if (eventData.pointerEnter != null && eventData.pointerEnter.GetComponent<TrashZoneController>() != null)
     {
-        // Restaurado
-        PlayerController.Instance?.HideTrashZone();
-        PlacementUIManager.Instance?.ShowBenchesAfterDrag();
+        ArtifactManager.Instance.RemoveArtifact(this);
+        return;
+    }
 
-        // Restauramos raycasts
-        canvasGroup.blocksRaycasts = true;
+    // Lanza un rayo para detectar si hay una unidad debajo del puntero.
+    Ray ray = Camera.main.ScreenPointToRay(eventData.position);
+    bool placementSuccessful = false;
 
-        // Si se suelta en la papelera
-        if (eventData.pointerEnter != null && eventData.pointerEnter.GetComponent<TrashZoneController>() != null)
+    if (Physics.Raycast(ray, out RaycastHit hit))
+    {
+        UnitController targetUnit = hit.collider.GetComponent<UnitController>();
+        if (targetUnit != null)
         {
-            ArtifactManager.Instance.RemoveArtifact(this);
-            return;
-        }
-
-        // Si se suelta sobre una unidad
-        Ray ray = Camera.main.ScreenPointToRay(eventData.position);
-        if (Physics.Raycast(ray, out RaycastHit hit))
-        {
-            UnitController targetUnit = hit.collider.GetComponent<UnitController>();
-            if (targetUnit != null)
+            // --- ¡AQUÍ ESTÁ EL CAMBIO CLAVE! ---
+            // Comprobamos si la unidad ya tiene un artefacto equipado.
+            if (targetUnit.EquippedArtifact == null)
             {
+                // Si la unidad NO tiene un artefacto, procedemos a equiparlo.
                 HandleEquipOnUnit(targetUnit);
-                transform.SetParent(originalParent);
-                transform.localPosition = Vector3.zero;
-                return;
+                placementSuccessful = true;
             }
+            // Si ya tiene uno, no hacemos nada y `placementSuccessful` se queda en `false`.
         }
+    }
 
-        // Si no es válido, vuelve a su lugar
+    // Si el artefacto no se colocó con éxito (ya sea porque no había una unidad,
+    // o porque la unidad ya tenía un artefacto), devolvemos el icono a su posición original.
+    if (placementSuccessful)
+    {
+        transform.SetParent(originalParent);
+        transform.localPosition = Vector3.zero;
+    }
+    else
+    {
         transform.SetParent(originalParent);
         transform.position = startPosition;
     }
+}
 
     private void HandleEquipOnUnit(UnitController targetUnit)
     {

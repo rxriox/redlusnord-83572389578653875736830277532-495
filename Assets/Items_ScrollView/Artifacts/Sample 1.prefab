@@ -89,5 +89,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArtifactIconController
   artifactData: {fileID: 11400000, guid: a65722a995b092d49b636feac2df85a3, type: 2}
-  availableSprite: {fileID: 21300000, guid: 643daf7f13dc9364fa18748f63b299b2, type: 3}
+  availableSprite: {fileID: 21300000, guid: 11987a22bba3d404ba6e7194fba8a3e9, type: 3}
   placedSprite: {fileID: 21300000, guid: 81891ae7ee0aee5409608485aa468a93, type: 3}
