@@ -40,6 +40,7 @@ public class PlacementUIManager : MonoBehaviour
     [Header("Panel de Detalles de Unidad")]
     public GameObject detailsPanel;
     public TextMeshProUGUI unitNameText;
+    public Image portraitImage;
     public TextMeshProUGUI levelText;
     public TextMeshProUGUI healthText;
     public TextMeshProUGUI attackDamageText;
@@ -148,6 +149,8 @@ public class PlacementUIManager : MonoBehaviour
         {
             StopCoroutine(panelFadeCoroutine);
         }
+
+        if (portraitImage != null) portraitImage.sprite = stats.portrait;
 
         if (equippedArtifactImage != null)
         {
