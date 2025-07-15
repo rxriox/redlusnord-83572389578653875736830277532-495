@@ -18,6 +18,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 02b484b16826b88479fb058bec8ab49e, type: 2}
   - {fileID: 11400000, guid: 402de196378600746906d70d2c8e6349, type: 2}
   unitIcon: {fileID: 21300000, guid: 03c5b07aefab78c438a21325f723b6b5, type: 3}
+  portrait: {fileID: 21300000, guid: cbecbb764f6e89f4aaafda96f0c2d2f0, type: 3}
   characterPrefab: {fileID: 3805343749917133435, guid: eae740a1567c01e4a838dad85c2657e6, type: 3}
   projectilePrefab: {fileID: 4570334888300365644, guid: e0775eba1bb45214f9851bad6110993a, type: 3}
   unitName: Alice Margatroid
@@ -26,3 +27,24 @@ MonoBehaviour:
   attackSpeed: 1
   attackRange: 6
   moveSpeed: 3
+  abilities:
+  - title: March of the marionettes
+    icon: {fileID: 0}
+    description: Alice gains movement speed based on how many puppets are on the
+      field.
+  - title: The Doll Maker of Bucuresti
+    icon: {fileID: 0}
+    description: Alice summons one battle doll per cast, starting with Shanghai (melee),
+      then Hourai (ranged), repeating this order with each summon. All summoned dolls
+      vanish if Alice is eliminated.
+  - title: 
+    icon: {fileID: 0}
+    description: Alice is now able to summon two dolls at once.
+  spellCards:
+  - title: Doll Judgement
+    icon: {fileID: 0}
+    description: After a certain number of attacks, the dolls deal immaterial damage.
+  - title: Puppet Master
+    icon: {fileID: 0}
+    description: Alice's attacks deal additional immaterial damage, increasing by
+      the number of dolls on the field.

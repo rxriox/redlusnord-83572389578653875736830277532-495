@@ -46,6 +46,11 @@ public class PlacementUIManager : MonoBehaviour
     public TextMeshProUGUI attackDamageText;
     public TextMeshProUGUI attackSpeedText;
     public TextMeshProUGUI moveSpeedText;
+    [Tooltip("Las imágenes para los iconos de las habilidades.")]
+    public List<Image> abilityIconSlots = new List<Image>();
+    [Tooltip("Las imágenes para los iconos de las spell cards.")]
+    public List<Image> spellCardIconSlots = new List<Image>();
+
     private UnitController selectedUnitForDetails;
     [Tooltip("La imagen en la UI que mostrará el icono del artefacto equipado.")]
     public Image equippedArtifactImage;
@@ -168,6 +173,34 @@ public class PlacementUIManager : MonoBehaviour
         attackDamageText.text = attackDamage.ToString();
         attackSpeedText.text = stats.attackSpeed.ToString("F2");
         moveSpeedText.text = stats.moveSpeed.ToString("F1");
+
+        for (int i = 0; i < abilityIconSlots.Count; i++)
+        {
+            if (i < stats.abilities.Count && stats.abilities[i] != null)
+            {
+                abilityIconSlots[i].gameObject.SetActive(true);
+                abilityIconSlots[i].sprite = stats.abilities[i].icon;
+            }
+            else
+            {
+                abilityIconSlots[i].gameObject.SetActive(false);
+            }
+        }
+
+        for (int i = 0; i < spellCardIconSlots.Count; i++)
+        {
+            
+            if (i < stats.spellCards.Count && stats.spellCards[i] != null)
+            {
+                spellCardIconSlots[i].gameObject.SetActive(true); 
+                spellCardIconSlots[i].sprite = stats.spellCards[i].icon;
+            }
+            else
+            {
+                spellCardIconSlots[i].gameObject.SetActive(false);
+            }
+        }
+
         if (detailsPanelGradient != null)
         {
             switch (stats.category)

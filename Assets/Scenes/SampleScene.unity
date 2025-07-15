@@ -8162,7 +8162,7 @@ GameObject:
   - component: {fileID: 1428673453}
   - component: {fileID: 1428673452}
   m_Layer: 5
-  m_Name: Image
+  m_Name: PortraitToha
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12129,11 +12129,20 @@ MonoBehaviour:
   artifactsBenchCanvasGroup: {fileID: 1343948396}
   detailsPanel: {fileID: 1786596555}
   unitNameText: {fileID: 1582174263}
+  portraitImage: {fileID: 1428673452}
   levelText: {fileID: 291725337}
   healthText: {fileID: 90171762}
   attackDamageText: {fileID: 870271326}
   attackSpeedText: {fileID: 597070442}
   moveSpeedText: {fileID: 960715996}
+  abilityIconSlots:
+  - {fileID: 1098610319}
+  - {fileID: 523597639}
+  - {fileID: 1330761830}
+  - {fileID: 666195225}
+  spellCardIconSlots:
+  - {fileID: 1705423433}
+  - {fileID: 1877011872}
   equippedArtifactImage: {fileID: 1875635095}
   harmonyIconImages:
   - {fileID: 1422942670}
