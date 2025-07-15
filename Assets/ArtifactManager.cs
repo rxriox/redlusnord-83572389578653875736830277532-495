@@ -134,9 +134,16 @@ public class ArtifactManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Reordena visualmente los íconos activos según si están equipados.
-    /// </summary>
+    public void ResetAllArtifactIconsState()
+    {
+        foreach (var activeIcon in activeArtifacts)
+        {
+            if (activeIcon != null)
+            {
+                activeIcon.ClearEquippedStatus();
+            }
+        }
+    }
     private void ReorderActiveIcons()
     {
         if (activeArtifactsContainer == null || activeArtifacts.Count < 2) return;

@@ -203,49 +203,54 @@ public class GameManager : MonoBehaviour
     }
 
     public void ResetBoardButton()
-{
-    if (CurrentState == GameState.Combat)
     {
-        StopAllCoroutines();
-    }
-
-    foreach (var unit in allUnits.ToList())
-    {
-        if (unit != null)
+        if (CurrentState == GameState.Combat)
         {
-            Destroy(unit.gameObject);
+            StopAllCoroutines();
         }
-    }
 
-    if (gridManager != null && gridManager.grid != null)
-    {
-        foreach (Node node in gridManager.grid)
+        foreach (var unit in allUnits.ToList())
         {
-            if (node != null)
+            if (unit != null)
             {
-                node.isWalkable = true;
+                Destroy(unit.gameObject);
             }
         }
-    }
-    
-    allUnits.Clear();
-    teamUnitCount.Clear();
-    if (teamCategoryCounts != null) teamCategoryCounts.Clear();
-    harmonyCounts.Clear();
-    activeHarmonyTiers.Clear();
-    unitsAtCombatStart.Clear();
 
-    UnitIconController[] icons = FindObjectsByType<UnitIconController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-    foreach (UnitIconController icon in icons)
-    {
-        icon.ResetIcon();
-    }
+        if (gridManager != null && gridManager.grid != null)
+        {
+            foreach (Node node in gridManager.grid)
+            {
+                if (node != null)
+                {
+                    node.isWalkable = true;
+                }
+            }
+        }
 
-    CurrentState = GameState.Placement;
-    OnHarmoniesUpdated?.Invoke();
-    
-    Debug.Log("Tablero completamente limpiado por el botón.");
-}
+        allUnits.Clear();
+        teamUnitCount.Clear();
+        if (teamCategoryCounts != null) teamCategoryCounts.Clear();
+        harmonyCounts.Clear();
+        activeHarmonyTiers.Clear();
+        unitsAtCombatStart.Clear();
+
+        UnitIconController[] icons = FindObjectsByType<UnitIconController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (UnitIconController icon in icons)
+        {
+            icon.ResetIcon();
+        }
+
+        CurrentState = GameState.Placement;
+        OnHarmoniesUpdated?.Invoke();
+
+        if (ArtifactManager.Instance != null)
+        {
+            ArtifactManager.Instance.ResetAllArtifactIconsState();
+        }
+
+        Debug.Log("Tablero completamente limpiado por el botón.");
+    }
 
     public void CheckForCombatEnd()
     {
@@ -367,38 +372,43 @@ public class GameManager : MonoBehaviour
     }
 
     private void ResetBoardAfterCombat()
-{
-    CurrentState = GameState.Result;
-    Debug.Log("Reconstruyendo tablero para la siguiente ronda...");
-    teamUnitCount.Clear();
-    if (teamCategoryCounts != null) teamCategoryCounts.Clear();
-    harmonyCounts.Clear();
-    activeHarmonyTiers.Clear();
-    foreach (var unit in allUnits.ToList())
     {
-        if (unit != null) Destroy(unit.gameObject);
-    }
-    allUnits.Clear();
-    if (gridManager != null && gridManager.grid != null)
-    {
-        foreach (Node node in gridManager.grid)
+        CurrentState = GameState.Result;
+        Debug.Log("Reconstruyendo tablero para la siguiente ronda...");
+        teamUnitCount.Clear();
+        if (teamCategoryCounts != null) teamCategoryCounts.Clear();
+        harmonyCounts.Clear();
+        activeHarmonyTiers.Clear();
+        foreach (var unit in allUnits.ToList())
         {
-            node.isWalkable = true;
+            if (unit != null) Destroy(unit.gameObject);
         }
-    }
-
-    foreach (var unitInfo in unitsAtCombatStart)
-    {
-        if (gridManager != null && unitInfo.startingNode != null)
+        allUnits.Clear();
+        if (gridManager != null && gridManager.grid != null)
         {
-            gridManager.SpawnUnit(unitInfo.stats, unitInfo.teamID, unitInfo.startingNode, unitInfo.originatingIcon);
+            foreach (Node node in gridManager.grid)
+            {
+                node.isWalkable = true;
+            }
         }
-    }
 
-    OnHarmoniesUpdated?.Invoke();
-    CurrentState = GameState.Placement;
-    Debug.Log("Fase de colocación reanudada.");
-}
+        foreach (var unitInfo in unitsAtCombatStart)
+        {
+            if (gridManager != null && unitInfo.startingNode != null)
+            {
+                gridManager.SpawnUnit(unitInfo.stats, unitInfo.teamID, unitInfo.startingNode, unitInfo.originatingIcon);
+            }
+        }
+
+        if (ArtifactManager.Instance != null)
+        {
+            ArtifactManager.Instance.ResetAllArtifactIconsState();
+        }
+
+        OnHarmoniesUpdated?.Invoke();
+        CurrentState = GameState.Placement;
+        Debug.Log("Fase de colocación reanudada.");
+    }
 
     public UnitController GetUnitAtNode(Node node)
 {
