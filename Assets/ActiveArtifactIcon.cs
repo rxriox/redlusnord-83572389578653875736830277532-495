@@ -7,8 +7,6 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
     [Header("Referencias Internas")]
     public Image artifactImage;
     public GameObject unitIconOverlay;
-    
-    [Tooltip("La imagen donde se mostrará el icono de la unidad equipada.")]
     public Image unitIconImage;
 
     [HideInInspector]
@@ -16,10 +14,15 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
 
     private Transform originalParent;
     private UnitController equippedUnit;
-    
-    private Image iconImage; // restaurado
-    private CanvasGroup canvasGroup; // restaurado
+
+    private Image iconImage;
+    private CanvasGroup canvasGroup;
     private Vector3 startPosition;
+
+    // Nueva variable para restaurar la posición relativa en la jerarquía
+    private int originalSiblingIndex;
+
+    public bool IsEquipped => equippedUnit != null;
 
     void Awake()
     {
@@ -31,7 +34,6 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
     {
         this.originatingBenchIcon = benchIcon;
 
-        // Usamos tanto artifactImage como iconImage para retrocompatibilidad visual
         if (artifactImage != null && benchIcon.artifactData != null)
         {
             artifactImage.sprite = benchIcon.artifactData.icon;
@@ -54,13 +56,14 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
         originalParent = transform.parent;
         startPosition = transform.position;
 
+        // Guardamos el índice del icono en su contenedor original
+        originalSiblingIndex = transform.GetSiblingIndex();
+
         transform.SetParent(transform.root);
         transform.SetAsLastSibling();
 
-        // Bloqueamos raycast
         canvasGroup.blocksRaycasts = false;
 
-        // Restaurado
         PlayerController.Instance?.ShowTrashZone();
         PlacementUIManager.Instance?.HideBenchesForDrag();
     }
@@ -72,37 +75,38 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        // Restaura la visibilidad de la UI y los raycasts del icono.
         PlayerController.Instance?.HideTrashZone();
         PlacementUIManager.Instance?.ShowBenchesAfterDrag();
+
         canvasGroup.blocksRaycasts = true;
 
-        // Comprueba si se soltó en la papelera para eliminar el artefacto.
-        if (eventData.pointerEnter != null && eventData.pointerEnter.GetComponent<TrashZoneController>() != null)
+        // Soltar en la papelera
+        if (eventData.pointerEnter != null &&
+            eventData.pointerEnter.GetComponent<TrashZoneController>() != null)
         {
-            // El ArtifactManager se encarga de la lógica de eliminación.
             ArtifactManager.Instance.RemoveArtifact(this);
             return;
         }
 
-        // Lanza un rayo para detectar si hay una unidad debajo del puntero.
+        // Soltar sobre unidad
         Ray ray = Camera.main.ScreenPointToRay(eventData.position);
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
             UnitController targetUnit = hit.collider.GetComponent<UnitController>();
             if (targetUnit != null)
             {
-                // --- ¡CAMBIO CLAVE! ---
-                // Ahora siempre llamamos a HandleEquipOnUnit, que gestionará el intercambio si es necesario.
                 HandleEquipOnUnit(targetUnit);
+
                 transform.SetParent(originalParent);
-                transform.localPosition = Vector3.zero; // Colocamos el icono en su sitio en el panel.
-                return; // Salimos del método ya que la acción fue exitosa.
+                transform.SetSiblingIndex(originalSiblingIndex);
+                transform.localPosition = Vector3.zero;
+                return;
             }
         }
 
-        // Si no se suelta sobre una unidad válida o la papelera, el icono vuelve a su lugar original.
+        // Restaurar si no se suelta sobre unidad ni papelera
         transform.SetParent(originalParent);
+        transform.SetSiblingIndex(originalSiblingIndex);
         transform.position = startPosition;
     }
 
@@ -113,7 +117,8 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
             equippedUnit.UnequipArtifact();
         }
 
-        if (targetUnit.EquippedArtifact != null && targetUnit.EquippedArtifact != this.originatingBenchIcon.artifactData)
+        if (targetUnit.EquippedArtifact != null &&
+            targetUnit.EquippedArtifact != this.originatingBenchIcon.artifactData)
         {
             ArtifactManager.Instance.FindAndClearEquippedIcon(targetUnit.EquippedArtifact);
         }
@@ -130,19 +135,21 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
         {
             unitIconOverlay.SetActive(true);
         }
+
+        
     }
 
     public void ClearEquippedStatus()
+{
+    if (equippedUnit != null)
     {
-        if (equippedUnit != null)
-        {
-            equippedUnit.UnequipArtifact();
-        }
-        equippedUnit = null;
-
-        if (unitIconOverlay != null)
-        {
-            unitIconOverlay.SetActive(false);
-        }
+        equippedUnit.UnequipArtifact();
     }
+    equippedUnit = null;
+
+    if (unitIconOverlay != null)
+    {
+        unitIconOverlay.SetActive(false);
+    }
+}
 }
