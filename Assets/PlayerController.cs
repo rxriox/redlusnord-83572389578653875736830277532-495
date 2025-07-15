@@ -336,12 +336,8 @@ public class PlayerController : MonoBehaviour
 
         if (droppedOnTrash)
         {
-            // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
-            // Antes de eliminar la unidad, comprobamos si llevaba un artefacto.
             if (unitToReposition.EquippedArtifact != null)
             {
-                // Si es así, le decimos al ArtifactManager que encuentre el icono de ese
-                // artefacto y limpie su estado (quitando el icono de la unidad).
                 ArtifactManager.Instance.FindAndClearEquippedIcon(unitToReposition.EquippedArtifact);
             }
 
