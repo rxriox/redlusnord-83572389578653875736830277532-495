@@ -278,40 +278,42 @@ public class PlayerController : MonoBehaviour
         potentialRepositionTarget = null;
     }
     void StartRepositioning(UnitController unit, Vector2 pointerPosition)
-{
-    isDraggingForReposition = true;
-    PlacementUIManager.Instance.ShowDetailsPanel(unit.unitStats);
-
-    unitToReposition = unit;
-    originalNodeOfRepositionedUnit = unit.currentNode;
-    originalNodeOfRepositionedUnit.isWalkable = true;
-
-
-    PlacementUIManager.Instance.HideBenchesForDrag();
-
-    if (trashZoneCanvasGroup != null)
-        StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
-
-    unit.gameObject.SetActive(false);
-
-    if (dragCursorImage != null && unit.originatingIcon != null)
     {
-        dragCursorImage.sprite = unit.originatingIcon.GetDragCursorSprite();
-        dragCursorImage.gameObject.SetActive(true);
-        dragCursorImage.transform.position = pointerPosition;
+        isDraggingForReposition = true;
+        PlacementUIManager.Instance.ShowDetailsPanel(unit.unitStats);
+        PlacementUIManager.Instance.HideSelectionHighlight();
+
+        unitToReposition = unit;
+        originalNodeOfRepositionedUnit = unit.currentNode;
+        originalNodeOfRepositionedUnit.isWalkable = true;
+
+
+        PlacementUIManager.Instance.HideBenchesForDrag();
+
+        if (trashZoneCanvasGroup != null)
+            StartCoroutine(FadeCanvasGroup(trashZoneCanvasGroup, 0f, 1f));
+
+        unit.gameObject.SetActive(false);
+
+        if (dragCursorImage != null && unit.originatingIcon != null)
+        {
+            dragCursorImage.sprite = unit.originatingIcon.GetDragCursorSprite();
+            dragCursorImage.gameObject.SetActive(true);
+            dragCursorImage.transform.position = pointerPosition;
+        }
+
+        if (unit.teamID == 0)
+        {
+            if (allyDragIndicatorPlane != null)
+                allyDragIndicatorPlane.SetActive(true);
+        }
+        else if (unit.teamID == 1)
+        {
+            if (enemyDragIndicatorPlane != null)
+                enemyDragIndicatorPlane.SetActive(true);
+        }
     }
 
-    if (unit.teamID == 0)
-    {
-        if (allyDragIndicatorPlane != null)
-            allyDragIndicatorPlane.SetActive(true);
-    }
-    else if (unit.teamID == 1)
-    {
-        if (enemyDragIndicatorPlane != null)
-            enemyDragIndicatorPlane.SetActive(true);
-    }
-}
 
     void UpdateRepositioningUnit(Vector2 pointerPosition)
     {

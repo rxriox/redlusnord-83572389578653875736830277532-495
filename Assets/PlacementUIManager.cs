@@ -48,6 +48,8 @@ public class PlacementUIManager : MonoBehaviour
     private UnitController selectedUnitForDetails;
     [Tooltip("La imagen en la UI que mostrará el icono del artefacto equipado.")]
     public Image equippedArtifactImage;
+    [Tooltip("Lista de las imágenes en la UI destinadas a mostrar los iconos de las armonías.")]
+    public List<Image> harmonyIconImages;
     [Tooltip("El sprite que se muestra cuando no hay ningún artefacto equipado.")]
     public Sprite defaultArtifactSprite;
 
@@ -57,8 +59,7 @@ public class PlacementUIManager : MonoBehaviour
     [Tooltip("Arrastra aquí el componente CanvasGroup del detailsPanel.")]
     public CanvasGroup detailsPanelCanvasGroup;
     private Coroutine panelFadeCoroutine;
-    private Coroutine benchFadeCoroutine; 
-    // La propiedad IsDetailsPanelActive ahora comprueba el alpha
+    private Coroutine benchFadeCoroutine;
     public bool IsDetailsPanelActive => detailsPanelCanvasGroup != null && detailsPanelCanvasGroup.alpha > 0;
 
     [Header("Configuración de Degradados de Rareza")]
@@ -70,7 +71,7 @@ public class PlacementUIManager : MonoBehaviour
     public Color supremaColorBottom = Color.black;
 
     [Header("Animación")]
-    public float fadeDuration = 0.1f; 
+    public float fadeDuration = 0.1f;
     public float panelFadeDuration = 0.1f;
     public enum ActiveBench { Allies, Enemies, Artifacts }
 
@@ -129,18 +130,16 @@ public class PlacementUIManager : MonoBehaviour
             moveSpeedText.text = selectedUnitForDetails.CurrentMoveSpeed.ToString("F0");
 
             if (selectedUnitForDetails.EquippedArtifact != null)
-        {
-            // Si la unidad tiene un artefacto, muestra su icono.
-            equippedArtifactImage.sprite = selectedUnitForDetails.EquippedArtifact.icon;
-        }
-        else
-        {
-            // Si no, muestra el icono por defecto.
-            equippedArtifactImage.sprite = defaultArtifactSprite;
-        }
+            {
+                equippedArtifactImage.sprite = selectedUnitForDetails.EquippedArtifact.icon;
+            }
+            else
+            {
+                equippedArtifactImage.sprite = defaultArtifactSprite;
+            }
         }
     }
-    
+
     public void ShowDetailsPanel(UnitStats stats)
     {
         if (stats == null || detailsPanelCanvasGroup == null) return;
@@ -185,6 +184,22 @@ public class PlacementUIManager : MonoBehaviour
             }
             detailsPanelGradient.Refresh();
         }
+        if (harmonyIconImages != null)
+        {
+            foreach (var iconImage in harmonyIconImages)
+            {
+                iconImage.gameObject.SetActive(false);
+            }
+
+            for (int i = 0; i < stats.naturalHarmonies.Count; i++)
+            {
+                if (i < harmonyIconImages.Count)
+                {
+                    harmonyIconImages[i].gameObject.SetActive(true);
+                    harmonyIconImages[i].sprite = stats.naturalHarmonies[i].activeIcon;
+                }
+            }
+        }
 
         panelFadeCoroutine = StartCoroutine(FadeDetailsPanel(true));
     }
@@ -192,7 +207,7 @@ public class PlacementUIManager : MonoBehaviour
     public void HideDetailsPanel()
     {
         selectedUnitForDetails = null;
-        
+
         if (detailsPanelCanvasGroup == null || detailsPanelCanvasGroup.alpha == 0) return;
         if (PlayerController.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Placement)
         {
@@ -237,7 +252,7 @@ public class PlacementUIManager : MonoBehaviour
         {
             detailsPanelCanvasGroup.interactable = false;
             detailsPanelCanvasGroup.blocksRaycasts = false;
-            
+
             if (activeSelectionHighlight != null)
             {
                 Destroy(activeSelectionHighlight);
@@ -250,32 +265,32 @@ public class PlacementUIManager : MonoBehaviour
                 PlayerController.Instance.ClearInteractionState();
             }
         }
-        
+
         panelFadeCoroutine = null;
     }
 
     public void ForceDetailsPanelUpdate(UnitController unit)
-{
-    if (unit != null && selectedUnitForDetails == unit && IsDetailsPanelActive)
     {
-        if (unit.CurrentHealth <= 0)
+        if (unit != null && selectedUnitForDetails == unit && IsDetailsPanelActive)
         {
-            healthText.text = $"0 / {unit.MaxHealth}";
-        }
-        else if (unit.CurrentHealth < unit.MaxHealth)
-        {
-            healthText.text = $"{Mathf.CeilToInt(unit.CurrentHealth)} / {unit.MaxHealth}";
-        }
-        else
-        {
-            healthText.text = unit.MaxHealth.ToString();
-        }
+            if (unit.CurrentHealth <= 0)
+            {
+                healthText.text = $"0 / {unit.MaxHealth}";
+            }
+            else if (unit.CurrentHealth < unit.MaxHealth)
+            {
+                healthText.text = $"{Mathf.CeilToInt(unit.CurrentHealth)} / {unit.MaxHealth}";
+            }
+            else
+            {
+                healthText.text = unit.MaxHealth.ToString();
+            }
 
-        attackDamageText.text = unit.CurrentAttackDamage.ToString();
-        attackSpeedText.text = unit.CurrentAttackSpeed.ToString("F0");
-        moveSpeedText.text = unit.CurrentMoveSpeed.ToString("F0");
+            attackDamageText.text = unit.CurrentAttackDamage.ToString();
+            attackSpeedText.text = unit.CurrentAttackSpeed.ToString("F0");
+            moveSpeedText.text = unit.CurrentMoveSpeed.ToString("F0");
+        }
     }
-}
 
     void PopulateBench(Transform content, GameObject[] iconPrefabs)
     {
@@ -344,13 +359,13 @@ public class PlacementUIManager : MonoBehaviour
         if (enemyBenchButton != null) enemyBenchButton.GetComponent<Image>().color = inactiveTabColor;
         if (ArtifactsBenchButton != null) ArtifactsBenchButton.GetComponent<Image>().color = activeTabColor;
     }
-     private void SetBenchVisibility(CanvasGroup toShow, params CanvasGroup[] toHide)
+    private void SetBenchVisibility(CanvasGroup toShow, params CanvasGroup[] toHide)
     {
         if (benchFadeCoroutine != null)
         {
             StopCoroutine(benchFadeCoroutine);
         }
-        
+
         var allBenches = new List<CanvasGroup> { allyBenchCanvasGroup, enemyBenchCanvasGroup, artifactsBenchCanvasGroup };
         foreach (var bench in allBenches)
         {
@@ -382,8 +397,8 @@ public class PlacementUIManager : MonoBehaviour
 
         float endAlpha = fadeIn ? 1f : 0f;
         float elapsedTime = 0f;
-        
-        while(elapsedTime < duration)
+
+        while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
             float t = elapsedTime / duration;
@@ -406,7 +421,7 @@ public class PlacementUIManager : MonoBehaviour
                 group.blocksRaycasts = fadeIn;
             }
         }
-        
+
         benchFadeCoroutine = null;
     }
 
@@ -471,4 +486,12 @@ public class PlacementUIManager : MonoBehaviour
             }
         }
     }
+    public void HideSelectionHighlight()
+{
+    if (activeSelectionHighlight != null)
+    {
+        Destroy(activeSelectionHighlight);
+        activeSelectionHighlight = null;
+    }
+}
 }
