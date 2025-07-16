@@ -110,13 +110,11 @@ public class UnitController : MonoBehaviour
             GameObject projGO = ObjectPooler.Instance.SpawnFromPool("Proyectil", transform.position + Vector3.up * 0.5f, Quaternion.identity);
             Projectile projectile = projGO.GetComponent<Projectile>();
             if (projectile != null)
-                // --- CAMBIO AQUÍ ---
                 projectile.Initialize(this, currentTarget, CurrentAttackDamage);
         }
         else
         {
             Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ataca a {GetTeamTag(currentTarget.teamID)} {currentTarget.unitStats.unitName}");
-            // --- Y CAMBIO AQUÍ ---
             currentTarget.TakeDamage(CurrentAttackDamage, this);
         }
 
@@ -163,13 +161,11 @@ public class UnitController : MonoBehaviour
         Vector3 startPosition = from.worldPosition;
         Vector3 endPosition = to.worldPosition;
 
-        // Rotacion
         if (endPosition - startPosition != Vector3.zero)
         {
             transform.rotation = Quaternion.LookRotation(endPosition - startPosition);
         }
 
-        // Movimiento
         float time = 0f;
         float moveDuration = 1f / unitStats.moveSpeed;
         while (time < moveDuration)

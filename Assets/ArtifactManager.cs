@@ -136,7 +136,6 @@ public class ArtifactManager : MonoBehaviour
         }
     }
 
-//corer
     public void ResetAllArtifactIconsState()
     {
         foreach (var activeIcon in activeArtifacts)

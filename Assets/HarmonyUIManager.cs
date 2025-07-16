@@ -33,18 +33,14 @@ public class HarmonyUIManager : MonoBehaviour
 
         int totalPlayerUnits = GameManager.Instance.GetUnitCountForTeam(teamIdToShow);
         bool hasUnits = totalPlayerUnits > 0;
-
-        // Mostrar u ocultar contenedores de armonías
         activeHarmoniesContainer.gameObject.SetActive(hasUnits);
         inactiveHarmoniesContainer.gameObject.SetActive(hasUnits);
 
-        // Mostrar u ocultar mensaje de "sin unidades"
         if (noUnitsContainer != null)
         {
             noUnitsContainer.SetActive(!hasUnits);
         }
 
-        // Si no hay unidades, ocultar íconos existentes y salir
         if (!hasUnits)
         {
             foreach (var icon in spawnedIcons.Values)
@@ -54,16 +50,13 @@ public class HarmonyUIManager : MonoBehaviour
             return;
         }
 
-        // Obtener armonías por tipo y cantidad
         Dictionary<HarmonyType, int> harmonyCounts = GameManager.Instance.GetHarmonyCountsForTeam(teamIdToShow);
 
-        // Ocultar todos los íconos actuales
         foreach (var icon in spawnedIcons.Values)
         {
             icon.SetActive(false);
         }
 
-        // Mostrar íconos de armonías según estado
         foreach (var harmonyInfo in harmonyCounts)
         {
             HarmonyType type = harmonyInfo.Key;
@@ -111,9 +104,8 @@ public class HarmonyUIManager : MonoBehaviour
         {
             timerText.gameObject.SetActive(true);
             float timeLeft = GameManager.BATTLE_TIME_LIMIT - GameManager.Instance.battleTimer;
-            // Asegurarnos que el tiempo no sea negativo
             timeLeft = Mathf.Max(timeLeft, 0);
-            timerText.text = timeLeft.ToString("F1"); // Muestra el tiempo con un decimal
+            timerText.text = timeLeft.ToString("F1");
         }
         else
         {

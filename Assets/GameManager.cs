@@ -112,7 +112,7 @@ public class GameManager : MonoBehaviour
         {
             return level;
         }
-        return 1; // Devuelve 1 como valor por defecto si algo falla
+        return 1;
     }
 
     public Dictionary<HarmonyType, int> GetHarmonyCountsForTeam(int teamID)
@@ -452,27 +452,25 @@ public class GameManager : MonoBehaviour
     {
         return allUnits;
     }
-    
+
     public void UpdateAllCountsUI()
-{
-    // Lógica para unidades aliadas y enemigas
-    if (allyUnitCountText != null)
     {
-        int allyCount = GetUnitCountForTeam(0);
-        allyUnitCountText.text = $"{allyCount}/{maxUnitsPerTeam}";
-    }
+        if (allyUnitCountText != null)
+        {
+            int allyCount = GetUnitCountForTeam(0);
+            allyUnitCountText.text = $"{allyCount}/{maxUnitsPerTeam}";
+        }
 
-    if (enemyUnitCountText != null)
-    {
-        int enemyCount = GetUnitCountForTeam(1);
-        enemyUnitCountText.text = $"{enemyCount}/{maxUnitsPerTeam}";
-    }
+        if (enemyUnitCountText != null)
+        {
+            int enemyCount = GetUnitCountForTeam(1);
+            enemyUnitCountText.text = $"{enemyCount}/{maxUnitsPerTeam}";
+        }
 
-    // Lógica para artefactos
-    if (activeArtifactsCountText != null && ArtifactManager.Instance != null)
-    {
-        int artifactCount = ArtifactManager.Instance.GetActiveArtifactCount();
-        activeArtifactsCountText.text = $"{artifactCount}/{maxArtifacts}";
+        if (activeArtifactsCountText != null && ArtifactManager.Instance != null)
+        {
+            int artifactCount = ArtifactManager.Instance.GetActiveArtifactCount();
+            activeArtifactsCountText.text = $"{artifactCount}/{maxArtifacts}";
+        }
     }
-}
 }
