@@ -1,12 +1,9 @@
-// En UI_GradientOverlayShader.shader (reemplazar todo el contenido)
-
 Shader "UI/Custom/URP_GradientOverlay"
 {
     Properties
     {
         [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
         _GradientColor ("Gradient Color", Color) = (0,0,0,1)
-        // La dirección ahora es un número. El script C# se encargará de la lógica.
         _GradientDirection ("Direction", Float) = 4
     }
     SubShader
@@ -65,14 +62,14 @@ Shader "UI/Custom/URP_GradientOverlay"
                 float gradient = 0;
 
                 float direction = _GradientDirection;
-                if (direction == 0) gradient = 1.0 - IN.uv.y; // TopToBottom
-                else if (direction == 1) gradient = (1.0 - IN.uv.x + 1.0 - IN.uv.y) / 2.0; // TopRightToBottomLeft
-                else if (direction == 2) gradient = 1.0 - IN.uv.x; // RightToLeft
-                else if (direction == 3) gradient = (1.0 - IN.uv.x + IN.uv.y) / 2.0; // BottomRightToTopLeft
-                else if (direction == 4) gradient = IN.uv.y; // BottomToTop
-                else if (direction == 5) gradient = (IN.uv.x + IN.uv.y) / 2.0; // BottomLeftToTopRight
-                else if (direction == 6) gradient = IN.uv.x; // LeftToRight
-                else if (direction == 7) gradient = (IN.uv.x + 1.0 - IN.uv.y) / 2.0; // TopLeftToBottomRight
+                if (direction == 0) gradient = 1.0 - IN.uv.y;
+                else if (direction == 1) gradient = (1.0 - IN.uv.x + 1.0 - IN.uv.y) / 2.0;
+                else if (direction == 2) gradient = 1.0 - IN.uv.x;
+                else if (direction == 3) gradient = (1.0 - IN.uv.x + IN.uv.y) / 2.0;
+                else if (direction == 4) gradient = IN.uv.y;
+                else if (direction == 5) gradient = (IN.uv.x + IN.uv.y) / 2.0;
+                else if (direction == 6) gradient = IN.uv.x;
+                else if (direction == 7) gradient = (IN.uv.x + 1.0 - IN.uv.y) / 2.0;
 
                 half4 gradientOverlay = lerp(half4(_GradientColor.rgb, 0), _GradientColor, gradient);
                 

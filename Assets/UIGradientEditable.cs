@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 [RequireComponent(typeof(Image))]
 [ExecuteInEditMode]
-public class UIGradientEditable : MonoBehaviour // <--- NOMBRE CAMBIADO
+public class UIGradientEditable : MonoBehaviour
 {
     public enum GradientDirection
     {
@@ -47,7 +47,6 @@ public class UIGradientEditable : MonoBehaviour // <--- NOMBRE CAMBIADO
 
         if (materialInstance == null)
         {
-            // El shader sigue siendo el mismo, no es necesario renombrarlo.
             materialInstance = new Material(Shader.Find("UI/Custom/URP_GradientOverlay"));
             image.material = materialInstance;
         }
