@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 
@@ -38,6 +39,11 @@ public class GameManager : MonoBehaviour
 
     [Header("Reglas del Juego")]
     public int maxUnitsPerTeam;
+    [Header("Referencias de UI (Contadores)")]
+    public TextMeshProUGUI allyUnitCountText;
+    public TextMeshProUGUI enemyUnitCountText;
+    public TextMeshProUGUI activeArtifactsCountText;
+
     private Dictionary<UnitStats.UnitCategory, int> categoryLimitsDict = new Dictionary<UnitStats.UnitCategory, int>();
     private Dictionary<UnitStats.UnitCategory, int> categoryLevelsDict = new Dictionary<UnitStats.UnitCategory, int>();
 
@@ -91,11 +97,13 @@ public class GameManager : MonoBehaviour
         artifactCategoryLimitsDict[ArtifactCategory.Categoria4] = settings.artifactCat4Limit;
 
         if (ArtifactManager.Instance != null)
-    {
-        ArtifactManager.Instance.ValidateActiveArtifacts();
-    }
-    
+        {
+            ArtifactManager.Instance.ValidateActiveArtifacts();
+        }
+
         Debug.Log($"Límites de tablero actualizados a: {settings.roundName}. Total: {maxUnitsPerTeam}, Fabulosa: {settings.fabulosaLimit}, Magnífica: {settings.magnificaLimit}, Suprema: {settings.supremaLimit}");
+
+        UpdateAllCountsUI();
     }
 
     public int GetCurrentLevelForUnit(UnitStats stats)
@@ -151,6 +159,8 @@ public class GameManager : MonoBehaviour
 
         UpdateHarmonyBonuses(unit, true);
         OnHarmoniesUpdated?.Invoke();
+
+        UpdateAllCountsUI();
     }
 
     public void UnregisterUnit(UnitController unit)
@@ -170,6 +180,8 @@ public class GameManager : MonoBehaviour
         allUnits.Remove(unit);
         UpdateHarmonyBonuses(unit, false);
         OnHarmoniesUpdated?.Invoke();
+
+        UpdateAllCountsUI();
     }
 
     public bool CanPlaceUnit(int teamID, UnitStats stats)
@@ -183,12 +195,12 @@ public class GameManager : MonoBehaviour
         }
         UnitStats.UnitCategory category = stats.category;
         int currentCategoryCount = 0;
-        
+
         if (teamCategoryCounts != null && teamCategoryCounts.ContainsKey(teamID))
         {
             teamCategoryCounts[teamID].TryGetValue(category, out currentCategoryCount);
         }
-        
+
         if (categoryLimitsDict.TryGetValue(category, out int limitForCategory))
         {
             if (currentCategoryCount >= limitForCategory)
@@ -197,7 +209,7 @@ public class GameManager : MonoBehaviour
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -251,6 +263,8 @@ public class GameManager : MonoBehaviour
         }
 
         Debug.Log("Tablero completamente limpiado por el botón.");
+
+        UpdateAllCountsUI();
     }
 
     public void CheckForCombatEnd()
@@ -332,7 +346,7 @@ public class GameManager : MonoBehaviour
                     });
                 }
             }
-            
+
             CurrentState = GameState.Combat;
             StartCoroutine(CombatLoop());
         }
@@ -438,4 +452,27 @@ public class GameManager : MonoBehaviour
     {
         return allUnits;
     }
+    
+    public void UpdateAllCountsUI()
+{
+    // Lógica para unidades aliadas y enemigas
+    if (allyUnitCountText != null)
+    {
+        int allyCount = GetUnitCountForTeam(0);
+        allyUnitCountText.text = $"{allyCount}/{maxUnitsPerTeam}";
+    }
+
+    if (enemyUnitCountText != null)
+    {
+        int enemyCount = GetUnitCountForTeam(1);
+        enemyUnitCountText.text = $"{enemyCount}/{maxUnitsPerTeam}";
+    }
+
+    // Lógica para artefactos
+    if (activeArtifactsCountText != null && ArtifactManager.Instance != null)
+    {
+        int artifactCount = ArtifactManager.Instance.GetActiveArtifactCount();
+        activeArtifactsCountText.text = $"{artifactCount}/{maxArtifacts}";
+    }
+}
 }

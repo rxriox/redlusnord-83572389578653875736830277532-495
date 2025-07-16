@@ -9,8 +9,7 @@ public class ArtifactManager : MonoBehaviour
 
     [Header("Referencias de UI")]
     public Transform activeArtifactsContainer;
-    public GameObject noArtifactsMessageObject;
-    public TextMeshProUGUI activeArtifactsCountText;
+    public GameObject noArtifactsContainer;
     public GameObject activeArtifactIconPrefab;
 
     private List<ActiveArtifactIcon> activeArtifacts = new List<ActiveArtifactIcon>();
@@ -26,6 +25,11 @@ public class ArtifactManager : MonoBehaviour
     {
         UpdateUI();
         ReorderActiveIcons();
+    }
+
+    public int GetActiveArtifactCount()
+    {
+        return activeArtifacts.Count;
     }
 
     public bool CanPlaceArtifact(Artifact artifact)
@@ -50,8 +54,10 @@ public class ArtifactManager : MonoBehaviour
         activeCategoryCounts[benchIcon.artifactData.category] = count + 1;
 
         benchIcon.SetAsPlaced();
-        UpdateUI();
+        GameManager.Instance.UpdateAllCountsUI();
         ReorderActiveIcons();
+
+        UpdateUI();
     }
 
     public void RemoveArtifact(ActiveArtifactIcon activeIcon)
@@ -71,8 +77,10 @@ public class ArtifactManager : MonoBehaviour
         activeArtifacts.Remove(activeIcon);
         Destroy(activeIcon.gameObject);
 
-        UpdateUI();
+        GameManager.Instance.UpdateAllCountsUI();
         ReorderActiveIcons();
+
+        UpdateUI();
     }
 
     public void FindAndClearEquippedIcon(Artifact artifactToFind)
@@ -120,19 +128,15 @@ public class ArtifactManager : MonoBehaviour
 
     private void UpdateUI()
     {
-        int maxArtifacts = GameManager.Instance != null ? GameManager.Instance.maxArtifacts : 0;
-
-        if (noArtifactsMessageObject != null)
+        bool hasArtifacts = activeArtifacts.Count > 0;
+        
+        if (noArtifactsContainer != null)
         {
-            noArtifactsMessageObject.SetActive(activeArtifacts.Count == 0);
-        }
-
-        if (activeArtifactsCountText != null)
-        {
-            activeArtifactsCountText.text = $"{activeArtifacts.Count}/{maxArtifacts}";
+            noArtifactsContainer.SetActive(!hasArtifacts);
         }
     }
 
+//corer
     public void ResetAllArtifactIconsState()
     {
         foreach (var activeIcon in activeArtifacts)

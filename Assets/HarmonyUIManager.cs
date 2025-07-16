@@ -15,7 +15,7 @@ public class HarmonyUIManager : MonoBehaviour
     private Dictionary<HarmonyType, GameObject> spawnedIcons = new Dictionary<HarmonyType, GameObject>();
     [Header("UI Mensajes")]
     [Tooltip("El objeto de texto que se muestra cuando no hay unidades.")]
-    public GameObject noUnitsMessageObject;
+    public GameObject noUnitsContainer;
 
     private void OnEnable()
     {
@@ -30,31 +30,40 @@ public class HarmonyUIManager : MonoBehaviour
     void UpdateDisplay()
     {
         if (GameManager.Instance == null) return;
-        if (GameManager.Instance.CurrentState != GameManager.GameState.Placement)
-        {
-            return;
-        }
+
         int totalPlayerUnits = GameManager.Instance.GetUnitCountForTeam(teamIdToShow);
+        bool hasUnits = totalPlayerUnits > 0;
 
-        if (totalPlayerUnits == 0)
+        // Mostrar u ocultar contenedores de armonías
+        activeHarmoniesContainer.gameObject.SetActive(hasUnits);
+        inactiveHarmoniesContainer.gameObject.SetActive(hasUnits);
+
+        // Mostrar u ocultar mensaje de "sin unidades"
+        if (noUnitsContainer != null)
         {
-            if (noUnitsMessageObject != null) noUnitsMessageObject.SetActive(true);
-            activeHarmoniesContainer.gameObject.SetActive(false);
-            inactiveHarmoniesContainer.gameObject.SetActive(false);
+            noUnitsContainer.SetActive(!hasUnits);
+        }
+
+        // Si no hay unidades, ocultar íconos existentes y salir
+        if (!hasUnits)
+        {
+            foreach (var icon in spawnedIcons.Values)
+            {
+                icon.SetActive(false);
+            }
             return;
         }
 
-        if (noUnitsMessageObject != null) noUnitsMessageObject.SetActive(false);
-        activeHarmoniesContainer.gameObject.SetActive(true);
-        inactiveHarmoniesContainer.gameObject.SetActive(true);
-
+        // Obtener armonías por tipo y cantidad
         Dictionary<HarmonyType, int> harmonyCounts = GameManager.Instance.GetHarmonyCountsForTeam(teamIdToShow);
 
+        // Ocultar todos los íconos actuales
         foreach (var icon in spawnedIcons.Values)
         {
             icon.SetActive(false);
         }
 
+        // Mostrar íconos de armonías según estado
         foreach (var harmonyInfo in harmonyCounts)
         {
             HarmonyType type = harmonyInfo.Key;
@@ -86,25 +95,29 @@ public class HarmonyUIManager : MonoBehaviour
                 iconText.color = isHarmonyActive ? Color.cyan : Color.white;
             }
 
-            iconGO.transform.SetParent(isHarmonyActive ? activeHarmoniesContainer : inactiveHarmoniesContainer, false);
+            iconGO.transform.SetParent(
+                isHarmonyActive ? activeHarmoniesContainer : inactiveHarmoniesContainer,
+                false
+            );
         }
     }
+
     public TextMeshProUGUI timerText;
     void Update()
-{
-    if (GameManager.Instance == null || timerText == null) return;
+    {
+        if (GameManager.Instance == null || timerText == null) return;
 
-    if (GameManager.Instance.CurrentState == GameManager.GameState.Combat)
-    {
-        timerText.gameObject.SetActive(true);
-        float timeLeft = GameManager.BATTLE_TIME_LIMIT - GameManager.Instance.battleTimer;
-        // Asegurarnos que el tiempo no sea negativo
-        timeLeft = Mathf.Max(timeLeft, 0); 
-        timerText.text = timeLeft.ToString("F1"); // Muestra el tiempo con un decimal
+        if (GameManager.Instance.CurrentState == GameManager.GameState.Combat)
+        {
+            timerText.gameObject.SetActive(true);
+            float timeLeft = GameManager.BATTLE_TIME_LIMIT - GameManager.Instance.battleTimer;
+            // Asegurarnos que el tiempo no sea negativo
+            timeLeft = Mathf.Max(timeLeft, 0);
+            timerText.text = timeLeft.ToString("F1"); // Muestra el tiempo con un decimal
+        }
+        else
+        {
+            timerText.gameObject.SetActive(false);
+        }
     }
-    else
-    {
-        timerText.gameObject.SetActive(false);
-    }
-}
 }

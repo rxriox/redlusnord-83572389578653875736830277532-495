@@ -15,10 +15,6 @@ public class PlacementUIManager : MonoBehaviour
     public Color activeTabColor = Color.black;
     public Color inactiveTabColor = Color.white;
 
-    [Header("Contadores de Unidades")]
-    public TextMeshProUGUI allyUnitCountText;
-    public TextMeshProUGUI enemyUnitCountText;
-
     [Header("Banca Aliada")]
     public GameObject allyBenchScrollView;
     public Transform allyBenchContent;
@@ -104,7 +100,6 @@ public class PlacementUIManager : MonoBehaviour
         PopulateBench(enemyBenchContent, enemyIconPrefabs);
         PopulateBench(artifactsBenchContent, artifactIconPrefabs);
         ShowAllyBench();
-        UpdateUnitCountDisplay();
         if (closeDetailsButton != null)
         {
             closeDetailsButton.onClick.AddListener(HideDetailsPanel);
@@ -355,32 +350,9 @@ public class PlacementUIManager : MonoBehaviour
         }
     }
 
-    private void OnEnable()
-    {
-        GameManager.OnHarmoniesUpdated += UpdateUnitCountDisplay;
-    }
+    private void OnEnable(){}
 
-    private void OnDisable()
-    {
-        GameManager.OnHarmoniesUpdated -= UpdateUnitCountDisplay;
-    }
-
-    void UpdateUnitCountDisplay()
-    {
-        if (GameManager.Instance == null) return;
-        int maxUnits = GameManager.Instance.maxUnitsPerTeam;
-        if (allyUnitCountText != null)
-        {
-            int allyCount = GameManager.Instance.GetUnitCountForTeam(0);
-            allyUnitCountText.text = $"{allyCount}/{maxUnits}";
-        }
-
-        if (enemyUnitCountText != null)
-        {
-            int enemyCount = GameManager.Instance.GetUnitCountForTeam(1);
-            enemyUnitCountText.text = $"{enemyCount}/{maxUnits}";
-        }
-    }
+    private void OnDisable(){}
 
     public void ShowAllyBench()
     {
