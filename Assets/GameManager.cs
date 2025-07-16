@@ -49,6 +49,7 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI placementErrorText;
 
     private Coroutine hideErrorCoroutine;
+    private Coroutine fadeErrorCoroutine;
 
     private Dictionary<UnitStats.UnitCategory, int> categoryLimitsDict = new Dictionary<UnitStats.UnitCategory, int>();
     private Dictionary<UnitStats.UnitCategory, int> categoryLevelsDict = new Dictionary<UnitStats.UnitCategory, int>();
@@ -486,12 +487,15 @@ public class GameManager : MonoBehaviour
         {
             StopCoroutine(hideErrorCoroutine);
         }
+        if (fadeErrorCoroutine != null)
+        {
+            StopCoroutine(fadeErrorCoroutine);
+        }
 
         if (placementErrorPanel != null && placementErrorText != null && placementErrorCanvasGroup != null)
         {
             placementErrorText.text = message;
-            StopCoroutine("FadeCanvasGroup");
-            StartCoroutine(FadeCanvasGroup(placementErrorCanvasGroup, 1f, 0.2f));
+            fadeErrorCoroutine = StartCoroutine(FadeCanvasGroup(placementErrorCanvasGroup, 1f, 0.2f));
         }
 
         hideErrorCoroutine = StartCoroutine(HideErrorPanelAfterDelay(1f));
@@ -524,14 +528,19 @@ public class GameManager : MonoBehaviour
     }
 
     private IEnumerator HideErrorPanelAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        if (placementErrorPanel != null && placementErrorCanvasGroup != null)
-        {
+{
+    yield return new WaitForSeconds(delay);
 
-            StopCoroutine("FadeCanvasGroup");
-            StartCoroutine(FadeCanvasGroup(placementErrorCanvasGroup, 0f, 0.3f));
-        }
-        hideErrorCoroutine = null;
+    if (fadeErrorCoroutine != null)
+    {
+        StopCoroutine(fadeErrorCoroutine);
     }
+
+    if (placementErrorPanel != null && placementErrorCanvasGroup != null)
+    {
+        fadeErrorCoroutine = StartCoroutine(FadeCanvasGroup(placementErrorCanvasGroup, 0f, 0.3f));
+    }
+
+    hideErrorCoroutine = null;
+}
 }
