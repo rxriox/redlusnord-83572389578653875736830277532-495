@@ -4,7 +4,6 @@ using UnityEngine.UI;
 
 public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    [Tooltip("El ScriptableObject del artefacto que este icono representa.")]
     public Artifact artifactData;
 
     private Image iconImage;
@@ -46,13 +45,11 @@ public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHan
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        // Notificamos al manager que el arrastre ha terminado.
         if (TabGroupManager.Instance != null)
         {
             TabGroupManager.Instance.OnArtifactDragEnd();
         }
         
-        // Restauramos la apariencia y la interacción del icono original.
         canvasGroup.alpha = 1f;
         canvasGroup.blocksRaycasts = true;
     }

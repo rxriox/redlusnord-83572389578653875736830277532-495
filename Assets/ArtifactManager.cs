@@ -118,9 +118,6 @@ public class ArtifactManager : MonoBehaviour
         ReorderActiveIcons();
     }
 
-    /// <summary>
-    /// Actualiza texto de conteo y visibilidad del mensaje de "sin artefactos".
-    /// </summary>
     private void UpdateUI()
     {
         int maxArtifacts = GameManager.Instance != null ? GameManager.Instance.maxArtifacts : 0;

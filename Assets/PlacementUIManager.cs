@@ -276,6 +276,7 @@ public class PlacementUIManager : MonoBehaviour
         RectTransform panelRect = detailsPanel.GetComponent<RectTransform>();
         float startAlpha = detailsPanelCanvasGroup.alpha;
         float endAlpha = fadeIn ? 1f : 0f;
+
         Vector2 startPosition = panelRect.anchoredPosition;
         Vector2 endPosition;
 
@@ -537,11 +538,11 @@ public class PlacementUIManager : MonoBehaviour
         }
     }
     public void HideSelectionHighlight()
-{
-    if (activeSelectionHighlight != null)
     {
-        Destroy(activeSelectionHighlight);
-        activeSelectionHighlight = null;
+        if (activeSelectionHighlight != null)
+        {
+            Destroy(activeSelectionHighlight);
+            activeSelectionHighlight = null;
+        }
     }
-}
 }

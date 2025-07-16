@@ -136,92 +136,92 @@ public class GridManager : MonoBehaviour
         return 14 * dstX + 10 * (dstZ - dstX);
     }
     public List<Node> FindPath(Node startNode, Node targetNode)
-{
-    List<Node> openSet = new List<Node>();
-    HashSet<Node> closedSet = new HashSet<Node>();
-    for (int x = 0; x < gridWidth; x++)
     {
-        for (int z = 0; z < gridHeight; z++)
+        List<Node> openSet = new List<Node>();
+        HashSet<Node> closedSet = new HashSet<Node>();
+        for (int x = 0; x < gridWidth; x++)
         {
-            grid[x, z].gCost = int.MaxValue;
-            grid[x, z].parent = null;
-        }
-    }
-
-    startNode.gCost = 0;
-    startNode.hCost = GetDistance(startNode, targetNode);
-    openSet.Add(startNode);
-
-    while (openSet.Count > 0)
-    {
-        Node currentNode = openSet[0];
-        for (int i = 1; i < openSet.Count; i++)
-        {
-            if (openSet[i].fCost < currentNode.fCost || 
-               (openSet[i].fCost == currentNode.fCost && openSet[i].hCost < currentNode.hCost))
+            for (int z = 0; z < gridHeight; z++)
             {
-                currentNode = openSet[i];
+                grid[x, z].gCost = int.MaxValue;
+                grid[x, z].parent = null;
             }
         }
 
-        openSet.Remove(currentNode);
-        closedSet.Add(currentNode);
-        if (currentNode == targetNode)
+        startNode.gCost = 0;
+        startNode.hCost = GetDistance(startNode, targetNode);
+        openSet.Add(startNode);
+
+        while (openSet.Count > 0)
         {
-            List<Node> path = RetracePath(startNode, targetNode);
-            if (path.Count > 0)
+            Node currentNode = openSet[0];
+            for (int i = 1; i < openSet.Count; i++)
             {
-                path.RemoveAt(path.Count - 1);
-            }
-            return path;
-        }
-
-        foreach (Node neighbour in GetNeighbours(currentNode))
-        {
-            if (closedSet.Contains(neighbour) || (!neighbour.isWalkable && neighbour != targetNode))
-            {
-                continue;
-            }
-
-            int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
-            if (newMovementCostToNeighbour < neighbour.gCost)
-            {
-                neighbour.gCost = newMovementCostToNeighbour;
-                neighbour.hCost = GetDistance(neighbour, targetNode);
-                neighbour.parent = currentNode;
-
-                if (!openSet.Contains(neighbour))
+                if (openSet[i].fCost < currentNode.fCost ||
+                   (openSet[i].fCost == currentNode.fCost && openSet[i].hCost < currentNode.hCost))
                 {
-                    openSet.Add(neighbour);
+                    currentNode = openSet[i];
+                }
+            }
+
+            openSet.Remove(currentNode);
+            closedSet.Add(currentNode);
+            if (currentNode == targetNode)
+            {
+                List<Node> path = RetracePath(startNode, targetNode);
+                if (path.Count > 0)
+                {
+                    path.RemoveAt(path.Count - 1);
+                }
+                return path;
+            }
+
+            foreach (Node neighbour in GetNeighbours(currentNode))
+            {
+                if (closedSet.Contains(neighbour) || (!neighbour.isWalkable && neighbour != targetNode))
+                {
+                    continue;
+                }
+
+                int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
+                if (newMovementCostToNeighbour < neighbour.gCost)
+                {
+                    neighbour.gCost = newMovementCostToNeighbour;
+                    neighbour.hCost = GetDistance(neighbour, targetNode);
+                    neighbour.parent = currentNode;
+
+                    if (!openSet.Contains(neighbour))
+                    {
+                        openSet.Add(neighbour);
+                    }
                 }
             }
         }
+
+        return null;
     }
 
-    return null;
-}
-    
     public Node FindClosestValidNode(Vector3 worldPosition, int teamID)
-{
-    Node closestNode = null;
-    float minDistance = float.MaxValue;
-
-    foreach (Node node in grid)
     {
-        if (IsNodeValidForPlacement(node, teamID))
-        {
-            float distance = Vector3.Distance(node.worldPosition, worldPosition);
+        Node closestNode = null;
+        float minDistance = float.MaxValue;
 
-            if (distance < minDistance)
+        foreach (Node node in grid)
+        {
+            if (IsNodeValidForPlacement(node, teamID))
             {
-                minDistance = distance;
-                closestNode = node;
+                float distance = Vector3.Distance(node.worldPosition, worldPosition);
+
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    closestNode = node;
+                }
             }
         }
-    }
 
-    return closestNode;
-}
+        return closestNode;
+    }
 
 private List<Node> RetracePath(Node startNode, Node endNode)
     {

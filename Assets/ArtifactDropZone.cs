@@ -15,9 +15,6 @@ public class ArtifactDropZone : MonoBehaviour, IDropHandler
         ArtifactIconController benchIcon = eventData.pointerDrag.GetComponent<ArtifactIconController>();
         if (benchIcon != null)
         {
-            // --- CAMBIO CLAVE ---
-            // Simplemente le pedimos al ArtifactManager que coloque el artefacto.
-            // El manager se encargará de todo lo demás, incluyendo la actualización de la UI.
             ArtifactManager.Instance.PlaceArtifact(benchIcon);
             TabGroupManager.Instance.SetArtifactDropSuccessful();
 

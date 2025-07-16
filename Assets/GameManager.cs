@@ -128,7 +128,6 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    #region Funciones sin cambios
     public void RegisterUnit(UnitController unit)
     {
         if (allUnits.Contains(unit)) return;
@@ -244,6 +243,8 @@ public class GameManager : MonoBehaviour
         CurrentState = GameState.Placement;
         OnHarmoniesUpdated?.Invoke();
 
+        if (PlacementUIManager.Instance != null) PlacementUIManager.Instance.HideDetailsPanel();
+
         if (ArtifactManager.Instance != null)
         {
             ArtifactManager.Instance.ResetAllArtifactIconsState();
@@ -337,26 +338,26 @@ public class GameManager : MonoBehaviour
         }
     }
     private IEnumerator CombatLoop()
-{
-    yield return new WaitForSeconds(1.0f);
-    while (CurrentState == GameState.Combat && battleTimer < BATTLE_TIME_LIMIT)
     {
-        battleTimer += Time.deltaTime;
-        foreach (var unit in allUnits.ToList())
+        yield return new WaitForSeconds(1.0f);
+        while (CurrentState == GameState.Combat && battleTimer < BATTLE_TIME_LIMIT)
         {
-            if (unit != null)
+            battleTimer += Time.deltaTime;
+            foreach (var unit in allUnits.ToList())
             {
-                unit.EvaluateAction();
+                if (unit != null)
+                {
+                    unit.EvaluateAction();
+                }
             }
+            yield return null;
         }
-        yield return null;
+
+        if (CurrentState == GameState.Combat)
+        {
+            EndCombatImmediately("Límite de tiempo alcanzado.");
+        }
     }
-    
-    if (CurrentState == GameState.Combat)
-    {
-        EndCombatImmediately("Límite de tiempo alcanzado.");
-    }
-}
     public void EndCombatEarly()
     {
         if (CurrentState == GameState.Combat)
@@ -406,27 +407,25 @@ public class GameManager : MonoBehaviour
         }
 
         OnHarmoniesUpdated?.Invoke();
+        if (PlacementUIManager.Instance != null) PlacementUIManager.Instance.HideDetailsPanel();
         CurrentState = GameState.Placement;
         Debug.Log("Fase de colocación reanudada.");
     }
 
     public UnitController GetUnitAtNode(Node node)
-{
-    if (node == null) return null;
-
-    foreach (UnitController unit in allUnits)
     {
-        if (unit != null && unit.currentNode == node)
+        if (node == null) return null;
+
+        foreach (UnitController unit in allUnits)
         {
-            return unit;
+            if (unit != null && unit.currentNode == node)
+            {
+                return unit;
+            }
         }
+
+        return null;
     }
-
-    return null;
-}
-
-    #endregion
-
     public int GetArtifactLimitForCategory(ArtifactCategory category)
     {
         if (artifactCategoryLimitsDict.TryGetValue(category, out int limit))

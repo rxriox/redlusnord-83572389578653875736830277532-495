@@ -161,16 +161,16 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
     }
 
     public void ClearEquippedStatus()
-{
-    if (equippedUnit != null)
     {
-        equippedUnit.UnequipArtifact();
-    }
-    equippedUnit = null;
+        if (equippedUnit != null)
+        {
+            equippedUnit.UnequipArtifact();
+        }
+        equippedUnit = null;
 
-    if (unitIconOverlay != null)
-    {
-        unitIconOverlay.SetActive(false);
+        if (unitIconOverlay != null)
+        {
+            unitIconOverlay.SetActive(false);
+        }
     }
-}
 }

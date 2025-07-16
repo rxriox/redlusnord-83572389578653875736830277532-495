@@ -71,49 +71,49 @@ public class PlayerController : MonoBehaviour
     }
 
     void Update()
-{
-    Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
-    if (PlacementUIManager.Instance.IsDetailsPanelActive && playerControls.Gameplay.Click.WasPressedThisFrame())
     {
-        if (ShouldClosePanelOnClick(pointerPosition))
+        Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
+        if (PlacementUIManager.Instance.IsDetailsPanelActive && playerControls.Gameplay.Click.WasPressedThisFrame())
         {
-            PlacementUIManager.Instance.HideDetailsPanel();
-            return; 
-        }
-    }
-
-    if (GameManager.Instance.CurrentState == GameManager.GameState.Placement)
-    {
-        if (currentlyDraggedIcon != null || isDraggingForReposition)
-        {
-            if (dragCursorImage != null && dragCursorImage.gameObject.activeInHierarchy)
+            if (ShouldClosePanelOnClick(pointerPosition))
             {
-                dragCursorImage.transform.position = pointerPosition;
+                PlacementUIManager.Instance.HideDetailsPanel();
+                return;
             }
         }
-        
-        if (currentlyDraggedIcon != null)
-        {
-            UpdateHighlight(PlacementUIManager.Instance.CurrentPlacementTeamID, pointerPosition);
-            return;
-        }
 
-        if (isDraggingForReposition && unitToReposition != null)
+        if (GameManager.Instance.CurrentState == GameManager.GameState.Placement)
         {
-            UpdateRepositioningUnit(pointerPosition);
-            if (playerControls.Gameplay.Click.WasReleasedThisFrame())
+            if (currentlyDraggedIcon != null || isDraggingForReposition)
             {
-                DropRepositionedUnit(pointerPosition);
+                if (dragCursorImage != null && dragCursorImage.gameObject.activeInHierarchy)
+                {
+                    dragCursorImage.transform.position = pointerPosition;
+                }
             }
-            return;
+
+            if (currentlyDraggedIcon != null)
+            {
+                UpdateHighlight(PlacementUIManager.Instance.CurrentPlacementTeamID, pointerPosition);
+                return;
+            }
+
+            if (isDraggingForReposition && unitToReposition != null)
+            {
+                UpdateRepositioningUnit(pointerPosition);
+                if (playerControls.Gameplay.Click.WasReleasedThisFrame())
+                {
+                    DropRepositionedUnit(pointerPosition);
+                }
+                return;
+            }
+            HandleBoardInteraction(pointerPosition);
         }
-        HandleBoardInteraction(pointerPosition);
+        else if (GameManager.Instance.CurrentState == GameManager.GameState.Combat)
+        {
+            HandleCombatInteraction(pointerPosition);
+        }
     }
-    else if (GameManager.Instance.CurrentState == GameManager.GameState.Combat)
-    {
-        HandleCombatInteraction(pointerPosition);
-    }
-}
 
     private void HandleCombatInteraction(Vector2 pointerPosition)
     {
@@ -132,39 +132,39 @@ public class PlayerController : MonoBehaviour
     }
 
     private bool ShouldClosePanelOnClick(Vector2 pointerPosition)
-{
-    PointerEventData eventData = new PointerEventData(EventSystem.current);
-    eventData.position = pointerPosition;
-    List<RaycastResult> uiResults = new List<RaycastResult>();
-    EventSystem.current.RaycastAll(eventData, uiResults);
-
-    if (uiResults.Count > 0)
     {
-        foreach (var result in uiResults)
-        {
-            if (result.gameObject.transform.IsChildOf(PlacementUIManager.Instance.detailsPanel.transform) || 
-                result.gameObject == PlacementUIManager.Instance.detailsPanel)
-            {
-                return false;
-            }
+        PointerEventData eventData = new PointerEventData(EventSystem.current);
+        eventData.position = pointerPosition;
+        List<RaycastResult> uiResults = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, uiResults);
 
-            if (result.gameObject.GetComponentInParent<UnitIconController>() != null)
+        if (uiResults.Count > 0)
+        {
+            foreach (var result in uiResults)
+            {
+                if (result.gameObject.transform.IsChildOf(PlacementUIManager.Instance.detailsPanel.transform) ||
+                    result.gameObject == PlacementUIManager.Instance.detailsPanel)
+                {
+                    return false;
+                }
+
+                if (result.gameObject.GetComponentInParent<UnitIconController>() != null)
+                {
+                    return false;
+                }
+            }
+        }
+
+        Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            if (hit.collider.GetComponent<UnitController>() != null)
             {
                 return false;
             }
         }
+        return true;
     }
-
-    Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
-    if (Physics.Raycast(ray, out RaycastHit hit))
-    {
-        if (hit.collider.GetComponent<UnitController>() != null)
-        {
-            return false;
-        }
-    }
-    return true;
-}
 
     public void ClearInteractionState()
     {
@@ -462,52 +462,52 @@ public class PlayerController : MonoBehaviour
 
 
     private void UpdateHighlightForRepositioning(Vector2 pointerPosition)
-{
-    if (highlightInstance == null || unitToReposition == null) return;
-
-    Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
-    Vector3 cursorWorldPosition = Vector3.zero;
-    Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-    if (groundPlane.Raycast(ray, out float distance))
     {
-        cursorWorldPosition = ray.GetPoint(distance);
-    }
-    
-    Node nodeUnderCursor = gridManager.NodeFromWorldPoint(cursorWorldPosition);
-    Node nodeToShowHighlightOn = null;
+        if (highlightInstance == null || unitToReposition == null) return;
 
-    if (nodeUnderCursor != null)
-    {
-        UnitController otherUnit = GameManager.Instance.GetUnitAtNode(nodeUnderCursor);
-        if (otherUnit != null && otherUnit != unitToReposition && otherUnit.teamID == unitToReposition.teamID)
+        Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+        Vector3 cursorWorldPosition = Vector3.zero;
+        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+        if (groundPlane.Raycast(ray, out float distance))
         {
-            nodeToShowHighlightOn = nodeUnderCursor;
+            cursorWorldPosition = ray.GetPoint(distance);
+        }
+
+        Node nodeUnderCursor = gridManager.NodeFromWorldPoint(cursorWorldPosition);
+        Node nodeToShowHighlightOn = null;
+
+        if (nodeUnderCursor != null)
+        {
+            UnitController otherUnit = GameManager.Instance.GetUnitAtNode(nodeUnderCursor);
+            if (otherUnit != null && otherUnit != unitToReposition && otherUnit.teamID == unitToReposition.teamID)
+            {
+                nodeToShowHighlightOn = nodeUnderCursor;
+            }
+        }
+
+        if (nodeToShowHighlightOn == null)
+        {
+            if (gridManager.IsNodeValidForPlacement(nodeUnderCursor, unitToReposition.teamID))
+            {
+                nodeToShowHighlightOn = nodeUnderCursor;
+            }
+        }
+
+        if (nodeToShowHighlightOn == null)
+        {
+            nodeToShowHighlightOn = gridManager.FindClosestValidNode(cursorWorldPosition, unitToReposition.teamID);
+        }
+
+        if (nodeToShowHighlightOn != null)
+        {
+            highlightInstance.SetActive(true);
+            highlightInstance.transform.position = nodeToShowHighlightOn.worldPosition;
+        }
+        else
+        {
+            highlightInstance.SetActive(false);
         }
     }
-
-    if (nodeToShowHighlightOn == null)
-    {
-        if (gridManager.IsNodeValidForPlacement(nodeUnderCursor, unitToReposition.teamID))
-        {
-            nodeToShowHighlightOn = nodeUnderCursor;
-        }
-    }
-
-    if (nodeToShowHighlightOn == null)
-    {
-        nodeToShowHighlightOn = gridManager.FindClosestValidNode(cursorWorldPosition, unitToReposition.teamID);
-    }
-    
-    if (nodeToShowHighlightOn != null)
-    {
-        highlightInstance.SetActive(true);
-        highlightInstance.transform.position = nodeToShowHighlightOn.worldPosition;
-    }
-    else
-    {
-        highlightInstance.SetActive(false);
-    }
-}
 
     private void UpdateHighlight(int teamID, Vector2 pointerPosition, Node nodeToHighlight = null)
     {
