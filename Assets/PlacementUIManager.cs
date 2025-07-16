@@ -41,6 +41,7 @@ public class PlacementUIManager : MonoBehaviour
     public GameObject detailsPanel;
     public TextMeshProUGUI unitNameText;
     public Image portraitImage;
+    public Image backgroundImage;
     public TextMeshProUGUI levelText;
     public TextMeshProUGUI healthText;
     public TextMeshProUGUI attackDamageText;
@@ -163,6 +164,7 @@ public class PlacementUIManager : MonoBehaviour
         }
 
         if (portraitImage != null) portraitImage.sprite = stats.portrait;
+        if (backgroundImage != null) backgroundImage.sprite = stats.backgroundImage;
 
         if (equippedArtifactImage != null)
         {

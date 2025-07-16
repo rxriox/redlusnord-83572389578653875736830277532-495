@@ -44,8 +44,9 @@ public class UnitStats : ScriptableObject
     [Header("Visuals & Prefabs")]
     [Tooltip("Icono pequeño que representa a la unidad en la UI.")]
     public Sprite unitIcon;
-    [Tooltip("El retrato del personaje que se muestra en el panel de detalles.")]
     public Sprite portrait;
+    public Sprite backgroundImage;
+    
     [Tooltip("El Prefab del modelo del personaje que se instancia en el tablero.")]
     public GameObject characterPrefab;
     [Tooltip("El Prefab del proyectil que dispara la unidad si es de Rango.")]
