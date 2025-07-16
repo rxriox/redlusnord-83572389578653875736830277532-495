@@ -34,10 +34,35 @@ public class ArtifactManager : MonoBehaviour
 
     public bool CanPlaceArtifact(Artifact artifact)
     {
-        if (activeArtifacts.Count >= GameManager.Instance.maxArtifacts) return false;
+        if (activeArtifacts.Count >= GameManager.Instance.maxArtifacts)
+        {
+            string message = "Haz alcanzado el maximo de artefactos disponibles";
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.ShowPlacementError(message);
+            }
+
+            Debug.Log(message + $" ({activeArtifacts.Count}/{GameManager.Instance.maxArtifacts})");
+
+            return false;
+        }
+
         int currentCategoryCount = activeCategoryCounts.ContainsKey(artifact.category) ? activeCategoryCounts[artifact.category] : 0;
         int categoryLimit = GameManager.Instance.GetArtifactLimitForCategory(artifact.category);
-        return currentCategoryCount < categoryLimit;
+
+        if (currentCategoryCount >= categoryLimit)
+        {
+            string message = $"Límite de artefactos de categoría '{artifact.category}' alcanzado";
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.ShowPlacementError(message);
+            }
+            Debug.Log(message + $" ({currentCategoryCount}/{categoryLimit})");
+            return false;
+        }
+
+        return true;
     }
 
     public void PlaceArtifact(ArtifactIconController benchIcon)

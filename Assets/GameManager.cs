@@ -45,6 +45,7 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI activeArtifactsCountText;
     [Header("Referencias de UI (Mensajes)")]
     public GameObject placementErrorPanel;
+    public CanvasGroup placementErrorCanvasGroup;
     public TextMeshProUGUI placementErrorText;
 
     private Coroutine hideErrorCoroutine;
@@ -486,21 +487,50 @@ public class GameManager : MonoBehaviour
             StopCoroutine(hideErrorCoroutine);
         }
 
-        if (placementErrorPanel != null && placementErrorText != null)
+        if (placementErrorPanel != null && placementErrorText != null && placementErrorCanvasGroup != null)
         {
             placementErrorText.text = message;
-            placementErrorPanel.SetActive(true);
+            StopCoroutine("FadeCanvasGroup");
+            StartCoroutine(FadeCanvasGroup(placementErrorCanvasGroup, 1f, 0.2f));
         }
 
-        hideErrorCoroutine = StartCoroutine(HideErrorPanelAfterDelay(4f));
+        hideErrorCoroutine = StartCoroutine(HideErrorPanelAfterDelay(1f));
+    }
+
+    private IEnumerator FadeCanvasGroup(CanvasGroup cg, float targetAlpha, float duration)
+    {
+        if (targetAlpha > 0)
+        {
+            cg.alpha = 0;
+            cg.gameObject.SetActive(true);
+        }
+
+        float startAlpha = cg.alpha;
+        float time = 0f;
+
+        while (time < duration)
+        {
+            time += Time.deltaTime;
+            cg.alpha = Mathf.Lerp(startAlpha, targetAlpha, time / duration);
+            yield return null;
+        }
+
+        cg.alpha = targetAlpha;
+
+        if (targetAlpha == 0)
+        {
+            cg.gameObject.SetActive(false);
+        }
     }
 
     private IEnumerator HideErrorPanelAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        if (placementErrorPanel != null)
+        if (placementErrorPanel != null && placementErrorCanvasGroup != null)
         {
-            placementErrorPanel.SetActive(false);
+
+            StopCoroutine("FadeCanvasGroup");
+            StartCoroutine(FadeCanvasGroup(placementErrorCanvasGroup, 0f, 0.3f));
         }
         hideErrorCoroutine = null;
     }
