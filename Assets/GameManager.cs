@@ -43,6 +43,11 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI allyUnitCountText;
     public TextMeshProUGUI enemyUnitCountText;
     public TextMeshProUGUI activeArtifactsCountText;
+    [Header("Referencias de UI (Mensajes)")]
+    public GameObject placementErrorPanel;
+    public TextMeshProUGUI placementErrorText;
+
+    private Coroutine hideErrorCoroutine;
 
     private Dictionary<UnitStats.UnitCategory, int> categoryLimitsDict = new Dictionary<UnitStats.UnitCategory, int>();
     private Dictionary<UnitStats.UnitCategory, int> categoryLevelsDict = new Dictionary<UnitStats.UnitCategory, int>();
@@ -185,33 +190,33 @@ public class GameManager : MonoBehaviour
     }
 
     public bool CanPlaceUnit(int teamID, UnitStats stats)
+{
+    int currentTotalCount = GetUnitCountForTeam(teamID);
+    if (currentTotalCount >= maxUnitsPerTeam)
     {
-        int currentTotalCount = 0;
-        teamUnitCount.TryGetValue(teamID, out currentTotalCount);
-        if (currentTotalCount >= maxUnitsPerTeam)
-        {
-            Debug.Log($"LÍMITE TOTAL ALCANZADO: Equipo {teamID} ya tiene {currentTotalCount}/{maxUnitsPerTeam} unidades.");
-            return false;
-        }
-        UnitStats.UnitCategory category = stats.category;
-        int currentCategoryCount = 0;
-
-        if (teamCategoryCounts != null && teamCategoryCounts.ContainsKey(teamID))
-        {
-            teamCategoryCounts[teamID].TryGetValue(category, out currentCategoryCount);
-        }
-
-        if (categoryLimitsDict.TryGetValue(category, out int limitForCategory))
-        {
-            if (currentCategoryCount >= limitForCategory)
-            {
-                Debug.LogWarning($"LÍMITE DE CATEGORÍA ALCANZADO: Equipo {teamID} ya tiene el máximo de unidades '{category}' ({currentCategoryCount}/{limitForCategory}).");
-                return false;
-            }
-        }
-
-        return true;
+        string message = $"LÍMITE TOTAL ALCANZADO ({currentTotalCount}/{maxUnitsPerTeam})";
+        ShowPlacementError(message);
+        Debug.Log(message);
+        return false;
     }
+
+    UnitStats.UnitCategory category = stats.category;
+    int currentCategoryCount = 0;
+    if (teamCategoryCounts != null && teamCategoryCounts.ContainsKey(teamID))
+    {
+        teamCategoryCounts[teamID].TryGetValue(category, out currentCategoryCount);
+    }
+    
+    if (categoryLimitsDict.TryGetValue(category, out int limitForCategory) && currentCategoryCount >= limitForCategory)
+    {
+        string message = $"LÍMITE DE UNIDADES '{category.ToString().ToUpper()}' ALCANZADO ({currentCategoryCount}/{limitForCategory})";
+        ShowPlacementError(message);
+        Debug.LogWarning(message);
+        return false;
+    }
+    
+    return true;
+}
 
     public void ResetBoardButton()
     {
@@ -472,5 +477,31 @@ public class GameManager : MonoBehaviour
             int artifactCount = ArtifactManager.Instance.GetActiveArtifactCount();
             activeArtifactsCountText.text = $"{artifactCount}/{maxArtifacts}";
         }
+    }
+
+    public void ShowPlacementError(string message)
+    {
+        if (hideErrorCoroutine != null)
+        {
+            StopCoroutine(hideErrorCoroutine);
+        }
+
+        if (placementErrorPanel != null && placementErrorText != null)
+        {
+            placementErrorText.text = message;
+            placementErrorPanel.SetActive(true);
+        }
+
+        hideErrorCoroutine = StartCoroutine(HideErrorPanelAfterDelay(4f));
+    }
+
+    private IEnumerator HideErrorPanelAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (placementErrorPanel != null)
+        {
+            placementErrorPanel.SetActive(false);
+        }
+        hideErrorCoroutine = null;
     }
 }
