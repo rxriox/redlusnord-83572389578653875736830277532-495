@@ -469,10 +469,13 @@ public class GameManager : MonoBehaviour
     public void UpdateAllCountsUI()
     {
         if (activeArtifactsCountText != null && ArtifactManager.Instance != null)
-        {
-            int artifactCount = ArtifactManager.Instance.GetActiveArtifactCount();
-            activeArtifactsCountText.text = $"{artifactCount}/{maxArtifacts}";
-        }
+    {
+        int playerArtifacts = ArtifactManager.Instance.GetActiveArtifactCountForTeam(0);
+        int enemyArtifacts = ArtifactManager.Instance.GetActiveArtifactCountForTeam(1);
+        int totalArtifacts = playerArtifacts + enemyArtifacts;
+        
+        activeArtifactsCountText.text = $"{totalArtifacts}/{maxArtifacts}";
+    }
     }
 
     public void ShowPlacementError(string message)

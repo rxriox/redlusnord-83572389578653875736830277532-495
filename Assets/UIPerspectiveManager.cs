@@ -26,6 +26,9 @@ public class UIPerspectiveManager : MonoBehaviour
     [Tooltip("Arrastra aquí el objeto que contiene el HarmonyUIManager.")]
     public HarmonyUIManager harmonyUIManager;
 
+    [Tooltip("Arrastra aquí el objeto que contiene el ArtifactManager.")]
+    public ArtifactManager artifactManager;
+
     [Header("Apariencia de Botones")]
     public Color activeButtonColor = Color.white;
     public Color inactiveButtonColor = new Color(0.5f, 0.5f, 0.5f, 1f);
@@ -59,6 +62,7 @@ public class UIPerspectiveManager : MonoBehaviour
         if (harmonyUIManager != null)
         {
             harmonyUIManager.SetTeamPerspective(0);
+            if (artifactManager != null) artifactManager.SetPerspective(0);
             UpdateButtonAppearance(true);
             UpdateUnitCountsUI(0);
         }
@@ -69,6 +73,7 @@ public class UIPerspectiveManager : MonoBehaviour
         if (harmonyUIManager != null)
         {
             harmonyUIManager.SetTeamPerspective(1);
+            if (artifactManager != null) artifactManager.SetPerspective(1);
             UpdateButtonAppearance(false);
             UpdateUnitCountsUI(1);
         }

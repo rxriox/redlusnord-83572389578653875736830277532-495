@@ -12,6 +12,9 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
     [HideInInspector]
     public ArtifactIconController originatingBenchIcon;
 
+    [HideInInspector]
+    public int teamID; // Guardará si el artefacto es del equipo 0 o 1
+
     private Transform originalParent;
     private UnitController equippedUnit;
 
@@ -31,9 +34,10 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
         canvasGroup = gameObject.AddComponent<CanvasGroup>();
     }
 
-    public void Initialize(ArtifactIconController benchIcon)
+    public void Initialize(ArtifactIconController benchIcon, int ownerTeamID)
     {
         this.originatingBenchIcon = benchIcon;
+        this.teamID = ownerTeamID; // Asigna el ID del equipo
 
         if (artifactImage != null && benchIcon.artifactData != null)
         {
@@ -133,6 +137,17 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
 
     private void HandleEquipOnUnit(UnitController targetUnit)
     {
+        // VALIDACIÓN: No se puede equipar un artefacto a una unidad de otro equipo.
+        if (targetUnit.teamID != this.teamID)
+        {
+            Debug.LogWarning("Intento de equipar artefacto a un equipo incorrecto.");
+            // Devolvemos el icono a su posición original sin hacer nada.
+            transform.SetParent(originalParent);
+            transform.SetSiblingIndex(originalSiblingIndex);
+            transform.position = startPosition;
+            return;
+        }
+
         if (equippedUnit != null && equippedUnit != targetUnit)
         {
             equippedUnit.UnequipArtifact();
@@ -156,8 +171,6 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
         {
             unitIconOverlay.SetActive(true);
         }
-
-        
     }
 
     public void ClearEquippedStatus()

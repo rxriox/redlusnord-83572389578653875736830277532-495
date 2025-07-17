@@ -7,58 +7,84 @@ public class ArtifactManager : MonoBehaviour
 {
     public static ArtifactManager Instance { get; private set; }
 
-    [Header("Referencias de UI")]
-    public Transform activeArtifactsContainer;
-    public GameObject noArtifactsContainer;
+    [Header("Referencias de UI por Equipo")]
+    [Tooltip("El objeto padre que contendrá los iconos de artefactos del jugador.")]
+    public Transform playerArtifactsContainer;
+    [Tooltip("El objeto padre que contendrá los iconos de artefactos del enemigo.")]
+    public Transform enemyArtifactsContainer;
+    [Tooltip("El mensaje que aparece cuando el jugador no tiene artefactos.")]
+    public GameObject playerNoArtifactsMessage;
+    [Tooltip("El mensaje que aparece cuando el enemigo no tiene artefactos.")]
+    public GameObject enemyNoArtifactsMessage;
+
     public GameObject activeArtifactIconPrefab;
 
-    private List<ActiveArtifactIcon> activeArtifacts = new List<ActiveArtifactIcon>();
-    private Dictionary<ArtifactCategory, int> activeCategoryCounts = new Dictionary<ArtifactCategory, int>();
+    private Dictionary<int, List<ActiveArtifactIcon>> teamActiveArtifacts = new Dictionary<int, List<ActiveArtifactIcon>>();
+    private Dictionary<int, Dictionary<ArtifactCategory, int>> teamCategoryCounts = new Dictionary<int, Dictionary<ArtifactCategory, int>>();
+
+    private int currentPerspectiveTeamID = 0;
+    private bool isArtifactTabActive = false; // NUEVA VARIABLE
 
     private void Awake()
     {
         if (Instance != null && Instance != this) Destroy(gameObject);
-        else Instance = this;
+        else
+        {
+            Instance = this;
+            teamActiveArtifacts[0] = new List<ActiveArtifactIcon>();
+            teamActiveArtifacts[1] = new List<ActiveArtifactIcon>();
+            teamCategoryCounts[0] = new Dictionary<ArtifactCategory, int>();
+            teamCategoryCounts[1] = new Dictionary<ArtifactCategory, int>();
+        }
     }
 
     void Start()
     {
-        UpdateUI();
-        ReorderActiveIcons();
+        SetPerspective(0);
+        // Asegúrate de que los contenedores estén ocultos al inicio, si la pestaña no está activa
+        if (playerArtifactsContainer != null) playerArtifactsContainer.gameObject.SetActive(false);
+        if (enemyArtifactsContainer != null) enemyArtifactsContainer.gameObject.SetActive(false);
+        if (playerNoArtifactsMessage != null) playerNoArtifactsMessage.SetActive(false);
+        if (enemyNoArtifactsMessage != null) enemyNoArtifactsMessage.SetActive(false);
     }
 
-    public int GetActiveArtifactCount()
+    public void SetPerspective(int teamID)
     {
-        return activeArtifacts.Count;
-    }
-
-    public bool CanPlaceArtifact(Artifact artifact)
-    {
-        if (activeArtifacts.Count >= GameManager.Instance.maxArtifacts)
+        currentPerspectiveTeamID = teamID;
+        // Solo activa los contenedores si la pestaña de artefactos está activa
+        if (isArtifactTabActive)
         {
-            string message = "Haz alcanzado el maximo de artefactos disponibles";
+            if (playerArtifactsContainer != null) playerArtifactsContainer.gameObject.SetActive(teamID == 0);
+            if (enemyArtifactsContainer != null) enemyArtifactsContainer.gameObject.SetActive(teamID == 1);
+        }
+        else
+        {
+            if (playerArtifactsContainer != null) playerArtifactsContainer.gameObject.SetActive(false);
+            if (enemyArtifactsContainer != null) enemyArtifactsContainer.gameObject.SetActive(false);
+        }
 
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.ShowPlacementError(message);
-            }
+        UpdateUI();
+    }
 
-            Debug.Log(message + $" ({activeArtifacts.Count}/{GameManager.Instance.maxArtifacts})");
+    public int GetActiveArtifactCountForTeam(int teamID)
+    {
+        return teamActiveArtifacts.ContainsKey(teamID) ? teamActiveArtifacts[teamID].Count : 0;
+    }
 
+    public bool CanPlaceArtifact(Artifact artifactData, int teamID)
+    {
+        if (teamActiveArtifacts[teamID].Count >= GameManager.Instance.maxArtifacts)
+        {
+            GameManager.Instance.ShowPlacementError("Haz alcanzado el máximo de artefactos disponibles");
             return false;
         }
 
-        int currentCategoryCount = activeCategoryCounts.ContainsKey(artifact.category) ? activeCategoryCounts[artifact.category] : 0;
-        int categoryLimit = GameManager.Instance.GetArtifactLimitForCategory(artifact.category);
+        teamCategoryCounts[teamID].TryGetValue(artifactData.category, out int currentCategoryCount);
+        int categoryLimit = GameManager.Instance.GetArtifactLimitForCategory(artifactData.category);
 
         if (currentCategoryCount >= categoryLimit)
         {
-            string message = $"Límite de artefactos de categoría '{artifact.category}' alcanzado";
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.ShowPlacementError(message);
-            }
-            Debug.Log(message + $" ({currentCategoryCount}/{categoryLimit})");
+            GameManager.Instance.ShowPlacementError($"Límite de artefactos de categoría '{artifactData.category}' alcanzado");
             return false;
         }
 
@@ -67,118 +93,147 @@ public class ArtifactManager : MonoBehaviour
 
     public void PlaceArtifact(ArtifactIconController benchIcon)
     {
-        if (benchIcon == null || benchIcon.artifactData == null || !CanPlaceArtifact(benchIcon.artifactData)) return;
+        int teamID = currentPerspectiveTeamID;
 
-        GameObject activeIconGO = Instantiate(activeArtifactIconPrefab, activeArtifactsContainer);
+        if (benchIcon == null || benchIcon.artifactData == null || !CanPlaceArtifact(benchIcon.artifactData, teamID))
+            return;
+
+        Transform container = (teamID == 0) ? playerArtifactsContainer : enemyArtifactsContainer;
+
+        GameObject activeIconGO = Instantiate(activeArtifactIconPrefab, container);
         ActiveArtifactIcon activeIconScript = activeIconGO.GetComponent<ActiveArtifactIcon>();
 
-        activeIconScript.Initialize(benchIcon);
-        activeArtifacts.Add(activeIconScript);
+        activeIconScript.Initialize(benchIcon, teamID);
+        teamActiveArtifacts[teamID].Add(activeIconScript);
 
-        activeCategoryCounts.TryGetValue(benchIcon.artifactData.category, out int count);
-        activeCategoryCounts[benchIcon.artifactData.category] = count + 1;
+        teamCategoryCounts[teamID].TryGetValue(benchIcon.artifactData.category, out int count);
+        teamCategoryCounts[teamID][benchIcon.artifactData.category] = count + 1;
 
         benchIcon.SetAsPlaced();
-        GameManager.Instance.UpdateAllCountsUI();
-        ReorderActiveIcons();
-
         UpdateUI();
+        GameManager.Instance.UpdateAllCountsUI();
     }
 
     public void RemoveArtifact(ActiveArtifactIcon activeIcon)
     {
         if (activeIcon == null || activeIcon.originatingBenchIcon == null) return;
 
+        int teamID = activeIcon.teamID;
+
         activeIcon.ClearEquippedStatus();
 
         Artifact artifactToRemove = activeIcon.originatingBenchIcon.artifactData;
-
-        if (activeCategoryCounts.ContainsKey(artifactToRemove.category))
+        if (teamCategoryCounts.ContainsKey(teamID) && teamCategoryCounts[teamID].ContainsKey(artifactToRemove.category))
         {
-            activeCategoryCounts[artifactToRemove.category]--;
+            teamCategoryCounts[teamID][artifactToRemove.category]--;
         }
 
+        teamActiveArtifacts[teamID].Remove(activeIcon);
         activeIcon.originatingBenchIcon.ResetIcon();
-        activeArtifacts.Remove(activeIcon);
         Destroy(activeIcon.gameObject);
 
-        GameManager.Instance.UpdateAllCountsUI();
-        ReorderActiveIcons();
-
         UpdateUI();
+        GameManager.Instance.UpdateAllCountsUI();
     }
 
-    public void FindAndClearEquippedIcon(Artifact artifactToFind)
+    private void UpdateUI()
     {
-        var activeIcon = activeArtifacts.FirstOrDefault(icon => icon.originatingBenchIcon.artifactData == artifactToFind);
-        if (activeIcon != null)
+        bool isCurrentContainerEmpty = teamActiveArtifacts[currentPerspectiveTeamID].Count == 0;
+
+        if (currentPerspectiveTeamID == 0)
         {
-            activeIcon.ClearEquippedStatus();
+            if (playerNoArtifactsMessage != null)
+                playerNoArtifactsMessage.SetActive(isArtifactTabActive && isCurrentContainerEmpty);
+            if (enemyNoArtifactsMessage != null)
+                enemyNoArtifactsMessage.SetActive(false);
+        }
+        else
+        {
+            if (enemyNoArtifactsMessage != null)
+                enemyNoArtifactsMessage.SetActive(isArtifactTabActive && isCurrentContainerEmpty);
+            if (playerNoArtifactsMessage != null)
+                playerNoArtifactsMessage.SetActive(false);
         }
     }
 
     public void ValidateActiveArtifacts()
     {
-        var keptCategoryCounts = new Dictionary<ArtifactCategory, int>();
-
-        foreach (var activeIcon in activeArtifacts.ToList())
+        foreach (var teamID in teamActiveArtifacts.Keys.ToList())
         {
-            if (activeIcon == null || activeIcon.originatingBenchIcon == null) continue;
+            var keptCategoryCounts = new Dictionary<ArtifactCategory, int>();
+            var artifactList = teamActiveArtifacts[teamID].ToList();
 
-            Artifact artifact = activeIcon.originatingBenchIcon.artifactData;
-            int limitForCategory = GameManager.Instance.GetArtifactLimitForCategory(artifact.category);
-            int currentKeptCount = keptCategoryCounts.TryGetValue(artifact.category, out int count) ? count : 0;
-
-            if (currentKeptCount >= limitForCategory)
+            foreach (var activeIcon in artifactList)
             {
-                RemoveArtifact(activeIcon);
+                if (activeIcon == null || activeIcon.originatingBenchIcon == null) continue;
+
+                Artifact artifact = activeIcon.originatingBenchIcon.artifactData;
+                int limit = GameManager.Instance.GetArtifactLimitForCategory(artifact.category);
+                int current = keptCategoryCounts.TryGetValue(artifact.category, out int count) ? count : 0;
+
+                if (current >= limit)
+                {
+                    RemoveArtifact(activeIcon);
+                }
+                else
+                {
+                    keptCategoryCounts[artifact.category] = current + 1;
+                }
             }
-            else
-            {
-                keptCategoryCounts[artifact.category] = currentKeptCount + 1;
-            }
-        }
 
-        while (activeArtifacts.Count > GameManager.Instance.maxArtifacts)
-        {
-            if (activeArtifacts.Count > 0)
+            while (teamActiveArtifacts[teamID].Count > GameManager.Instance.maxArtifacts)
             {
-                RemoveArtifact(activeArtifacts[activeArtifacts.Count - 1]);
+                if (teamActiveArtifacts[teamID].Count > 0)
+                {
+                    RemoveArtifact(teamActiveArtifacts[teamID].Last());
+                }
             }
         }
 
         UpdateUI();
-        ReorderActiveIcons();
-    }
-
-    private void UpdateUI()
-    {
-        bool hasArtifacts = activeArtifacts.Count > 0;
-        
-        if (noArtifactsContainer != null)
-        {
-            noArtifactsContainer.SetActive(!hasArtifacts);
-        }
     }
 
     public void ResetAllArtifactIconsState()
     {
-        foreach (var activeIcon in activeArtifacts)
+        foreach (var artifactList in teamActiveArtifacts.Values)
         {
+            foreach (var icon in artifactList)
+            {
+                if (icon != null)
+                {
+                    icon.ClearEquippedStatus();
+                }
+            }
+        }
+    }
+
+    public void FindAndClearEquippedIcon(Artifact artifactToFind)
+    {
+        foreach (var artifactList in teamActiveArtifacts.Values)
+        {
+            var activeIcon = artifactList.FirstOrDefault(icon => icon.originatingBenchIcon.artifactData == artifactToFind);
             if (activeIcon != null)
             {
                 activeIcon.ClearEquippedStatus();
             }
         }
     }
-    private void ReorderActiveIcons()
-    {
-        if (activeArtifactsContainer == null || activeArtifacts.Count < 2) return;
 
-        var sortedIcons = activeArtifacts.OrderByDescending(icon => icon.IsEquipped).ToList();
-        for (int i = 0; i < sortedIcons.Count; i++)
+    public void SetArtifactPanelActive(bool isActive)
+    {
+        isArtifactTabActive = isActive; // ACTUALIZA LA NUEVA VARIABLE
+
+        if (isActive)
         {
-            sortedIcons[i].transform.SetSiblingIndex(i);
+            SetPerspective(currentPerspectiveTeamID);
+        }
+        else
+        {
+            if (playerArtifactsContainer != null) playerArtifactsContainer.gameObject.SetActive(false);
+            if (enemyArtifactsContainer != null) enemyArtifactsContainer.gameObject.SetActive(false);
+
+            if (playerNoArtifactsMessage != null) playerNoArtifactsMessage.SetActive(false);
+            if (enemyNoArtifactsMessage != null) enemyNoArtifactsMessage.SetActive(false);
         }
     }
 }

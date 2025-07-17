@@ -11,6 +11,7 @@ public class TabGroupManager : MonoBehaviour
     [HideInInspector]
     public Artifact draggedArtifact { get; private set; }
     private Tab lastSelectedTab;
+
     private void Awake()
     {
         if (Instance == null)
@@ -22,9 +23,9 @@ public class TabGroupManager : MonoBehaviour
             Destroy(gameObject);
         }
 
-        // Inicializamos nuestro objeto de controles
         playerControls = new PlayerControl();
     }
+
     private void OnEnable()
     {
         playerControls.Gameplay.Enable();
@@ -34,6 +35,7 @@ public class TabGroupManager : MonoBehaviour
     {
         playerControls.Gameplay.Disable();
     }
+
     [System.Serializable]
     public class Tab
     {
@@ -54,15 +56,27 @@ public class TabGroupManager : MonoBehaviour
     [Header("Pestaña por Defecto")]
     [Tooltip("El índice de la pestaña que se mostrará al iniciar (0 es la primera de la lista).")]
     public int defaultTabIndex = 0;
+
     private Tab selectedTab;
+
     [Header("Arrastre de Artefactos")]
-    [Tooltip("El índice de la pestaña/panel que se mostrará como zona para soltar artefactos (0=primero, 1=segundo, etc.).")]
-    public int artifactDropTargetTabIndex = 1;
     [Tooltip("La imagen de la UI que seguirá al puntero al arrastrar un artefacto.")]
     public Image artifactDragCursor;
+    [Tooltip("El índice de la pestaña/panel que se mostrará como zona para soltar artefactos (0=primero, 1=segundo, etc.).")]
+    public int artifactDropTargetTabIndex = 1;
+
+    [Tooltip("Arrastra aquí el objeto que tiene el ArtifactManager.")]
+    public ArtifactManager artifactManager;
+    [Tooltip("El índice en la lista 'Tabs' que corresponde a la pestaña de artefactos (0 es el primero, 1 el segundo, etc.).")]
+    public int artifactTabIndex = 1;
 
     void Start()
     {
+        if (artifactManager != null)
+        {
+            artifactManager.SetArtifactPanelActive(false);
+        }
+
         foreach (Tab tab in tabs)
         {
             tab.tabButton.onClick.AddListener(() => OnTabSelected(tab));
@@ -73,6 +87,7 @@ public class TabGroupManager : MonoBehaviour
             OnTabSelected(tabs[defaultTabIndex]);
         }
     }
+
     void OnTabSelected(Tab tab)
     {
         selectedTab = tab;
@@ -81,34 +96,41 @@ public class TabGroupManager : MonoBehaviour
 
     void ResetTabStates()
     {
-        foreach (Tab tab in tabs)
+        for (int i = 0; i < tabs.Count; i++)
         {
+            Tab tab = tabs[i];
             bool isActive = (tab == selectedTab);
 
             if (tab.panelToShow != null)
             {
                 tab.panelToShow.SetActive(isActive);
             }
+
             Image buttonImage = tab.tabButton.GetComponent<Image>();
             if (buttonImage != null)
             {
                 buttonImage.sprite = isActive ? tab.activeStateSprite : tab.inactiveStateSprite;
             }
+
+            if (i == artifactTabIndex && artifactManager != null)
+            {
+                artifactManager.SetArtifactPanelActive(isActive);
+            }
         }
     }
+
     public void OnArtifactDragStart(ArtifactIconController icon)
     {
-        artifactDropWasSuccessful = false; 
+        artifactDropWasSuccessful = false;
         lastSelectedTab = selectedTab;
         draggedArtifact = icon.artifactData;
-        
-        // Activamos y configuramos el cursor de arrastre
+
         if (artifactDragCursor != null && icon.artifactData != null)
         {
             artifactDragCursor.gameObject.SetActive(true);
             artifactDragCursor.sprite = icon.artifactData.icon;
         }
-        
+
         if (tabs.Count > artifactDropTargetTabIndex && artifactDropTargetTabIndex >= 0)
         {
             OnTabSelected(tabs[artifactDropTargetTabIndex]);
@@ -118,9 +140,9 @@ public class TabGroupManager : MonoBehaviour
             Debug.LogWarning("El 'Artifact Drop Target Tab Index' no es válido.");
         }
     }
+
     public void OnArtifactDragEnd()
     {
-        // Ocultamos el cursor de arrastre
         if (artifactDragCursor != null)
         {
             artifactDragCursor.gameObject.SetActive(false);
@@ -130,7 +152,7 @@ public class TabGroupManager : MonoBehaviour
         {
             OnTabSelected(lastSelectedTab);
         }
-        
+
         draggedArtifact = null;
         lastSelectedTab = null;
         artifactDropWasSuccessful = false;
@@ -140,11 +162,11 @@ public class TabGroupManager : MonoBehaviour
     {
         artifactDropWasSuccessful = true;
     }
+
     private void Update()
     {
         if (draggedArtifact != null && artifactDragCursor != null)
         {
-            // CORRECCIÓN: Leemos la posición del puntero desde nuestro sistema de control unificado.
             artifactDragCursor.transform.position = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
         }
     }
