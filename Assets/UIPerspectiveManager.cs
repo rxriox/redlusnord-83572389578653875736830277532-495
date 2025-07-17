@@ -10,6 +10,10 @@ public class UIPerspectiveManager : MonoBehaviour
     [Tooltip("El botón que activa la perspectiva del enemigo.")]
     public Button enemyPerspectiveButton;
 
+    [Header("Contador Total")]
+    [Tooltip("Texto para mostrar el contador total de unidades en la perspectiva actual.")]
+    public TextMeshProUGUI totalUnitCountText;
+
     [Header("Contadores de Rareza")]
     [Tooltip("Texto para mostrar el contador de unidades Fabulosas.")]
     public TextMeshProUGUI fabulosaCountText;
@@ -97,6 +101,14 @@ public class UIPerspectiveManager : MonoBehaviour
     private void UpdateUnitCountsUI(int teamID)
     {
         if (GameManager.Instance == null) return;
+
+        // Contador total
+        if (totalUnitCountText != null)
+        {
+            int currentTotal = GameManager.Instance.GetUnitCountForTeam(teamID);
+            int totalLimit = GameManager.Instance.maxUnitsPerTeam;
+            totalUnitCountText.text = $"{currentTotal} / {totalLimit}";
+        }
 
         // Fabulosa
         if (fabulosaCountText != null)
