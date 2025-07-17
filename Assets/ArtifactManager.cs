@@ -236,4 +236,34 @@ public class ArtifactManager : MonoBehaviour
             if (enemyNoArtifactsMessage != null) enemyNoArtifactsMessage.SetActive(false);
         }
     }
+
+    public void DetachAllIconsFromUnits()
+    {
+        foreach (var artifactList in teamActiveArtifacts.Values)
+        {
+            foreach (var icon in artifactList)
+            {
+                if (icon != null && icon.IsEquipped)
+                {
+                    icon.DetachFromUnit();
+                }
+            }
+        }
+    }
+
+    public void ReEquipArtifactToUnit(UnitController unit, Artifact artifactToEquip)
+    {
+        // Primero, equipa el artefacto en la unidad para aplicar sus efectos
+        unit.EquipArtifact(artifactToEquip);
+
+        // Luego, encuentra el icono del artefacto activo correspondiente y lo vincula a la nueva unidad
+        var activeIcon = teamActiveArtifacts[unit.teamID]
+            .FirstOrDefault(icon => icon.originatingBenchIcon.artifactData == artifactToEquip);
+
+        if (activeIcon != null)
+        {
+            activeIcon.LinkToUnit(unit);
+        }
+    }
+
 }

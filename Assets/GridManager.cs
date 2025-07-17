@@ -62,7 +62,7 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    public void SpawnUnit(UnitStats stats, int team, Node node, UnitIconController originatingIcon = null)
+    public UnitController SpawnUnit(UnitStats stats, int team, Node node, UnitIconController originatingIcon = null)
     {
         if (stats != null && node != null && node.isWalkable)
         {
@@ -82,8 +82,10 @@ public class GridManager : MonoBehaviour
                 {
                     originatingIcon.SetAsPlaced();
                 }
+                return unitController;
             }
         }
+        return null;
     }
 
     public bool IsNodeValidForPlacement(Node node, int teamID)

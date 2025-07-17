@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
         public int teamID;
         public Node startingNode;
         public UnitIconController originatingIcon;
+        public Artifact EquippedArtifact;
     }
     private List<CombatStartInfo> unitsAtCombatStart = new List<CombatStartInfo>();
     public static event System.Action OnHarmoniesUpdated;
@@ -351,7 +352,8 @@ public class GameManager : MonoBehaviour
                         stats = unit.unitStats,
                         teamID = unit.teamID,
                         startingNode = unit.currentNode,
-                        originatingIcon = unit.originatingIcon
+                        originatingIcon = unit.originatingIcon,
+                        EquippedArtifact = unit.EquippedArtifact
                     });
                 }
             }
@@ -403,11 +405,13 @@ public class GameManager : MonoBehaviour
         if (teamCategoryCounts != null) teamCategoryCounts.Clear();
         harmonyCounts.Clear();
         activeHarmonyTiers.Clear();
+
         foreach (var unit in allUnits.ToList())
         {
             if (unit != null) Destroy(unit.gameObject);
         }
         allUnits.Clear();
+
         if (gridManager != null && gridManager.grid != null)
         {
             foreach (Node node in gridManager.grid)
@@ -416,17 +420,23 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // Pide al ArtifactManager que "desconecte" los iconos de las unidades que serán destruidas.
+        if (ArtifactManager.Instance != null)
+        {
+            ArtifactManager.Instance.DetachAllIconsFromUnits();
+        }
+
         foreach (var unitInfo in unitsAtCombatStart)
         {
             if (gridManager != null && unitInfo.startingNode != null)
             {
-                gridManager.SpawnUnit(unitInfo.stats, unitInfo.teamID, unitInfo.startingNode, unitInfo.originatingIcon);
+                // Llama a SpawnUnit y, si la unidad tenía un artefacto, lo vuelve a conectar.
+                UnitController newUnit = gridManager.SpawnUnit(unitInfo.stats, unitInfo.teamID, unitInfo.startingNode, unitInfo.originatingIcon);
+                if (newUnit != null && unitInfo.EquippedArtifact != null && ArtifactManager.Instance != null)
+                {
+                    ArtifactManager.Instance.ReEquipArtifactToUnit(newUnit, unitInfo.EquippedArtifact);
+                }
             }
-        }
-
-        if (ArtifactManager.Instance != null)
-        {
-            ArtifactManager.Instance.ResetAllArtifactIconsState();
         }
 
         OnHarmoniesUpdated?.Invoke();
@@ -434,6 +444,7 @@ public class GameManager : MonoBehaviour
         CurrentState = GameState.Placement;
         Debug.Log("Fase de colocación reanudada.");
     }
+
 
     public UnitController GetUnitAtNode(Node node)
     {

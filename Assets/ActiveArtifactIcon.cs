@@ -186,4 +186,32 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
             unitIconOverlay.SetActive(false);
         }
     }
+
+    public void DetachFromUnit()
+    {
+        // Simplemente borra la referencia a la unidad (que ya fue destruida)
+        equippedUnit = null;
+
+        if (unitIconOverlay != null)
+        {
+            unitIconOverlay.SetActive(false);
+        }
+    }
+
+    public void LinkToUnit(UnitController unit)
+    {
+        // Establece la nueva referencia y actualiza la UI del icono
+        equippedUnit = unit;
+
+        if (unitIconImage != null && unit.unitStats != null)
+        {
+            unitIconImage.sprite = unit.unitStats.unitIcon;
+        }
+
+        if (unitIconOverlay != null)
+        {
+            unitIconOverlay.SetActive(true);
+        }
+    }
+
 }
