@@ -11,9 +11,30 @@ public class UnitController : MonoBehaviour
     public UnitIconController originatingIcon;
     public Artifact EquippedArtifact { get; private set; }
     public int CurrentLevel { get; private set; }
-    public int MaxHealth => (unitStats.maxHealthByLevel.Count >= CurrentLevel && CurrentLevel > 0) ? unitStats.maxHealthByLevel[CurrentLevel - 1] : 0;
+    public int MaxHealth
+    {
+        get
+        {
+            int baseHealth = (unitStats.maxHealthByLevel.Count >= CurrentLevel && CurrentLevel > 0) ? unitStats.maxHealthByLevel[CurrentLevel - 1] : 0;
+            if (EquippedArtifact != null)
+            {
+                baseHealth += EquippedArtifact.healthBonus;
+            }
+            return baseHealth;
+        }
+    }
+    
     public float CurrentHealth { get; private set; }
-    public int CurrentAttackDamage => (unitStats.attackDamageByLevel.Count >= CurrentLevel && CurrentLevel > 0) ? unitStats.attackDamageByLevel[CurrentLevel - 1] : 0;
+    public int CurrentAttackDamage
+    {
+        get
+        {
+            int baseDamage = (unitStats.attackDamageByLevel.Count >= CurrentLevel && CurrentLevel > 0) ? unitStats.attackDamageByLevel[CurrentLevel - 1] : 0;
+            // Futuro: Añadir bonus de daño del artefacto aquí
+            // if (EquippedArtifact != null) { baseDamage += EquippedArtifact.damageBonus; }
+            return baseDamage;
+        }
+    }
     public float CurrentAttackSpeed => unitStats.attackSpeed;
     public float CurrentMoveSpeed => unitStats.moveSpeed;
 
@@ -246,10 +267,29 @@ public class UnitController : MonoBehaviour
         if (teamID == 1) return "<color=#EF5350>[Enemiga]</color>";   // RED = ENEMIES
         return "[Equipo ?]";
     }
+
+//LOGICA PARA EQUIPAR ARTEFACTOS
     public void EquipArtifact(Artifact artifact)
     {
+        // Si ya hay un artefacto equipado, primero lo desequipamos
+        if (EquippedArtifact != null)
+        {
+            UnequipArtifact();
+        }
+
         EquippedArtifact = artifact;
-        // Futuro: Aquí aplicarías los efectos del artefacto (ej. +10 de daño).
+        
+        // Aplicar efectos del nuevo artefacto
+        if (EquippedArtifact.healthBonus > 0)
+        {
+            CurrentHealth += EquippedArtifact.healthBonus;
+            // Forzamos una actualización de la UI si el panel de detalles está abierto
+            if (PlacementUIManager.Instance != null)
+            {
+                PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
+            }
+        }
+        
         Debug.Log($"{unitStats.unitName} ha equipado {artifact.artifactName}");
     }
 
@@ -258,7 +298,21 @@ public class UnitController : MonoBehaviour
         if (EquippedArtifact != null)
         {
             Debug.Log($"{unitStats.unitName} se ha desequipado {EquippedArtifact.artifactName}");
-            // Futuro: Aquí revertirías los efectos.
+            
+            // Revertir efectos del artefacto
+            if (EquippedArtifact.healthBonus > 0)
+            {
+                CurrentHealth -= EquippedArtifact.healthBonus;
+                // Asegurarnos de que la vida no quede por debajo de 1 al desequipar
+                if (CurrentHealth <= 0) CurrentHealth = 1;
+                
+                // Forzamos una actualización de la UI si el panel de detalles está abierto
+                if (PlacementUIManager.Instance != null)
+                {
+                    PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
+                }
+            }
+            
             EquippedArtifact = null;
         }
     }
