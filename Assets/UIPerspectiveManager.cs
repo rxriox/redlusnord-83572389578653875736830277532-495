@@ -1,0 +1,125 @@
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public class UIPerspectiveManager : MonoBehaviour
+{
+    [Header("Referencias de UI")]
+    [Tooltip("El botón que activa la perspectiva del jugador.")]
+    public Button playerPerspectiveButton;
+    [Tooltip("El botón que activa la perspectiva del enemigo.")]
+    public Button enemyPerspectiveButton;
+
+    [Header("Contadores de Rareza")]
+    [Tooltip("Texto para mostrar el contador de unidades Fabulosas.")]
+    public TextMeshProUGUI fabulosaCountText;
+    [Tooltip("Texto para mostrar el contador de unidades Magníficas.")]
+    public TextMeshProUGUI magnificaCountText;
+    [Tooltip("Texto para mostrar el contador de unidades Supremas.")]
+    public TextMeshProUGUI supremaCountText;
+
+    [Header("Referencias del Sistema")]
+    [Tooltip("Arrastra aquí el objeto que contiene el HarmonyUIManager.")]
+    public HarmonyUIManager harmonyUIManager;
+
+    [Header("Apariencia de Botones")]
+    public Color activeButtonColor = Color.white;
+    public Color inactiveButtonColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+
+    private void OnEnable()
+    {
+        GameManager.OnUnitCountChanged += HandleUnitCountChange;
+    }
+
+    private void OnDisable()
+    {
+        GameManager.OnUnitCountChanged -= HandleUnitCountChange;
+    }
+
+    void Start()
+    {
+        if (playerPerspectiveButton == null || enemyPerspectiveButton == null || harmonyUIManager == null)
+        {
+            Debug.LogError("Asegúrate de asignar todos los botones y el HarmonyUIManager en el inspector de UIPerspectiveManager.");
+            return;
+        }
+
+        playerPerspectiveButton.onClick.AddListener(ShowPlayerPerspective);
+        enemyPerspectiveButton.onClick.AddListener(ShowEnemyPerspective);
+
+        ShowPlayerPerspective();
+    }
+
+    public void ShowPlayerPerspective()
+    {
+        if (harmonyUIManager != null)
+        {
+            harmonyUIManager.SetTeamPerspective(0);
+            UpdateButtonAppearance(true);
+            UpdateUnitCountsUI(0);
+        }
+    }
+
+    public void ShowEnemyPerspective()
+    {
+        if (harmonyUIManager != null)
+        {
+            harmonyUIManager.SetTeamPerspective(1);
+            UpdateButtonAppearance(false);
+            UpdateUnitCountsUI(1);
+        }
+    }
+
+    private void UpdateButtonAppearance(bool isPlayerPerspective)
+    {
+        Image playerBtnImage = playerPerspectiveButton.GetComponent<Image>();
+        Image enemyBtnImage = enemyPerspectiveButton.GetComponent<Image>();
+
+        if (playerBtnImage != null)
+        {
+            playerBtnImage.color = isPlayerPerspective ? activeButtonColor : inactiveButtonColor;
+        }
+
+        if (enemyBtnImage != null)
+        {
+            enemyBtnImage.color = !isPlayerPerspective ? activeButtonColor : inactiveButtonColor;
+        }
+    }
+
+    private void HandleUnitCountChange()
+    {
+        if (harmonyUIManager != null)
+        {
+            UpdateUnitCountsUI(harmonyUIManager.teamIdToShow);
+        }
+    }
+
+    private void UpdateUnitCountsUI(int teamID)
+    {
+        if (GameManager.Instance == null) return;
+
+        // Fabulosa
+        if (fabulosaCountText != null)
+        {
+            int currentCount = GameManager.Instance.GetCategoryCountForTeam(UnitStats.UnitCategory.Fabulosa, teamID);
+            int limit = GameManager.Instance.GetCategoryLimit(UnitStats.UnitCategory.Fabulosa);
+            fabulosaCountText.text = $"{currentCount} / {limit}";
+        }
+
+        // Magnifica
+        if (magnificaCountText != null)
+        {
+            int currentCount = GameManager.Instance.GetCategoryCountForTeam(UnitStats.UnitCategory.Magnifica, teamID);
+            int limit = GameManager.Instance.GetCategoryLimit(UnitStats.UnitCategory.Magnifica);
+            magnificaCountText.text = $"{currentCount} / {limit}";
+        }
+
+        // Suprema
+        if (supremaCountText != null)
+        {
+            int currentCount = GameManager.Instance.GetCategoryCountForTeam(UnitStats.UnitCategory.Suprema, teamID);
+            int limit = GameManager.Instance.GetCategoryLimit(UnitStats.UnitCategory.Suprema);
+            supremaCountText.text = $"{currentCount} / {limit}";
+        }
+    }
+}

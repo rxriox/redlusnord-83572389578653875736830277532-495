@@ -27,6 +27,12 @@ public class HarmonyUIManager : MonoBehaviour
         GameManager.OnHarmoniesUpdated -= UpdateDisplay;
     }
 
+    public void SetTeamPerspective(int teamId)
+    {
+        teamIdToShow = teamId;
+        UpdateDisplay();
+    }
+
     void UpdateDisplay()
     {
         if (GameManager.Instance == null) return;

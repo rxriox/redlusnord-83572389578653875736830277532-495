@@ -36,6 +36,7 @@ public class GameManager : MonoBehaviour
         }
     }
     public static event System.Action<GameState> OnGameStateChanged;
+    public static event System.Action OnUnitCountChanged;
 
     [Header("Reglas del Juego")]
     public int maxUnitsPerTeam;
@@ -111,6 +112,7 @@ public class GameManager : MonoBehaviour
         Debug.Log($"Límites de tablero actualizados a: {settings.roundName}. Total: {maxUnitsPerTeam}, Fabulosa: {settings.fabulosaLimit}, Magnífica: {settings.magnificaLimit}, Suprema: {settings.supremaLimit}");
 
         UpdateAllCountsUI();
+        OnUnitCountChanged?.Invoke();
     }
 
     public int GetCurrentLevelForUnit(UnitStats stats)
@@ -168,6 +170,7 @@ public class GameManager : MonoBehaviour
         OnHarmoniesUpdated?.Invoke();
 
         UpdateAllCountsUI();
+        OnUnitCountChanged?.Invoke();
     }
 
     public void UnregisterUnit(UnitController unit)
@@ -189,36 +192,37 @@ public class GameManager : MonoBehaviour
         OnHarmoniesUpdated?.Invoke();
 
         UpdateAllCountsUI();
+        OnUnitCountChanged?.Invoke();
     }
 
     public bool CanPlaceUnit(int teamID, UnitStats stats)
-{
-    int currentTotalCount = GetUnitCountForTeam(teamID);
-    if (currentTotalCount >= maxUnitsPerTeam)
     {
-        string message = $"LÍMITE TOTAL ALCANZADO ({currentTotalCount}/{maxUnitsPerTeam})";
-        ShowPlacementError(message);
-        Debug.Log(message);
-        return false;
-    }
+        int currentTotalCount = GetUnitCountForTeam(teamID);
+        if (currentTotalCount >= maxUnitsPerTeam)
+        {
+            string message = $"LÍMITE TOTAL ALCANZADO ({currentTotalCount}/{maxUnitsPerTeam})";
+            ShowPlacementError(message);
+            Debug.Log(message);
+            return false;
+        }
 
-    UnitStats.UnitCategory category = stats.category;
-    int currentCategoryCount = 0;
-    if (teamCategoryCounts != null && teamCategoryCounts.ContainsKey(teamID))
-    {
-        teamCategoryCounts[teamID].TryGetValue(category, out currentCategoryCount);
+        UnitStats.UnitCategory category = stats.category;
+        int currentCategoryCount = 0;
+        if (teamCategoryCounts != null && teamCategoryCounts.ContainsKey(teamID))
+        {
+            teamCategoryCounts[teamID].TryGetValue(category, out currentCategoryCount);
+        }
+
+        if (categoryLimitsDict.TryGetValue(category, out int limitForCategory) && currentCategoryCount >= limitForCategory)
+        {
+            string message = $"LÍMITE DE UNIDADES '{category.ToString().ToUpper()}' ALCANZADO ({currentCategoryCount}/{limitForCategory})";
+            ShowPlacementError(message);
+            Debug.LogWarning(message);
+            return false;
+        }
+
+        return true;
     }
-    
-    if (categoryLimitsDict.TryGetValue(category, out int limitForCategory) && currentCategoryCount >= limitForCategory)
-    {
-        string message = $"LÍMITE DE UNIDADES '{category.ToString().ToUpper()}' ALCANZADO ({currentCategoryCount}/{limitForCategory})";
-        ShowPlacementError(message);
-        Debug.LogWarning(message);
-        return false;
-    }
-    
-    return true;
-}
 
     public void ResetBoardButton()
     {
@@ -268,6 +272,8 @@ public class GameManager : MonoBehaviour
         {
             ArtifactManager.Instance.ResetAllArtifactIconsState();
         }
+
+        OnUnitCountChanged?.Invoke();
 
         Debug.Log("Tablero completamente limpiado por el botón.");
 
@@ -528,19 +534,37 @@ public class GameManager : MonoBehaviour
     }
 
     private IEnumerator HideErrorPanelAfterDelay(float delay)
-{
-    yield return new WaitForSeconds(delay);
-
-    if (fadeErrorCoroutine != null)
     {
-        StopCoroutine(fadeErrorCoroutine);
+        yield return new WaitForSeconds(delay);
+
+        if (fadeErrorCoroutine != null)
+        {
+            StopCoroutine(fadeErrorCoroutine);
+        }
+
+        if (placementErrorPanel != null && placementErrorCanvasGroup != null)
+        {
+            fadeErrorCoroutine = StartCoroutine(FadeCanvasGroup(placementErrorCanvasGroup, 0f, 0.3f));
+        }
+
+        hideErrorCoroutine = null;
     }
 
-    if (placementErrorPanel != null && placementErrorCanvasGroup != null)
+    public int GetCategoryCountForTeam(UnitStats.UnitCategory category, int teamID)
     {
-        fadeErrorCoroutine = StartCoroutine(FadeCanvasGroup(placementErrorCanvasGroup, 0f, 0.3f));
+        if (teamCategoryCounts != null && teamCategoryCounts.ContainsKey(teamID) && teamCategoryCounts[teamID].ContainsKey(category))
+        {
+            return teamCategoryCounts[teamID][category];
+        }
+        return 0;
     }
 
-    hideErrorCoroutine = null;
-}
+    public int GetCategoryLimit(UnitStats.UnitCategory category)
+    {
+        if (categoryLimitsDict.TryGetValue(category, out int limit))
+        {
+            return limit;
+        }
+        return 0;
+    }
 }
