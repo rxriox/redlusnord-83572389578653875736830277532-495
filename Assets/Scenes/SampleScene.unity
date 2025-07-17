@@ -1058,7 +1058,6 @@ MonoBehaviour:
   battleTimer: 45
   gridManager: {fileID: 1113242420}
   maxUnitsPerTeam: 10
-  activeArtifactsCountText: {fileID: 532493718}
   placementErrorPanel: {fileID: 920168595}
   placementErrorCanvasGroup: {fileID: 920168599}
   placementErrorText: {fileID: 302620544}
@@ -2140,7 +2139,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 1798472451}
+  m_Material: {fileID: 914930976}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -3024,40 +3023,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 355048676}
   m_CullTransparentMesh: 1
---- !u!21 &373515378
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: UI/Custom/URP_GradientOverlay
-  m_Shader: {fileID: 4800000, guid: b9f47375efd67ed418fab52ea1eaa043, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _GradientDirection: 2
-    m_Colors:
-    - _GradientColor: {r: 0, g: 0, b: 0, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &378981810
 GameObject:
   m_ObjectHideFlags: 0
@@ -3624,7 +3589,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 373515378}
+  m_Material: {fileID: 1524768218}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -6994,6 +6959,40 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 906121841}
   m_CullTransparentMesh: 1
+--- !u!21 &914930976
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UI/Custom/URP_GradientOverlay
+  m_Shader: {fileID: 4800000, guid: b9f47375efd67ed418fab52ea1eaa043, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _GradientDirection: 2
+    m_Colors:
+    - _GradientColor: {r: 0, g: 0, b: 0, a: 0.9019608}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!224 &917553459 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6189998322180374857, guid: 08ef3158629794e46a778f8723a3d163, type: 3}
@@ -10702,6 +10701,40 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Mask
   m_ShowMaskGraphic: 0
+--- !u!21 &1524768218
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UI/Custom/URP_GradientOverlay
+  m_Shader: {fileID: 4800000, guid: b9f47375efd67ed418fab52ea1eaa043, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _GradientDirection: 2
+    m_Colors:
+    - _GradientColor: {r: 0, g: 0, b: 0, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1537807773
 GameObject:
   m_ObjectHideFlags: 0
@@ -12728,40 +12761,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!21 &1798472451
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: UI/Custom/URP_GradientOverlay
-  m_Shader: {fileID: 4800000, guid: b9f47375efd67ed418fab52ea1eaa043, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _GradientDirection: 2
-    m_Colors:
-    - _GradientColor: {r: 0, g: 0, b: 0, a: 0.9019608}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &1806474162
 GameObject:
   m_ObjectHideFlags: 0
@@ -14498,6 +14497,7 @@ MonoBehaviour:
   fabulosaCountText: {fileID: 591425518}
   magnificaCountText: {fileID: 60541298}
   supremaCountText: {fileID: 834023106}
+  activeArtifactsCountText: {fileID: 532493718}
   harmonyUIManager: {fileID: 154416702}
   artifactManager: {fileID: 1902307101}
   activeButtonColor: {r: 1, g: 1, b: 1, a: 1}

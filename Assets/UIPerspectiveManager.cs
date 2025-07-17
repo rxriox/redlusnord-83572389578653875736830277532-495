@@ -16,11 +16,15 @@ public class UIPerspectiveManager : MonoBehaviour
 
     [Header("Contadores de Rareza")]
     [Tooltip("Texto para mostrar el contador de unidades Fabulosas.")]
+    
     public TextMeshProUGUI fabulosaCountText;
     [Tooltip("Texto para mostrar el contador de unidades Magníficas.")]
     public TextMeshProUGUI magnificaCountText;
     [Tooltip("Texto para mostrar el contador de unidades Supremas.")]
     public TextMeshProUGUI supremaCountText;
+
+    [Header("Contadores de Artefactos")]
+    public TextMeshProUGUI activeArtifactsCountText;
 
     [Header("Referencias del Sistema")]
     [Tooltip("Arrastra aquí el objeto que contiene el HarmonyUIManager.")]
@@ -137,6 +141,13 @@ public class UIPerspectiveManager : MonoBehaviour
             int currentCount = GameManager.Instance.GetCategoryCountForTeam(UnitStats.UnitCategory.Suprema, teamID);
             int limit = GameManager.Instance.GetCategoryLimit(UnitStats.UnitCategory.Suprema);
             supremaCountText.text = $"{currentCount} / {limit}";
+        }
+
+        if (activeArtifactsCountText != null && ArtifactManager.Instance != null)
+        {
+            int currentArtifacts = ArtifactManager.Instance.GetActiveArtifactCountForTeam(teamID);
+            int maxArtifactsLimit = GameManager.Instance.maxArtifacts; // Obtener el límite global de artefactos
+            activeArtifactsCountText.text = $"{currentArtifacts} / {maxArtifactsLimit}";
         }
     }
 }

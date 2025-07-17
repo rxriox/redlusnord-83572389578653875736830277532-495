@@ -40,10 +40,6 @@ public class GameManager : MonoBehaviour
 
     [Header("Reglas del Juego")]
     public int maxUnitsPerTeam;
-    [Header("Referencias de UI (Contadores)")]
-
-
-    public TextMeshProUGUI activeArtifactsCountText;
     [Header("Referencias de UI (Mensajes)")]
     public GameObject placementErrorPanel;
     public CanvasGroup placementErrorCanvasGroup;
@@ -468,14 +464,7 @@ public class GameManager : MonoBehaviour
 
     public void UpdateAllCountsUI()
     {
-        if (activeArtifactsCountText != null && ArtifactManager.Instance != null)
-    {
-        int playerArtifacts = ArtifactManager.Instance.GetActiveArtifactCountForTeam(0);
-        int enemyArtifacts = ArtifactManager.Instance.GetActiveArtifactCountForTeam(1);
-        int totalArtifacts = playerArtifacts + enemyArtifacts;
-        
-        activeArtifactsCountText.text = $"{totalArtifacts}/{maxArtifacts}";
-    }
+        OnUnitCountChanged?.Invoke();
     }
 
     public void ShowPlacementError(string message)
