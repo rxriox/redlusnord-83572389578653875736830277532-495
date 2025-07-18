@@ -37,7 +37,7 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
     public void Initialize(ArtifactIconController benchIcon, int ownerTeamID)
     {
         this.originatingBenchIcon = benchIcon;
-        this.teamID = ownerTeamID; // Asigna el ID del equipo
+        this.teamID = ownerTeamID;
 
         if (artifactImage != null && benchIcon.artifactData != null)
         {
@@ -68,8 +68,16 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
 
         canvasGroup.blocksRaycasts = false;
 
-        PlayerController.Instance?.ShowTrashZone();
-        PlacementUIManager.Instance?.HideBenchesForDrag();
+        // NUEVA LÓGICA: Solo muestra la Trash Zone si NO hay combate en curso.
+        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.Combat)
+        {
+            PlayerController.Instance?.ShowTrashZone();
+            PlacementUIManager.Instance?.HideBenchesForDrag();
+        }
+        else
+        {
+            PlacementUIManager.Instance?.HideBenchesForDrag();
+        }
 
         lastHighlightedUnit = null;
         PlayerController.Instance?.HideSelectionHighlight();
@@ -108,6 +116,18 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
 
         PlayerController.Instance?.HideSelectionHighlight();
 
+        // INICIO DE LA LÓGICA DE PREVENCIÓN EN COMBATE
+        if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Combat)
+        {
+            Debug.LogWarning("No se pueden modificar artefactos durante el combate. El artefacto vuelve a su posición original.");
+            transform.SetParent(originalParent);
+            transform.SetSiblingIndex(originalSiblingIndex);
+            transform.position = startPosition;
+            return;
+        }
+        // FIN DE LA LÓGICA DE PREVENCIÓN EN COMBATE
+
+        // Soltar en TrashZone
         if (eventData.pointerEnter != null &&
             eventData.pointerEnter.GetComponent<TrashZoneController>() != null)
         {
@@ -115,6 +135,7 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
             return;
         }
 
+        // Soltar sobre unidad
         Ray ray = Camera.main.ScreenPointToRay(eventData.position);
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
@@ -130,6 +151,7 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
             }
         }
 
+        // Si no se soltó en una unidad válida ni en TrashZone
         transform.SetParent(originalParent);
         transform.SetSiblingIndex(originalSiblingIndex);
         transform.position = startPosition;
@@ -141,7 +163,6 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
         if (targetUnit.teamID != this.teamID)
         {
             Debug.LogWarning("Intento de equipar artefacto a un equipo incorrecto.");
-            // Devolvemos el icono a su posición original sin hacer nada.
             transform.SetParent(originalParent);
             transform.SetSiblingIndex(originalSiblingIndex);
             transform.position = startPosition;
@@ -189,7 +210,6 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
 
     public void DetachFromUnit()
     {
-        // Simplemente borra la referencia a la unidad (que ya fue destruida)
         equippedUnit = null;
 
         if (unitIconOverlay != null)
@@ -200,7 +220,6 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
 
     public void LinkToUnit(UnitController unit)
     {
-        // Establece la nueva referencia y actualiza la UI del icono
         equippedUnit = unit;
 
         if (unitIconImage != null && unit.unitStats != null)
@@ -213,5 +232,4 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
             unitIconOverlay.SetActive(true);
         }
     }
-
 }
