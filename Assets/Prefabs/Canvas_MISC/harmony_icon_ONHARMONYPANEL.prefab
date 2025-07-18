@@ -148,7 +148,7 @@ GameObject:
   - component: {fileID: 5900672681066873408}
   - component: {fileID: 1430116075355783667}
   m_Layer: 5
-  m_Name: Harmony_icon_prefab
+  m_Name: harmony_icon_ONHARMONYPANEL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
