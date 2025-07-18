@@ -30,13 +30,37 @@ public class UnitController : MonoBehaviour
         get
         {
             int baseDamage = (unitStats.attackDamageByLevel.Count >= CurrentLevel && CurrentLevel > 0) ? unitStats.attackDamageByLevel[CurrentLevel - 1] : 0;
-            // Futuro: Añadir bonus de daño del artefacto aquí
-            // if (EquippedArtifact != null) { baseDamage += EquippedArtifact.damageBonus; }
+            if (EquippedArtifact != null)
+            {
+                baseDamage += EquippedArtifact.attackDamageBonus;
+            }
             return baseDamage;
         }
     }
-    public float CurrentAttackSpeed => unitStats.attackSpeed;
-    public float CurrentMoveSpeed => unitStats.moveSpeed;
+    public float CurrentAttackSpeed
+    {
+        get
+        {
+            float baseAttackSpeed = unitStats.attackSpeed;
+            if (EquippedArtifact != null)
+            {
+                baseAttackSpeed += EquippedArtifact.attackSpeedBonus;
+            }
+            return baseAttackSpeed;
+        }
+    }
+    public float CurrentMoveSpeed
+    {
+        get
+        {
+            float baseMoveSpeed = unitStats.moveSpeed;
+            if (EquippedArtifact != null)
+            {
+                baseMoveSpeed += EquippedArtifact.moveSpeedBonus;
+            }
+            return baseMoveSpeed;
+        }
+    }
 
     private enum State { IDLE, MOVING, ATTACKING }
     private State currentState = State.IDLE;
@@ -139,7 +163,7 @@ public class UnitController : MonoBehaviour
             currentTarget.TakeDamage(CurrentAttackDamage, this);
         }
 
-        attackCooldown = 1f / unitStats.attackSpeed;
+        attackCooldown = 1f / CurrentAttackSpeed;
         StartCoroutine(ResetStateAfterAction(0.1f));
     }
 
@@ -188,7 +212,7 @@ public class UnitController : MonoBehaviour
         }
 
         float time = 0f;
-        float moveDuration = 1f / unitStats.moveSpeed;
+        float moveDuration = 1f / CurrentMoveSpeed;
         while (time < moveDuration)
         {
             transform.position = Vector3.Lerp(startPosition, endPosition, time / moveDuration);
@@ -219,7 +243,7 @@ public class UnitController : MonoBehaviour
         }
 
         float time = 0f;
-        float moveDuration = 1f / unitStats.moveSpeed;
+        float moveDuration = 1f / CurrentMoveSpeed;
         while (time < moveDuration)
         {
             transform.position = Vector3.Lerp(startPosition, targetPosition, time / moveDuration);
@@ -271,7 +295,6 @@ public class UnitController : MonoBehaviour
 //LOGICA PARA EQUIPAR ARTEFACTOS
     public void EquipArtifact(Artifact artifact)
     {
-        // Si ya hay un artefacto equipado, primero lo desequipamos
         if (EquippedArtifact != null)
         {
             UnequipArtifact();
@@ -279,16 +302,15 @@ public class UnitController : MonoBehaviour
 
         EquippedArtifact = artifact;
         
-        // Aplicar efectos del nuevo artefacto
         if (EquippedArtifact.healthBonus > 0)
         {
             CurrentHealth += EquippedArtifact.healthBonus;
-            // Forzamos una actualización de la UI si el panel de detalles está abierto
             if (PlacementUIManager.Instance != null)
             {
                 PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
             }
         }
+        PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
         
         Debug.Log($"{unitStats.unitName} ha equipado {artifact.artifactName}");
     }
@@ -298,22 +320,20 @@ public class UnitController : MonoBehaviour
         if (EquippedArtifact != null)
         {
             Debug.Log($"{unitStats.unitName} se ha desequipado {EquippedArtifact.artifactName}");
-            
-            // Revertir efectos del artefacto
+
             if (EquippedArtifact.healthBonus > 0)
             {
                 CurrentHealth -= EquippedArtifact.healthBonus;
-                // Asegurarnos de que la vida no quede por debajo de 1 al desequipar
                 if (CurrentHealth <= 0) CurrentHealth = 1;
-                
-                // Forzamos una actualización de la UI si el panel de detalles está abierto
+
                 if (PlacementUIManager.Instance != null)
                 {
                     PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
                 }
             }
-            
+
             EquippedArtifact = null;
+            PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
         }
     }
 }

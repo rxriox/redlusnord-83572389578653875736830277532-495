@@ -12,12 +12,12 @@ public class Artifact : ScriptableObject
     public string description;
     public Sprite icon;
 
-//MODIFICADORES
+    //MODIFICADORES
 
     [Header("Efectos del Artefacto")]
     public int healthBonus;
+    public int attackDamageBonus = 0;
+    public float moveSpeedBonus = 0f;
+    public float attackSpeedBonus = 0f;
     
-    // Aquí podrías añadir variables para los efectos del artefacto
-    // public float damageBonus;
-    // public int healthBonus;
 }
