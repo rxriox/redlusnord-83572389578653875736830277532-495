@@ -58,6 +58,13 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
     {
         if (originatingBenchIcon == null) return;
 
+        if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Combat)
+        {
+            Debug.LogWarning("No se pueden arrastrar artefactos durante el combate.");
+            eventData.pointerDrag = null; 
+            return; 
+        }
+
         originalParent = transform.parent;
         startPosition = transform.position;
 
