@@ -27,7 +27,7 @@ public class RoundUIManager : MonoBehaviour
 
         if (roundSettingsList != null && roundSettingsList.Count > 0)
         {
-            ApplySettingsForRound(0, false);
+            ApplySettingsForRound(0);
         }
     }
     void PopulateDropdown()
@@ -42,10 +42,10 @@ public class RoundUIManager : MonoBehaviour
 
     void OnDropdownValueChanged(TMP_Dropdown change)
     {
-        ApplySettingsForRound(change.value, true);
+        ApplySettingsForRound(change.value);
     }
 
-    void ApplySettingsForRound(int index, bool clearBoard)
+    void ApplySettingsForRound(int index)
     {
         if (roundSettingsList != null && index >= 0 && index < roundSettingsList.Count)
         {
@@ -53,10 +53,6 @@ public class RoundUIManager : MonoBehaviour
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.ApplyRoundSettings(selectedSettings);
-                if (clearBoard)
-                {
-                    GameManager.Instance.ResetBoardButton();
-                }
             }
             else
             {

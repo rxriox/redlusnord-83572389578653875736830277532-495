@@ -82,8 +82,11 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        maxUnitsPerTeam = settings.maxTotalUnits;
+        Debug.Log($"Aplicando nueva configuración de ronda: {settings.roundName}.");
 
+        List<UnitController> unitsToProcess = new List<UnitController>(allUnits);
+
+        maxUnitsPerTeam = settings.maxTotalUnits;
         categoryLimitsDict.Clear();
         categoryLimitsDict[UnitStats.UnitCategory.Fabulosa] = settings.fabulosaLimit;
         categoryLimitsDict[UnitStats.UnitCategory.Magnifica] = settings.magnificaLimit;
@@ -100,16 +103,48 @@ public class GameManager : MonoBehaviour
         artifactCategoryLimitsDict[ArtifactCategory.Categoria2] = settings.artifactCat2Limit;
         artifactCategoryLimitsDict[ArtifactCategory.Categoria3] = settings.artifactCat3Limit;
         artifactCategoryLimitsDict[ArtifactCategory.Categoria4] = settings.artifactCat4Limit;
+        
+        foreach (var unit in unitsToProcess)
+        {
+            if (unit == null) continue;
+
+            int categoryLimit = GetCategoryLimit(unit.unitStats.category);
+
+            if (categoryLimit <= 0)
+            {
+                Debug.Log($"Eliminando unidad {unit.unitStats.unitName} porque su categoría ahora tiene un límite de 0.");
+
+                if (unit.EquippedArtifact != null && ArtifactManager.Instance != null)
+                {
+                    ArtifactManager.Instance.FindAndClearEquippedIcon(unit.EquippedArtifact);
+                }
+                
+                if (unit.originatingIcon != null)
+                {
+                    unit.originatingIcon.ResetIcon();
+                }
+
+                UnregisterUnit(unit);
+                Destroy(unit.gameObject);
+            }
+            else
+            {
+                int newLevel = GetCurrentLevelForUnit(unit.unitStats);
+                if (unit.CurrentLevel != newLevel)
+                {
+                    Debug.Log($"Actualizando nivel de {unit.unitStats.unitName} a {newLevel}.");
+                    unit.Initialize(newLevel);
+                }
+            }
+        }
 
         if (ArtifactManager.Instance != null)
         {
             ArtifactManager.Instance.ValidateActiveArtifacts();
         }
 
-        Debug.Log($"Límites de tablero actualizados a: {settings.roundName}. Total: {maxUnitsPerTeam}, Fabulosa: {settings.fabulosaLimit}, Magnífica: {settings.magnificaLimit}, Suprema: {settings.supremaLimit}");
-
         UpdateAllCountsUI();
-        OnUnitCountChanged?.Invoke();
+        OnHarmoniesUpdated?.Invoke();
     }
 
     public int GetCurrentLevelForUnit(UnitStats stats)
