@@ -76,6 +76,20 @@ public class GameManager : MonoBehaviour
 
     public void ApplyRoundSettings(RoundSettings settings)
     {
+        if (CurrentState == GameState.Combat)
+        {
+            Debug.Log("Cambio de ronda durante el combate. Deteniendo el combate...");
+            
+            StopAllCoroutines();
+
+            if (ObjectPooler.Instance != null)
+            {
+                ObjectPooler.Instance.ResetAllPools();
+            }
+
+            CurrentState = GameState.Placement;
+        }
+
         if (settings == null)
         {
             Debug.LogError("Se intentó aplicar una configuración de ronda nula.");
