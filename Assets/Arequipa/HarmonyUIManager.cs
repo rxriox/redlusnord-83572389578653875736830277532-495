@@ -17,6 +17,12 @@ public class HarmonyUIManager : MonoBehaviour
     [Tooltip("El objeto de texto que se muestra cuando no hay unidades.")]
     public GameObject noUnitsContainer;
 
+    void Start()
+    {
+        // Añade esta línea para asegurarte de que el panel esté oculto al inicio.
+        if (timerPanel != null) timerPanel.SetActive(false);
+    }
+
     private void OnEnable()
     {
         GameManager.OnHarmoniesUpdated += UpdateDisplay;
@@ -101,21 +107,33 @@ public class HarmonyUIManager : MonoBehaviour
         }
     }
 
+     [Header("Temporizador")]
+    public GameObject timerPanel;
     public TextMeshProUGUI timerText;
+    
     void Update()
     {
-        if (GameManager.Instance == null || timerText == null) return;
+        if (GameManager.Instance == null || timerText == null || timerPanel == null) return;
 
         if (GameManager.Instance.CurrentState == GameManager.GameState.Combat)
         {
-            timerText.gameObject.SetActive(true);
             float timeLeft = GameManager.BATTLE_TIME_LIMIT - GameManager.Instance.battleTimer;
-            timeLeft = Mathf.Max(timeLeft, 0);
-            timerText.text = timeLeft.ToString("F1");
+
+            if (timeLeft <= 10.0f)
+            {
+
+                timerPanel.SetActive(true);
+                timeLeft = Mathf.Max(timeLeft, 0);
+                timerText.text = timeLeft.ToString("F1");
+            }
+            else
+            {
+                timerPanel.SetActive(false);
+            }
         }
         else
         {
-            timerText.gameObject.SetActive(false);
+            timerPanel.SetActive(false);
         }
     }
 }
