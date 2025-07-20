@@ -38,7 +38,7 @@ public class EarlyEndButtonUI : MonoBehaviour
 
     private void HandleGameStateChange(GameManager.GameState newState)
     {
-        bool isCombat = (newState == GameManager.GameState.Combat);
+        bool isCombat = (newState == GameManager.GameState.Combat || newState == GameManager.GameState.Overtime);
         targetButton.interactable = isCombat;
         canvasGroup.alpha = isCombat ? activeAlpha : inactiveAlpha;
     }

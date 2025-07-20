@@ -525,7 +525,7 @@ public class GameManager : MonoBehaviour
 
     public void EndCombatEarly()
     {
-        if (CurrentState == GameState.Combat)
+        if (CurrentState == GameState.Combat || CurrentState == GameState.Overtime)
         {
             Debug.Log("El jugador ha terminado el combate manualmente. Reseteando tablero...");
             StopAllCoroutines();
