@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using TMPro;
 
+[RequireComponent(typeof(AudioSource))]
 public class HarmonyUIManager : MonoBehaviour
 {
     [Header("Referencias de UI")]
@@ -22,13 +23,13 @@ public class HarmonyUIManager : MonoBehaviour
         if (timerPanel != null)
         {
             timerPanel.SetActive(false);
-            // ===== MODIFICACIÓN #2: Obtén las referencias necesarias =====
             timerPanelImage = timerPanel.GetComponent<Image>();
-            if(timerText != null)
+            if (timerText != null)
             {
                 timerPulseEffect = timerText.GetComponent<UIPulseEffect>();
             }
         }
+        audioSource = GetComponent<AudioSource>();
     }
 
     private void OnEnable()
@@ -124,55 +125,94 @@ public class HarmonyUIManager : MonoBehaviour
     [Tooltip("El color del panel cuando el tiempo está entre 3 y 0 segundos.")]
     public Color dangerColor = Color.red;
 
+    [Header("Sonidos del Temporizador")]
+    [Tooltip("Sonido para los segundos 5, 4 y 3.")]
+    public AudioClip normalTickSound;
+    [Tooltip("Sonido para el segundo 2.")]
+    public AudioClip finalTickSound2;
+    [Tooltip("Sonido para el segundo 1.")]
+    public AudioClip finalTickSound1;
+    [Tooltip("Sonido para el segundo 0 (final del combate).")]
+    public AudioClip finalTickSound0;
+
     private Image timerPanelImage;
     private UIPulseEffect timerPulseEffect;
     private int lastSecondDisplayed = -1;
+    private AudioSource audioSource;
+
 
     void Update()
     {
         if (GameManager.Instance == null || timerText == null || timerPanel == null) return;
 
-        // ===== MODIFICACIÓN #3: Reemplaza la lógica del temporizador completa =====
         if (GameManager.Instance.CurrentState == GameManager.GameState.Combat)
         {
             float timeLeft = GameManager.BATTLE_TIME_LIMIT - GameManager.Instance.battleTimer;
-            
-            if (timeLeft <= 10.99f) // Usamos 10.99 para capturar el "10" justo a tiempo
+
+            if (timeLeft <= 10.99f)
             {
                 timerPanel.SetActive(true);
 
-                int currentSecond = Mathf.CeilToInt(timeLeft); // Redondea hacia arriba para mostrar 10, 9, 8...
-                currentSecond = Mathf.Clamp(currentSecond, 0, 10); // Asegura que no pase de 10 o baje de 0
+                int currentSecond = Mathf.CeilToInt(timeLeft);
+                currentSecond = Mathf.Clamp(currentSecond, 0, 10);
 
-                // Si el segundo ha cambiado, actualiza la UI
                 if (currentSecond != lastSecondDisplayed)
                 {
                     lastSecondDisplayed = currentSecond;
                     timerText.text = currentSecond.ToString();
 
-                    // Cambia el color del panel
                     if (timerPanelImage != null)
                     {
                         timerPanelImage.color = (currentSecond <= 3) ? dangerColor : warningColor;
                     }
-                    
-                    // Activa el efecto de pulso en el texto
+
                     if (timerPulseEffect != null)
                     {
                         timerPulseEffect.PlayPulse();
                     }
+
+                    // ===== MODIFICACIÓN #4: Lógica para reproducir el sonido correcto =====
+                    PlayTimerSound(currentSecond);
                 }
             }
             else
             {
                 timerPanel.SetActive(false);
-                lastSecondDisplayed = -1; // Resetea el contador para la próxima vez
+                lastSecondDisplayed = -1;
             }
         }
         else
         {
             timerPanel.SetActive(false);
-            lastSecondDisplayed = -1; // Resetea el contador
+            lastSecondDisplayed = -1;
+        }
+    }
+    
+    private void PlayTimerSound(int second)
+    {
+        AudioClip clipToPlay = null;
+
+        switch (second)
+        {
+            case 5:
+            case 4:
+            case 3:
+                clipToPlay = normalTickSound;
+                break;
+            case 2:
+                clipToPlay = finalTickSound2;
+                break;
+            case 1:
+                clipToPlay = finalTickSound1;
+                break;
+            case 0:
+                clipToPlay = finalTickSound0;
+                break;
+        }
+
+        if (clipToPlay != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(clipToPlay);
         }
     }
 }
