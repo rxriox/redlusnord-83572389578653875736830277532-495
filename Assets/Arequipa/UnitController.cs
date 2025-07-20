@@ -91,17 +91,6 @@ public class UnitController : MonoBehaviour
             attackCooldown -= Time.deltaTime;
         }
 
-        UnitController immediateTarget = FindEnemyInAttackRange();
-        if (immediateTarget != null)
-        {
-            currentTarget = immediateTarget;
-            if (attackCooldown <= 0)
-            {
-                PerformAttack();
-            }
-            return;
-        }
-
         if (currentTarget == null || currentTarget.CurrentHealth <= 0)
         {
             FindClosestEnemy();
@@ -111,7 +100,18 @@ public class UnitController : MonoBehaviour
                 return;
             }
         }
-        MoveTowardsTarget();
+
+        if (IsTargetInAttackRange())
+        {
+            if (attackCooldown <= 0)
+            {
+                PerformAttack();
+            }
+        }
+        else
+        {
+            MoveTowardsTarget();
+        }
     }
 
     private UnitController FindEnemyInAttackRange()
