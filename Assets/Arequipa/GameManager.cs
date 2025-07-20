@@ -8,7 +8,7 @@ public class GameManager : MonoBehaviour
 
 {
     public float battleTimer;
-    public const float BATTLE_TIME_LIMIT = 40f;
+    public const float BATTLE_TIME_LIMIT = 15f;
     [Header("Referencias del Sistema")]
     public GridManager gridManager;
     private struct CombatStartInfo
