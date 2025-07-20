@@ -82,9 +82,9 @@ public class GameManager : MonoBehaviour
 
     public void ApplyRoundSettings(RoundSettings settings)
     {
-        if (CurrentState == GameState.Combat)
+        if (CurrentState == GameState.Combat || CurrentState == GameState.Overtime)
         {
-            Debug.Log("Cambio de ronda durante el combate. Deteniendo el combate...");
+            Debug.Log($"Cambio de ronda durante {CurrentState}. Deteniendo el combate...");
             
             StopAllCoroutines();
 
@@ -501,8 +501,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator ShowVictoryScreenAndReset(int winnerTeamID)
     {
-        CurrentState = GameState.Result; // Cambia a un estado de finalización
-
+        CurrentState = GameState.Result;
         if (victoryPanel != null && victoryText != null)
         {
             // Usamos el método estático de UnitController para obtener el formato del tag del equipo
@@ -511,15 +510,14 @@ public class GameManager : MonoBehaviour
             victoryPanel.SetActive(true);
         }
 
-        // La pausa de 5 segundos
-        yield return new WaitForSeconds(5f);
+        //Duracion de pausa de victoria
+        yield return new WaitForSeconds(3f);
 
         if (victoryPanel != null)
         {
             victoryPanel.SetActive(false);
         }
 
-        // Llama a la lógica de reseteo del tablero DESPUÉS de la pausa
         ResetBoardAfterCombat();
     }
 
