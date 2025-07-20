@@ -84,16 +84,8 @@ public class GameManager : MonoBehaviour
     {
         if (CurrentState == GameState.Combat || CurrentState == GameState.Overtime)
         {
-            Debug.Log($"Cambio de ronda durante {CurrentState}. Deteniendo el combate...");
-            
-            StopAllCoroutines();
-
-            if (ObjectPooler.Instance != null)
-            {
-                ObjectPooler.Instance.ResetAllPools();
-            }
-
-            CurrentState = GameState.Placement;
+            Debug.Log($"Cambio de ronda durante {CurrentState}. Restaurando tablero al estado pre-combate...");
+            ResetBoardAfterCombat();
         }
 
         if (settings == null)
@@ -123,7 +115,7 @@ public class GameManager : MonoBehaviour
         artifactCategoryLimitsDict[ArtifactCategory.Categoria2] = settings.artifactCat2Limit;
         artifactCategoryLimitsDict[ArtifactCategory.Categoria3] = settings.artifactCat3Limit;
         artifactCategoryLimitsDict[ArtifactCategory.Categoria4] = settings.artifactCat4Limit;
-        
+
         foreach (var unit in unitsToProcess)
         {
             if (unit == null) continue;
@@ -138,7 +130,7 @@ public class GameManager : MonoBehaviour
                 {
                     ArtifactManager.Instance.FindAndClearEquippedIcon(unit.EquippedArtifact);
                 }
-                
+
                 if (unit.originatingIcon != null)
                 {
                     unit.originatingIcon.ResetIcon();
@@ -525,7 +517,8 @@ public class GameManager : MonoBehaviour
     {
         if (CurrentState == GameState.Combat || CurrentState == GameState.Overtime)
         {
-            Debug.Log("El jugador ha terminado el combate manualmente. Reseteando tablero...");
+            Debug.Log("El jugador ha terminado el combate manualmente. Restaurando tablero...");
+            
             StopAllCoroutines();
             ResetBoardAfterCombat();
         }
