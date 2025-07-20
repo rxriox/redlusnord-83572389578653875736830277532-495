@@ -16,3 +16,7 @@ MonoBehaviour:
   artifactName: CAT1 ITEM
   description: 
   icon: {fileID: 21300000, guid: 643daf7f13dc9364fa18748f63b299b2, type: 3}
+  healthBonus: 5000
+  attackDamageBonus: 0
+  moveSpeedBonus: 0
+  attackSpeedBonus: 0

@@ -2,9 +2,11 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+public enum StatusEffect { Dazed, Immobilized, Sealed, Fear, Incurable }
 
 public class UnitController : MonoBehaviour
 {
+    private readonly Dictionary<StatusEffect, Coroutine> activeStatusEffects = new Dictionary<StatusEffect, Coroutine>();
     public enum DamageType { Material, Inmaterial, Absoluto }
     public UnitStats unitStats;
     public int teamID;
@@ -24,7 +26,7 @@ public class UnitController : MonoBehaviour
             return baseHealth;
         }
     }
-    
+
     public float CurrentHealth { get; private set; }
     public int CurrentAttackDamage
     {
@@ -85,6 +87,18 @@ public class UnitController : MonoBehaviour
 
     public void EvaluateAction()
     {
+        if (GameManager.Instance.CurrentState == GameManager.GameState.Overtime)
+        {
+            currentState = State.IDLE;
+            return;
+        }
+
+        if (HasStatus(StatusEffect.Dazed))
+        {
+            // Si está aturdido, no puede hacer absolutamente nada.
+            return;
+        }
+
         if (currentState == State.MOVING || currentState == State.ATTACKING) return;
 
         if (attackCooldown > 0)
@@ -104,14 +118,19 @@ public class UnitController : MonoBehaviour
 
         if (IsTargetInAttackRange())
         {
-            if (attackCooldown <= 0)
+            // Solo puede atacar si no está Asustado (Fear)
+            if (attackCooldown <= 0 && !HasStatus(StatusEffect.Fear))
             {
                 PerformAttack();
             }
         }
         else
         {
-            MoveTowardsTarget();
+            // Solo puede moverse si no está Inmovilizado (Immobilized)
+            if (!HasStatus(StatusEffect.Immobilized))
+            {
+                MoveTowardsTarget();
+            }
         }
     }
 
@@ -148,6 +167,12 @@ public class UnitController : MonoBehaviour
 
     private void PerformAttack()
     {
+        if (GameManager.Instance.CurrentState != GameManager.GameState.Combat)
+        {
+            currentState = State.IDLE;
+            return;
+        }
+        
         currentState = State.ATTACKING;
         transform.LookAt(new Vector3(currentTarget.transform.position.x, transform.position.y, currentTarget.transform.position.z));
 
@@ -173,6 +198,8 @@ public class UnitController : MonoBehaviour
 
     private void MoveTowardsTarget()
     {
+        if (HasStatus(StatusEffect.Immobilized) || HasStatus(StatusEffect.Dazed)) return;
+
         if (gridManager == null || currentTarget == null || currentState != State.IDLE) return;
         currentPath = gridManager.FindPath(currentNode, currentTarget.currentNode);
         if (currentPath != null && currentPath.Count > 0)
@@ -263,7 +290,15 @@ public class UnitController : MonoBehaviour
     {
         Debug.Log($"Tipo de daño recibido: {damageType}");
 
-        Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha recibido {damage} de daño de {GetTeamTag(attacker.teamID)} {attacker.unitStats.unitName}.");
+        if (attacker != null)
+        {
+            Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha recibido {damage:F1} de daño de {GetTeamTag(attacker.teamID)} {attacker.unitStats.unitName}.");
+        }
+        else
+        {
+            Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha recibido {damage:F1} de daño ambiental (tiempo extra).");
+        }
+
         CurrentHealth -= damage;
         if (CurrentHealth <= 0)
         {
@@ -284,6 +319,10 @@ public class UnitController : MonoBehaviour
         {
             Debug.Log($"{GetTeamTag(killer.teamID)} {killer.unitStats.unitName} ha eliminado a {GetTeamTag(this.teamID)} {this.unitStats.unitName}");
         }
+        else
+        {
+            Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha sido eliminado por el entorno.");
+        }
 
         StopAllCoroutines();
         if (currentNode != null) currentNode.isWalkable = true;
@@ -298,7 +337,7 @@ public class UnitController : MonoBehaviour
         return "[Equipo ?]";
     }
 
-//LOGICA PARA EQUIPAR ARTEFACTOS
+    //LOGICA PARA EQUIPAR ARTEFACTOS
     public void EquipArtifact(Artifact artifact)
     {
         if (EquippedArtifact != null)
@@ -307,7 +346,7 @@ public class UnitController : MonoBehaviour
         }
 
         EquippedArtifact = artifact;
-        
+
         if (EquippedArtifact.healthBonus > 0)
         {
             CurrentHealth += EquippedArtifact.healthBonus;
@@ -317,7 +356,7 @@ public class UnitController : MonoBehaviour
             }
         }
         PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
-        
+
         Debug.Log($"{unitStats.unitName} ha equipado {artifact.artifactName}");
     }
 
@@ -341,5 +380,51 @@ public class UnitController : MonoBehaviour
             EquippedArtifact = null;
             PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
         }
+    }
+
+    public bool HasStatus(StatusEffect effect)
+    {
+        return activeStatusEffects.ContainsKey(effect);
+    }
+
+    public void ApplyStatus(StatusEffect effect, float duration)
+    {
+        // Si ya tiene el estado, refresca su duración reiniciando la corrutina.
+        if (HasStatus(effect))
+        {
+            StopCoroutine(activeStatusEffects[effect]);
+        }
+
+        Coroutine statusCoroutine = StartCoroutine(StatusCoroutine(effect, duration));
+        activeStatusEffects[effect] = statusCoroutine;
+        Debug.Log($"{unitStats.unitName} ahora está afectado por {effect} durante {duration}s.");
+    }
+
+    private IEnumerator StatusCoroutine(StatusEffect effect, float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        RemoveStatus(effect);
+    }
+
+    public void RemoveStatus(StatusEffect effect)
+    {
+        if (HasStatus(effect))
+        {
+            activeStatusEffects.Remove(effect);
+            Debug.Log($"{unitStats.unitName} ya no está afectado por {effect}.");
+        }
+    }
+
+    public void ReceiveHealing(int amount)
+    {
+        if (HasStatus(StatusEffect.Incurable))
+        {
+            Debug.Log($"{unitStats.unitName} no puede ser curado porque tiene el estado Incurable.");
+            return;
+        }
+
+        CurrentHealth = Mathf.Min(MaxHealth, CurrentHealth + amount);
+        Debug.Log($"{unitStats.unitName} ha sido curado por {amount}.");
+        PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
     }
 }

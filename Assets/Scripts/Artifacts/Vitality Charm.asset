@@ -16,7 +16,7 @@ MonoBehaviour:
   artifactName: Vitality Charm
   description: 
   icon: {fileID: 21300000, guid: 11987a22bba3d404ba6e7194fba8a3e9, type: 3}
-  healthBonus: 35
+  healthBonus: 5000
   attackDamageBonus: 0
   moveSpeedBonus: 0
   attackSpeedBonus: 0

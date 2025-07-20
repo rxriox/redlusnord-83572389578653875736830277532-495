@@ -22,7 +22,7 @@ public class GameManager : MonoBehaviour
     private List<CombatStartInfo> unitsAtCombatStart = new List<CombatStartInfo>();
     public static event System.Action OnHarmoniesUpdated;
     public static GameManager Instance { get; private set; }
-    public enum GameState { Placement, Combat, Result }
+    public enum GameState { Placement, Combat, Result, Overtime }
     private GameState _currentState;
     public GameState CurrentState
     {
@@ -45,6 +45,11 @@ public class GameManager : MonoBehaviour
     public GameObject placementErrorPanel;
     public CanvasGroup placementErrorCanvasGroup;
     public TextMeshProUGUI placementErrorText;
+
+    [Header("Referencias de UI (Victoria)")]
+    public GameObject victoryPanel;
+    public TextMeshProUGUI victoryText;
+
 
     private Coroutine hideErrorCoroutine;
     private Coroutine fadeErrorCoroutine;
@@ -72,6 +77,7 @@ public class GameManager : MonoBehaviour
         else Destroy(gameObject);
         teamCategoryCounts = new Dictionary<int, Dictionary<UnitStats.UnitCategory, int>>();
         CurrentState = GameState.Placement;
+        if (victoryPanel != null) victoryPanel.SetActive(false);
     }
 
     public void ApplyRoundSettings(RoundSettings settings)
@@ -328,12 +334,16 @@ public class GameManager : MonoBehaviour
 
     public void CheckForCombatEnd()
     {
+        if (CurrentState != GameState.Combat && CurrentState != GameState.Overtime) return;
+
         int team0Count = allUnits.Count(u => u.teamID == 0);
         int team1Count = allUnits.Count(u => u.teamID == 1);
-        if (CurrentState != GameState.Combat) return;
+
         if (team0Count == 0 || team1Count == 0)
         {
-            EndCombatImmediately("Un equipo ha sido eliminado.");
+            StopAllCoroutines();
+            int winnerTeamID = (team0Count > 0) ? 0 : 1;
+            StartCoroutine(ShowVictoryScreenAndReset(winnerTeamID));
         }
     }
 
@@ -429,9 +439,90 @@ public class GameManager : MonoBehaviour
 
         if (CurrentState == GameState.Combat)
         {
-            EndCombatImmediately("Límite de tiempo alcanzado.");
+            Debug.Log("Limpiando proyectiles del tablero antes del tiempo extra.");
+            if (ObjectPooler.Instance != null)
+            {
+                ObjectPooler.Instance.ResetAllPools();
+            }
+
+            int team0Count = allUnits.Count(u => u.teamID == 0);
+            int team1Count = allUnits.Count(u => u.teamID == 1);
+
+            if (team0Count > 0 && team1Count > 0)
+            {
+                Debug.Log("El tiempo de batalla ha terminado. ¡Comienza el tiempo extra!");
+                CurrentState = GameState.Overtime;
+                StartCoroutine(OvertimeLoop());
+            }
+            else
+            {
+                EndCombatImmediately("Límite de tiempo alcanzado y un equipo fue victorioso.");
+            }
         }
     }
+
+    private IEnumerator OvertimeLoop()
+    {
+        Debug.Log("Iniciando tiempo extra. Todas las unidades recibirán daño porcentual.");
+        const float DAMAGE_PERCENT_PER_SECOND = 0.075f; // 7.5% de la vida máxima por segundo
+
+        // El bucle se ejecutará mientras el estado sea Overtime.
+        // La condición de victoria (un equipo sin unidades) se chequeará dentro.
+        while (CurrentState == GameState.Overtime)
+        {
+            // Itera sobre una copia de la lista para evitar problemas si una unidad muere
+            // y la lista original se modifica durante el bucle.
+            foreach (var unit in allUnits.ToList())
+            {
+                if (unit != null)
+                {
+                    // Calcula el daño a infligir en este fotograma.
+                    float damageThisFrame = unit.MaxHealth * DAMAGE_PERCENT_PER_SECOND * Time.deltaTime;
+
+                    // Aplica el daño a cada unidad.
+                    unit.TakeDamage(damageThisFrame, null, UnitController.DamageType.Absoluto);
+                }
+            }
+            
+            // La llamada a CheckForCombatEnd() dentro del método Die() de la unidad que muere
+            // es suficiente para detener el bucle en el momento preciso.
+
+            // Espera al siguiente fotograma antes de la siguiente ronda de daño.
+            yield return null;
+        }
+
+        // Este bloque se ejecutará si el bucle se rompe por una razón que no sea la victoria,
+        // como un cambio de estado manual, asegurando que el combate termine limpiamente.
+        if (CurrentState == GameState.Overtime)
+        {
+            EndCombatImmediately("El tiempo extra ha finalizado.");
+        }
+    }
+
+    private IEnumerator ShowVictoryScreenAndReset(int winnerTeamID)
+    {
+        CurrentState = GameState.Result; // Cambia a un estado de finalización
+
+        if (victoryPanel != null && victoryText != null)
+        {
+            // Usamos el método estático de UnitController para obtener el formato del tag del equipo
+            string winnerTag = UnitController.GetTeamTag(winnerTeamID);
+            victoryText.text = $"¡{winnerTag.ToUpper()} GANA!";
+            victoryPanel.SetActive(true);
+        }
+
+        // La pausa de 5 segundos
+        yield return new WaitForSeconds(5f);
+
+        if (victoryPanel != null)
+        {
+            victoryPanel.SetActive(false);
+        }
+
+        // Llama a la lógica de reseteo del tablero DESPUÉS de la pausa
+        ResetBoardAfterCombat();
+    }
+
     public void EndCombatEarly()
     {
         if (CurrentState == GameState.Combat)

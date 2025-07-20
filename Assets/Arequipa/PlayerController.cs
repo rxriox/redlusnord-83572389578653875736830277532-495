@@ -109,7 +109,7 @@ public class PlayerController : MonoBehaviour
             }
             HandleBoardInteraction(pointerPosition);
         }
-        else if (GameManager.Instance.CurrentState == GameManager.GameState.Combat)
+        else if (GameManager.Instance.CurrentState == GameManager.GameState.Combat || GameManager.Instance.CurrentState == GameManager.GameState.Overtime)
         {
             HandleCombatInteraction(pointerPosition);
         }
