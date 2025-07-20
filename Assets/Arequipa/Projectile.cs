@@ -6,15 +6,17 @@ public class Projectile : MonoBehaviour
     private UnitController attacker;
     private UnitController target;
     private int damageAmount;
+    private UnitController.DamageType damageType;
     
     [SerializeField] private float speed = 15f;
     [SerializeField] private float lifeTime = 3f;
     
-    public void Initialize(UnitController shooter, UnitController targetUnit, int dmg)
+    public void Initialize(UnitController shooter, UnitController targetUnit, int dmg, UnitController.DamageType type)
     {
         this.attacker = shooter;
         this.target = targetUnit;
         this.damageAmount = dmg;
+        this.damageType = type; 
         StartCoroutine(DeactivateAfterTime(lifeTime));
     }
 
@@ -41,7 +43,7 @@ public class Projectile : MonoBehaviour
         if (target != null && target.CurrentHealth > 0)
         {
             Debug.Log($"{UnitController.GetTeamTag(attacker.teamID)} {attacker.unitStats.unitName} ataca a {UnitController.GetTeamTag(target.teamID)} {target.unitStats.unitName}");
-            target.TakeDamage(damageAmount, attacker);
+            target.TakeDamage(damageAmount, attacker, this.damageType);
         }
         gameObject.SetActive(false);
     }

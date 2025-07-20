@@ -5,6 +5,7 @@ using System.Linq;
 
 public class UnitController : MonoBehaviour
 {
+    public enum DamageType { Material, Inmaterial, Absoluto }
     public UnitStats unitStats;
     public int teamID;
     public Node currentNode;
@@ -155,12 +156,15 @@ public class UnitController : MonoBehaviour
             GameObject projGO = ObjectPooler.Instance.SpawnFromPool("Proyectil", transform.position + Vector3.up * 0.5f, Quaternion.identity);
             Projectile projectile = projGO.GetComponent<Projectile>();
             if (projectile != null)
-                projectile.Initialize(this, currentTarget, CurrentAttackDamage);
+                // ===== MODIFICACIÓN #2: Pasa el tipo de daño al proyectil =====
+                // Por ahora, todos los ataques normales son de tipo Material.
+                projectile.Initialize(this, currentTarget, CurrentAttackDamage, DamageType.Material);
         }
         else
         {
             Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ataca a {GetTeamTag(currentTarget.teamID)} {currentTarget.unitStats.unitName}");
-            currentTarget.TakeDamage(CurrentAttackDamage, this);
+            // ===== MODIFICACIÓN #3: Pasa el tipo de daño al recibir daño =====
+            currentTarget.TakeDamage(CurrentAttackDamage, this, DamageType.Material);
         }
 
         attackCooldown = 1f / CurrentAttackSpeed;
@@ -255,8 +259,10 @@ public class UnitController : MonoBehaviour
         currentState = State.IDLE;
     }
 
-    public void TakeDamage(float damage, UnitController attacker)
+    public void TakeDamage(float damage, UnitController attacker, DamageType damageType)
     {
+        Debug.Log($"Tipo de daño recibido: {damageType}");
+
         Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha recibido {damage} de daño de {GetTeamTag(attacker.teamID)} {attacker.unitStats.unitName}.");
         CurrentHealth -= damage;
         if (CurrentHealth <= 0)
