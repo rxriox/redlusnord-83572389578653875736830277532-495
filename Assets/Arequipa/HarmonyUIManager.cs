@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using TMPro;
 
-[RequireComponent(typeof(AudioSource))]
 public class HarmonyUIManager : MonoBehaviour
 {
     [Header("Referencias de UI")]
@@ -17,20 +16,6 @@ public class HarmonyUIManager : MonoBehaviour
     [Header("UI Mensajes")]
     [Tooltip("El objeto de texto que se muestra cuando no hay unidades.")]
     public GameObject noUnitsContainer;
-
-    void Start()
-    {
-        if (timerPanel != null)
-        {
-            timerPanel.SetActive(false);
-            timerPanelImage = timerPanel.GetComponent<Image>();
-            if (timerText != null)
-            {
-                timerPulseEffect = timerText.GetComponent<UIPulseEffect>();
-            }
-        }
-        audioSource = GetComponent<AudioSource>();
-    }
 
     private void OnEnable()
     {
@@ -113,106 +98,6 @@ public class HarmonyUIManager : MonoBehaviour
                 isHarmonyActive ? activeHarmoniesContainer : inactiveHarmoniesContainer,
                 false
             );
-        }
-    }
-
-    [Header("Temporizador")]
-    public GameObject timerPanel;
-    public TextMeshProUGUI timerText;
-
-    [Tooltip("El color del panel cuando el tiempo está entre 10 y 4 segundos.")]
-    public Color warningColor = Color.black;
-    [Tooltip("El color del panel cuando el tiempo está entre 3 y 0 segundos.")]
-    public Color dangerColor = Color.red;
-
-    [Header("Sonidos del Temporizador")]
-    [Tooltip("Sonido para los segundos 5, 4 y 3.")]
-    public AudioClip normalTickSound;
-    [Tooltip("Sonido para el segundo 2.")]
-    public AudioClip finalTickSound2;
-    [Tooltip("Sonido para el segundo 1.")]
-    public AudioClip finalTickSound1;
-    [Tooltip("Sonido para el segundo 0 (final del combate).")]
-    public AudioClip finalTickSound0;
-
-    private Image timerPanelImage;
-    private UIPulseEffect timerPulseEffect;
-    private int lastSecondDisplayed = -1;
-    private AudioSource audioSource;
-
-
-    void Update()
-    {
-        if (GameManager.Instance == null || timerText == null || timerPanel == null) return;
-
-        if (GameManager.Instance.CurrentState == GameManager.GameState.Combat)
-        {
-            float timeLeft = GameManager.BATTLE_TIME_LIMIT - GameManager.Instance.battleTimer;
-
-            if (timeLeft <= 10.99f)
-            {
-                timerPanel.SetActive(true);
-
-                int currentSecond = Mathf.CeilToInt(timeLeft);
-                currentSecond = Mathf.Clamp(currentSecond, 0, 10);
-
-                if (currentSecond != lastSecondDisplayed)
-                {
-                    lastSecondDisplayed = currentSecond;
-                    timerText.text = currentSecond.ToString();
-
-                    if (timerPanelImage != null)
-                    {
-                        timerPanelImage.color = (currentSecond <= 3) ? dangerColor : warningColor;
-                    }
-
-                    if (timerPulseEffect != null)
-                    {
-                        timerPulseEffect.PlayPulse();
-                    }
-
-                    // ===== MODIFICACIÓN #4: Lógica para reproducir el sonido correcto =====
-                    PlayTimerSound(currentSecond);
-                }
-            }
-            else
-            {
-                timerPanel.SetActive(false);
-                lastSecondDisplayed = -1;
-            }
-        }
-        else
-        {
-            timerPanel.SetActive(false);
-            lastSecondDisplayed = -1;
-        }
-    }
-    
-    private void PlayTimerSound(int second)
-    {
-        AudioClip clipToPlay = null;
-
-        switch (second)
-        {
-            case 5:
-            case 4:
-            case 3:
-                clipToPlay = normalTickSound;
-                break;
-            case 2:
-                clipToPlay = finalTickSound2;
-                break;
-            case 1:
-                clipToPlay = finalTickSound1;
-                break;
-            case 0:
-                clipToPlay = finalTickSound0;
-                break;
-        }
-
-        if (clipToPlay != null && audioSource != null)
-        {
-            audioSource.PlayOneShot(clipToPlay);
         }
     }
 }
