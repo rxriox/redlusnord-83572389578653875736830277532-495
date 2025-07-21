@@ -87,6 +87,14 @@ public class UnitController : MonoBehaviour
 
     public void EvaluateAction()
     {
+        
+// En caso no funcione el overtime       
+//         if (GameManager.Instance.CurrentState == GameManager.GameState.Overtime)
+//        {
+//            currentState = State.IDLE;
+//            return;
+//        }
+
         if (HasStatus(StatusEffect.Dazed)) return;
         if (currentState == State.MOVING || currentState == State.ATTACKING) return;
         if (attackCooldown > 0)
