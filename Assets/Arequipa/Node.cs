@@ -7,10 +7,10 @@ public class Node
     public int gridX;
     public int gridZ;
 
-    // A* Pathfinding properties
-    public int gCost; // Cost from the starting node
-    public int hCost; // Heuristic cost to the end node
-    public Node parent; // The node preceding this one in the path
+    // A*
+    public int gCost; // Costo desde inicio
+    public int hCost; // Costo para el final
+    public Node parent; // Nodo precedente
 
     public Node(bool _isWalkable, Vector3 _worldPosition, int _gridX, int _gridZ)
     {
@@ -20,7 +20,7 @@ public class Node
         gridZ = _gridZ;
     }
 
-    // Calculated property for the total cost
+    // Costo total de mov calculado
     public int fCost
     {
         get { return gCost + hCost; }

@@ -143,10 +143,11 @@ public class UIPerspectiveManager : MonoBehaviour
             supremaCountText.text = $"{currentCount} / {limit}";
         }
 
+        //Artefactos
         if (activeArtifactsCountText != null && ArtifactManager.Instance != null)
         {
             int currentArtifacts = ArtifactManager.Instance.GetActiveArtifactCountForTeam(teamID);
-            int maxArtifactsLimit = GameManager.Instance.maxArtifacts; // Obtener el límite global de artefactos
+            int maxArtifactsLimit = GameManager.Instance.maxArtifacts;
             activeArtifactsCountText.text = $"{currentArtifacts} / {maxArtifactsLimit}";
         }
     }

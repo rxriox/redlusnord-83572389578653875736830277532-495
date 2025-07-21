@@ -13,7 +13,7 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
     public ArtifactIconController originatingBenchIcon;
 
     [HideInInspector]
-    public int teamID; // Guardará si el artefacto es del equipo 0 o 1
+    public int teamID;
 
     private Transform originalParent;
     private UnitController equippedUnit;
@@ -75,7 +75,6 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
 
         canvasGroup.blocksRaycasts = false;
 
-        // NUEVA LÓGICA: Solo muestra la Trash Zone si NO hay combate en curso.
         if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.Combat)
         {
             PlayerController.Instance?.ShowTrashZone();
@@ -123,7 +122,6 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
 
         PlayerController.Instance?.HideSelectionHighlight();
 
-        // INICIO DE LA LÓGICA DE PREVENCIÓN EN COMBATE
         if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Combat)
         {
             Debug.LogWarning("No se pueden modificar artefactos durante el combate. El artefacto vuelve a su posición original.");
@@ -132,7 +130,6 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
             transform.position = startPosition;
             return;
         }
-        // FIN DE LA LÓGICA DE PREVENCIÓN EN COMBATE
 
         // Soltar en TrashZone
         if (eventData.pointerEnter != null &&
@@ -158,7 +155,7 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
             }
         }
 
-        // Si no se soltó en una unidad válida ni en TrashZone
+        // Si no se suelta en una unidad válida ni en TrashZone
         transform.SetParent(originalParent);
         transform.SetSiblingIndex(originalSiblingIndex);
         transform.position = startPosition;
@@ -166,7 +163,7 @@ public class ActiveArtifactIcon : MonoBehaviour, IBeginDragHandler, IDragHandler
 
     private void HandleEquipOnUnit(UnitController targetUnit)
     {
-        // VALIDACIÓN: No se puede equipar un artefacto a una unidad de otro equipo.
+        // No se puede equipar un artefacto a una unidad de otro equipo.
         if (targetUnit.teamID != this.teamID)
         {
             Debug.LogWarning("Intento de equipar artefacto a un equipo incorrecto.");

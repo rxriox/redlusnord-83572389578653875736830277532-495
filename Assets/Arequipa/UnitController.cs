@@ -87,20 +87,8 @@ public class UnitController : MonoBehaviour
 
     public void EvaluateAction()
     {
-        if (GameManager.Instance.CurrentState == GameManager.GameState.Overtime)
-        {
-            currentState = State.IDLE;
-            return;
-        }
-
-        if (HasStatus(StatusEffect.Dazed))
-        {
-            // Si está aturdido, no puede hacer absolutamente nada.
-            return;
-        }
-
+        if (HasStatus(StatusEffect.Dazed)) return;
         if (currentState == State.MOVING || currentState == State.ATTACKING) return;
-
         if (attackCooldown > 0)
         {
             attackCooldown -= Time.deltaTime;
@@ -118,7 +106,6 @@ public class UnitController : MonoBehaviour
 
         if (IsTargetInAttackRange())
         {
-            // Solo puede atacar si no está Asustado (Fear)
             if (attackCooldown <= 0 && !HasStatus(StatusEffect.Fear))
             {
                 PerformAttack();
@@ -126,10 +113,22 @@ public class UnitController : MonoBehaviour
         }
         else
         {
-            // Solo puede moverse si no está Inmovilizado (Immobilized)
-            if (!HasStatus(StatusEffect.Immobilized))
+            UnitController immediateTarget = FindEnemyInAttackRange();
+            if (immediateTarget != null)
             {
-                MoveTowardsTarget();
+                Debug.Log($"{unitStats.unitName} cambia de objetivo a {immediateTarget.unitStats.unitName} por estar más cerca.");
+                currentTarget = immediateTarget;
+                if (attackCooldown <= 0 && !HasStatus(StatusEffect.Fear))
+                {
+                    PerformAttack();
+                }
+            }
+            else
+            {
+                if (!HasStatus(StatusEffect.Immobilized))
+                {
+                    MoveTowardsTarget();
+                }
             }
         }
     }
@@ -172,7 +171,7 @@ public class UnitController : MonoBehaviour
             currentState = State.IDLE;
             return;
         }
-        
+
         currentState = State.ATTACKING;
         transform.LookAt(new Vector3(currentTarget.transform.position.x, transform.position.y, currentTarget.transform.position.z));
 
@@ -181,14 +180,11 @@ public class UnitController : MonoBehaviour
             GameObject projGO = ObjectPooler.Instance.SpawnFromPool("Proyectil", transform.position + Vector3.up * 0.5f, Quaternion.identity);
             Projectile projectile = projGO.GetComponent<Projectile>();
             if (projectile != null)
-                // ===== MODIFICACIÓN #2: Pasa el tipo de daño al proyectil =====
-                // Por ahora, todos los ataques normales son de tipo Material.
-                projectile.Initialize(this, currentTarget, CurrentAttackDamage, DamageType.Material);
+            projectile.Initialize(this, currentTarget, CurrentAttackDamage, DamageType.Material);
         }
         else
         {
             Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ataca a {GetTeamTag(currentTarget.teamID)} {currentTarget.unitStats.unitName}");
-            // ===== MODIFICACIÓN #3: Pasa el tipo de daño al recibir daño =====
             currentTarget.TakeDamage(CurrentAttackDamage, this, DamageType.Material);
         }
 
@@ -389,7 +385,6 @@ public class UnitController : MonoBehaviour
 
     public void ApplyStatus(StatusEffect effect, float duration)
     {
-        // Si ya tiene el estado, refresca su duración reiniciando la corrutina.
         if (HasStatus(effect))
         {
             StopCoroutine(activeStatusEffects[effect]);

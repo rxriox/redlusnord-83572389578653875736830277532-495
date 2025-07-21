@@ -458,33 +458,19 @@ public class GameManager : MonoBehaviour
         Debug.Log("Iniciando tiempo extra. Todas las unidades recibirán daño porcentual.");
         const float DAMAGE_PERCENT_PER_SECOND = 0.075f; // 7.5% de la vida máxima por segundo
 
-        // El bucle se ejecutará mientras el estado sea Overtime.
-        // La condición de victoria (un equipo sin unidades) se chequeará dentro.
         while (CurrentState == GameState.Overtime)
         {
-            // Itera sobre una copia de la lista para evitar problemas si una unidad muere
-            // y la lista original se modifica durante el bucle.
             foreach (var unit in allUnits.ToList())
             {
                 if (unit != null)
                 {
-                    // Calcula el daño a infligir en este fotograma.
                     float damageThisFrame = unit.MaxHealth * DAMAGE_PERCENT_PER_SECOND * Time.deltaTime;
-
-                    // Aplica el daño a cada unidad.
                     unit.TakeDamage(damageThisFrame, null, UnitController.DamageType.Absoluto);
                 }
             }
-            
-            // La llamada a CheckForCombatEnd() dentro del método Die() de la unidad que muere
-            // es suficiente para detener el bucle en el momento preciso.
-
-            // Espera al siguiente fotograma antes de la siguiente ronda de daño.
             yield return null;
         }
 
-        // Este bloque se ejecutará si el bucle se rompe por una razón que no sea la victoria,
-        // como un cambio de estado manual, asegurando que el combate termine limpiamente.
         if (CurrentState == GameState.Overtime)
         {
             EndCombatImmediately("El tiempo extra ha finalizado.");
@@ -496,7 +482,6 @@ public class GameManager : MonoBehaviour
         CurrentState = GameState.Result;
         if (victoryPanel != null && victoryText != null)
         {
-            // Usamos el método estático de UnitController para obtener el formato del tag del equipo
             string winnerTag = UnitController.GetTeamTag(winnerTeamID);
             victoryText.text = $"¡{winnerTag.ToUpper()} GANA!";
             victoryPanel.SetActive(true);
@@ -551,7 +536,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Pide al ArtifactManager que "desconecte" los iconos de las unidades que serán destruidas.
+        // Para q ArtifactManager desconecte los iconos de las unidades que seran borradas
         if (ArtifactManager.Instance != null)
         {
             ArtifactManager.Instance.DetachAllIconsFromUnits();
@@ -561,7 +546,7 @@ public class GameManager : MonoBehaviour
         {
             if (gridManager != null && unitInfo.startingNode != null)
             {
-                // Llama a SpawnUnit y, si la unidad tenía un artefacto, lo vuelve a conectar.
+                // si la unidad tenia un artefacto lo vuelve a conectar.
                 UnitController newUnit = gridManager.SpawnUnit(unitInfo.stats, unitInfo.teamID, unitInfo.startingNode, unitInfo.originatingIcon);
                 if (newUnit != null && unitInfo.EquippedArtifact != null && ArtifactManager.Instance != null)
                 {

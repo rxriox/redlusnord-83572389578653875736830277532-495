@@ -43,23 +43,17 @@ public class PlacementUIManager : MonoBehaviour
     public TextMeshProUGUI attackDamageText;
     public TextMeshProUGUI attackSpeedText;
     public TextMeshProUGUI moveSpeedText;
-    [Tooltip("Las imágenes para los iconos de las habilidades.")]
     public List<Image> abilityIconSlots = new List<Image>();
-    [Tooltip("Las imágenes para los iconos de las spell cards.")]
     public List<Image> spellCardIconSlots = new List<Image>();
 
     private UnitController selectedUnitForDetails;
-    [Tooltip("La imagen en la UI que mostrará el icono del artefacto equipado.")]
     public Image equippedArtifactImage;
-    [Tooltip("Lista de las imágenes en la UI destinadas a mostrar los iconos de las armonías.")]
     public List<Image> harmonyIconImages;
-    [Tooltip("El sprite que se muestra cuando no hay ningún artefacto equipado.")]
     public Sprite defaultArtifactSprite;
 
     public Button closeDetailsButton;
     public PanelInGameGradient detailsPanelGradient;
 
-    [Tooltip("Arrastra aquí el componente CanvasGroup del detailsPanel.")]
     public CanvasGroup detailsPanelCanvasGroup;
     private Coroutine panelFadeCoroutine;
     private Coroutine benchFadeCoroutine;
@@ -76,7 +70,6 @@ public class PlacementUIManager : MonoBehaviour
     [Header("Animación")]
     public float fadeDuration = 0.1f;
     public float panelFadeDuration = 0.1f;
-    [Tooltip("La distancia que se desplazará el panel al aparecer/desaparecer.")]
     public float panelSlideOffset = 50f;
     private Vector2 panelOriginalPosition;
     public enum ActiveBench { Allies, Enemies, Artifacts }
@@ -150,113 +143,110 @@ public class PlacementUIManager : MonoBehaviour
     }
 
     public void ShowDetailsPanel(UnitStats stats)
-{
-    if (stats == null || detailsPanelCanvasGroup == null) return;
-
-    // Limpiamos la referencia a la unidad seleccionada anteriormente
-    selectedUnitForDetails = null;
-
-    if (panelFadeCoroutine != null)
     {
-        StopCoroutine(panelFadeCoroutine);
-    }
+        if (stats == null || detailsPanelCanvasGroup == null) return;
 
-    if (portraitImage != null) portraitImage.sprite = stats.portrait;
-    if (backgroundImage != null) backgroundImage.sprite = stats.backgroundImage;
+        selectedUnitForDetails = null;
 
-    if (equippedArtifactImage != null)
-    {
-        equippedArtifactImage.sprite = defaultArtifactSprite;
-    }
-
-    int currentLevel = GameManager.Instance.GetCurrentLevelForUnit(stats);
-    unitNameText.text = stats.unitName;
-    levelText.text = $"{currentLevel}";
-
-    // Usamos directamente las propiedades del UnitController si hay una unidad seleccionada
-    if (selectedUnitForDetails != null)
-    {
-        healthText.text = $"{Mathf.CeilToInt(selectedUnitForDetails.CurrentHealth)} / {selectedUnitForDetails.MaxHealth}";
-        attackDamageText.text = selectedUnitForDetails.CurrentAttackDamage.ToString();
-    }
-    else // Si no, mostramos los stats base
-    {
-        int maxHealth = (stats.maxHealthByLevel.Count >= currentLevel && currentLevel > 0) ? stats.maxHealthByLevel[currentLevel - 1] : 0;
-        int attackDamage = (stats.attackDamageByLevel.Count >= currentLevel && currentLevel > 0) ? stats.attackDamageByLevel[currentLevel - 1] : 0;
-
-        healthText.text = maxHealth.ToString();
-        attackDamageText.text = attackDamage.ToString();
-    }
-
-    attackSpeedText.text = stats.attackSpeed.ToString("F2");
-    moveSpeedText.text = stats.moveSpeed.ToString("F1");
-
-    for (int i = 0; i < abilityIconSlots.Count; i++)
-    {
-        if (i < stats.abilities.Count && stats.abilities[i] != null)
+        if (panelFadeCoroutine != null)
         {
-            abilityIconSlots[i].gameObject.SetActive(true);
-            abilityIconSlots[i].sprite = stats.abilities[i].icon;
+            StopCoroutine(panelFadeCoroutine);
+        }
+
+        if (portraitImage != null) portraitImage.sprite = stats.portrait;
+        if (backgroundImage != null) backgroundImage.sprite = stats.backgroundImage;
+
+        if (equippedArtifactImage != null)
+        {
+            equippedArtifactImage.sprite = defaultArtifactSprite;
+        }
+
+        int currentLevel = GameManager.Instance.GetCurrentLevelForUnit(stats);
+        unitNameText.text = stats.unitName;
+        levelText.text = $"{currentLevel}";
+
+        if (selectedUnitForDetails != null)
+        {
+            healthText.text = $"{Mathf.CeilToInt(selectedUnitForDetails.CurrentHealth)} / {selectedUnitForDetails.MaxHealth}";
+            attackDamageText.text = selectedUnitForDetails.CurrentAttackDamage.ToString();
         }
         else
         {
-            abilityIconSlots[i].gameObject.SetActive(false);
-        }
-    }
+            int maxHealth = (stats.maxHealthByLevel.Count >= currentLevel && currentLevel > 0) ? stats.maxHealthByLevel[currentLevel - 1] : 0;
+            int attackDamage = (stats.attackDamageByLevel.Count >= currentLevel && currentLevel > 0) ? stats.attackDamageByLevel[currentLevel - 1] : 0;
 
-    for (int i = 0; i < spellCardIconSlots.Count; i++)
-    {
-        if (i < stats.spellCards.Count && stats.spellCards[i] != null)
-        {
-            spellCardIconSlots[i].gameObject.SetActive(true); 
-            spellCardIconSlots[i].sprite = stats.spellCards[i].icon;
-        }
-        else
-        {
-            spellCardIconSlots[i].gameObject.SetActive(false);
-        }
-    }
-
-    if (detailsPanelGradient != null)
-    {
-        switch (stats.category)
-        {
-            case UnitStats.UnitCategory.Fabulosa:
-                detailsPanelGradient.m_color1 = fabulosaColorTop;
-                detailsPanelGradient.m_color2 = fabulosaColorBottom;
-                break;
-            case UnitStats.UnitCategory.Magnifica:
-                detailsPanelGradient.m_color1 = magnificaColorTop;
-                detailsPanelGradient.m_color2 = magnificaColorBottom;
-                break;
-            case UnitStats.UnitCategory.Suprema:
-                detailsPanelGradient.m_color1 = supremaColorTop;
-                detailsPanelGradient.m_color2 = supremaColorBottom;
-                break;
-        }
-        detailsPanelGradient.Refresh();
-    }
-
-    if (harmonyIconImages != null)
-    {
-        foreach (var iconImage in harmonyIconImages)
-        {
-            iconImage.gameObject.SetActive(false);
+            healthText.text = maxHealth.ToString();
+            attackDamageText.text = attackDamage.ToString();
         }
 
-        for (int i = 0; i < stats.naturalHarmonies.Count; i++)
+        attackSpeedText.text = stats.attackSpeed.ToString("F2");
+        moveSpeedText.text = stats.moveSpeed.ToString("F1");
+
+        for (int i = 0; i < abilityIconSlots.Count; i++)
         {
-            if (i < harmonyIconImages.Count)
+            if (i < stats.abilities.Count && stats.abilities[i] != null)
             {
-                harmonyIconImages[i].gameObject.SetActive(true);
-                harmonyIconImages[i].sprite = stats.naturalHarmonies[i].activeIcon;
+                abilityIconSlots[i].gameObject.SetActive(true);
+                abilityIconSlots[i].sprite = stats.abilities[i].icon;
+            }
+            else
+            {
+                abilityIconSlots[i].gameObject.SetActive(false);
             }
         }
+
+        for (int i = 0; i < spellCardIconSlots.Count; i++)
+        {
+            if (i < stats.spellCards.Count && stats.spellCards[i] != null)
+            {
+                spellCardIconSlots[i].gameObject.SetActive(true);
+                spellCardIconSlots[i].sprite = stats.spellCards[i].icon;
+            }
+            else
+            {
+                spellCardIconSlots[i].gameObject.SetActive(false);
+            }
+        }
+
+        if (detailsPanelGradient != null)
+        {
+            switch (stats.category)
+            {
+                case UnitStats.UnitCategory.Fabulosa:
+                    detailsPanelGradient.m_color1 = fabulosaColorTop;
+                    detailsPanelGradient.m_color2 = fabulosaColorBottom;
+                    break;
+                case UnitStats.UnitCategory.Magnifica:
+                    detailsPanelGradient.m_color1 = magnificaColorTop;
+                    detailsPanelGradient.m_color2 = magnificaColorBottom;
+                    break;
+                case UnitStats.UnitCategory.Suprema:
+                    detailsPanelGradient.m_color1 = supremaColorTop;
+                    detailsPanelGradient.m_color2 = supremaColorBottom;
+                    break;
+            }
+            detailsPanelGradient.Refresh();
+        }
+
+        if (harmonyIconImages != null)
+        {
+            foreach (var iconImage in harmonyIconImages)
+            {
+                iconImage.gameObject.SetActive(false);
+            }
+
+            for (int i = 0; i < stats.naturalHarmonies.Count; i++)
+            {
+                if (i < harmonyIconImages.Count)
+                {
+                    harmonyIconImages[i].gameObject.SetActive(true);
+                    harmonyIconImages[i].sprite = stats.naturalHarmonies[i].activeIcon;
+                }
+            }
+        }
+
+        panelFadeCoroutine = StartCoroutine(AnimateDetailsPanel(true));
     }
-
-    panelFadeCoroutine = StartCoroutine(AnimateDetailsPanel(true));
-}
-
 
     public void HideDetailsPanel()
     {
