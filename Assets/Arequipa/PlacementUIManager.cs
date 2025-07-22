@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-using TMPro;
 using System.Collections.Generic;
 
 public class PlacementUIManager : MonoBehaviour
@@ -33,53 +32,11 @@ public class PlacementUIManager : MonoBehaviour
     public GameObject[] artifactIconPrefabs;
     public CanvasGroup artifactsBenchCanvasGroup;
 
-    [Header("Panel de Detalles de Unidad")]
-    public GameObject detailsPanel;
-    public GameObject deathEffectOverlay;
-    public TextMeshProUGUI unitNameText;
-    public Image portraitImage;
-    public Image backgroundImage;
-    public TextMeshProUGUI levelText;
-    public Slider healthBarSlider;
-    public TextMeshProUGUI healthText;
-    public TextMeshProUGUI attackDamageText;
-    public TextMeshProUGUI attackSpeedText;
-    public TextMeshProUGUI moveSpeedText;
-    public List<Image> abilityIconSlots = new List<Image>();
-    public List<Image> spellCardIconSlots = new List<Image>();
-
-    private UnitController selectedUnitForDetails;
-    public Image equippedArtifactImage;
-    public List<Image> harmonyIconImages;
-    public Sprite defaultArtifactSprite;
-
-    public Button closeDetailsButton;
-    public PanelInGameGradient detailsPanelGradient;
-
-    public CanvasGroup detailsPanelCanvasGroup;
-    private Coroutine panelFadeCoroutine;
-    private Coroutine benchFadeCoroutine;
-    public bool IsDetailsPanelActive => detailsPanelCanvasGroup != null && detailsPanelCanvasGroup.alpha > 0;
-
-    [Header("Configuración de Degradados de Rareza")]
-    public Color fabulosaColorTop = new Color(0.1f, 0.2f, 0.6f);
-    public Color fabulosaColorBottom = Color.black;
-    public Color magnificaColorTop = new Color(0.4f, 0.1f, 0.6f);
-    public Color magnificaColorBottom = Color.black;
-    public Color supremaColorTop = new Color(0.7f, 0.6f, 0.1f);
-    public Color supremaColorBottom = Color.black;
-
     [Header("Animación")]
     public float fadeDuration = 0.1f;
-    public float panelFadeDuration = 0.1f;
-    public float panelSlideOffset = 50f;
-    private Vector2 panelOriginalPosition;
-    public enum ActiveBench { Allies, Enemies, Artifacts }
-
-    [Header("Highlight de Selección en Combate")]
-    public GameObject selectionHighlightPrefab;
-    private GameObject activeSelectionHighlight;
-
+    
+    private Coroutine benchFadeCoroutine;
+    private enum ActiveBench { Allies, Enemies, Artifacts }
     private ActiveBench lastActiveBench;
     public int CurrentPlacementTeamID { get; private set; }
 
@@ -89,300 +46,14 @@ public class PlacementUIManager : MonoBehaviour
         else Instance = this;
     }
 
-    void Start()
+    private void Start()
     {
         PopulateBench(allyBenchContent, allyIconPrefabs);
         PopulateBench(enemyBenchContent, enemyIconPrefabs);
         PopulateBench(artifactsBenchContent, artifactIconPrefabs);
         ShowAllyBench();
-        if (closeDetailsButton != null)
-        {
-            closeDetailsButton.onClick.AddListener(HideDetailsPanel);
-        }
-        if (detailsPanelCanvasGroup != null)
-        {
-            detailsPanelCanvasGroup.alpha = 0f;
-            detailsPanelCanvasGroup.interactable = false;
-            detailsPanelCanvasGroup.blocksRaycasts = false;
-        }
-        else
-        {
-            detailsPanel.SetActive(false);
-        }
-        if (detailsPanel != null)
-        {
-            panelOriginalPosition = detailsPanel.GetComponent<RectTransform>().anchoredPosition;
-        }
-        if (deathEffectOverlay != null)
-        {
-            deathEffectOverlay.SetActive(false);
-        }
     }
-
-    void Update()
-    {
-        if (selectedUnitForDetails != null && IsDetailsPanelActive)
-        {
-            levelText.text = $"{selectedUnitForDetails.CurrentLevel}";
-            if (selectedUnitForDetails.CurrentHealth < selectedUnitForDetails.MaxHealth)
-            {
-                healthText.text = $"{Mathf.CeilToInt(selectedUnitForDetails.CurrentHealth)} / {selectedUnitForDetails.MaxHealth}";
-            }
-            else
-            {
-                healthText.text = selectedUnitForDetails.MaxHealth.ToString();
-            }
-
-            if (healthBarSlider != null)
-            {
-                if (selectedUnitForDetails.MaxHealth > 0)
-                {
-                    healthBarSlider.value = selectedUnitForDetails.CurrentHealth / selectedUnitForDetails.MaxHealth;
-                }
-            }
-
-            attackDamageText.text = selectedUnitForDetails.CurrentAttackDamage.ToString();
-            attackSpeedText.text = selectedUnitForDetails.CurrentAttackSpeed.ToString("F0");
-            moveSpeedText.text = selectedUnitForDetails.CurrentMoveSpeed.ToString("F0");
-
-            if (selectedUnitForDetails.EquippedArtifact != null)
-            {
-                equippedArtifactImage.sprite = selectedUnitForDetails.EquippedArtifact.icon;
-            }
-            else
-            {
-                equippedArtifactImage.sprite = defaultArtifactSprite;
-            }
-        }
-    }
-
-    public void ShowDetailsPanel(UnitStats stats)
-    {
-        if (stats == null || detailsPanelCanvasGroup == null) return;
-
-        if (healthBarSlider != null)
-        {
-            healthBarSlider.value = 1;
-        }
-        
-        selectedUnitForDetails = null;
-
-        if (panelFadeCoroutine != null)
-        {
-            StopCoroutine(panelFadeCoroutine);
-        }
-
-        if (portraitImage != null) portraitImage.sprite = stats.portrait;
-        if (backgroundImage != null) backgroundImage.sprite = stats.backgroundImage;
-
-        if (equippedArtifactImage != null)
-        {
-            equippedArtifactImage.sprite = defaultArtifactSprite;
-        }
-
-        int currentLevel = GameManager.Instance.GetCurrentLevelForUnit(stats);
-        unitNameText.text = stats.unitName;
-        levelText.text = $"{currentLevel}";
-
-        if (selectedUnitForDetails != null)
-        {
-            healthText.text = $"{Mathf.CeilToInt(selectedUnitForDetails.CurrentHealth)} / {selectedUnitForDetails.MaxHealth}";
-            attackDamageText.text = selectedUnitForDetails.CurrentAttackDamage.ToString();
-        }
-        else
-        {
-            int maxHealth = (stats.maxHealthByLevel.Count >= currentLevel && currentLevel > 0) ? stats.maxHealthByLevel[currentLevel - 1] : 0;
-            int attackDamage = (stats.attackDamageByLevel.Count >= currentLevel && currentLevel > 0) ? stats.attackDamageByLevel[currentLevel - 1] : 0;
-
-            healthText.text = maxHealth.ToString();
-            attackDamageText.text = attackDamage.ToString();
-        }
-
-        attackSpeedText.text = stats.attackSpeed.ToString("F2");
-        moveSpeedText.text = stats.moveSpeed.ToString("F1");
-
-        for (int i = 0; i < abilityIconSlots.Count; i++)
-        {
-            if (i < stats.abilities.Count && stats.abilities[i] != null)
-            {
-                abilityIconSlots[i].gameObject.SetActive(true);
-                abilityIconSlots[i].sprite = stats.abilities[i].icon;
-            }
-            else
-            {
-                abilityIconSlots[i].gameObject.SetActive(false);
-            }
-        }
-
-        for (int i = 0; i < spellCardIconSlots.Count; i++)
-        {
-            if (i < stats.spellCards.Count && stats.spellCards[i] != null)
-            {
-                spellCardIconSlots[i].gameObject.SetActive(true);
-                spellCardIconSlots[i].sprite = stats.spellCards[i].icon;
-            }
-            else
-            {
-                spellCardIconSlots[i].gameObject.SetActive(false);
-            }
-        }
-
-        if (detailsPanelGradient != null)
-        {
-            switch (stats.category)
-            {
-                case UnitStats.UnitCategory.Fabulosa:
-                    detailsPanelGradient.m_color1 = fabulosaColorTop;
-                    detailsPanelGradient.m_color2 = fabulosaColorBottom;
-                    break;
-                case UnitStats.UnitCategory.Magnifica:
-                    detailsPanelGradient.m_color1 = magnificaColorTop;
-                    detailsPanelGradient.m_color2 = magnificaColorBottom;
-                    break;
-                case UnitStats.UnitCategory.Suprema:
-                    detailsPanelGradient.m_color1 = supremaColorTop;
-                    detailsPanelGradient.m_color2 = supremaColorBottom;
-                    break;
-            }
-            detailsPanelGradient.Refresh();
-        }
-
-        if (harmonyIconImages != null)
-        {
-            foreach (var iconImage in harmonyIconImages)
-            {
-                iconImage.gameObject.SetActive(false);
-            }
-
-            for (int i = 0; i < stats.naturalHarmonies.Count; i++)
-            {
-                if (i < harmonyIconImages.Count)
-                {
-                    harmonyIconImages[i].gameObject.SetActive(true);
-                    harmonyIconImages[i].sprite = stats.naturalHarmonies[i].activeIcon;
-                }
-            }
-        }
-        if (deathEffectOverlay != null)
-        {
-            deathEffectOverlay.SetActive(false);
-        }
-
-        panelFadeCoroutine = StartCoroutine(AnimateDetailsPanel(true));
-    }
-
-    public void HideDetailsPanel()
-    {
-        selectedUnitForDetails = null;
-
-        if (detailsPanelCanvasGroup == null || detailsPanelCanvasGroup.alpha == 0) return;
-        if (PlayerController.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Placement)
-        {
-            PlayerController.Instance.HideSelectionHighlight();
-            PlayerController.Instance.ClearInteractionState();
-        }
-        if (activeSelectionHighlight != null)
-        {
-            Destroy(activeSelectionHighlight);
-            activeSelectionHighlight = null;
-        }
-
-        if (PlayerController.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Placement)
-        {
-            PlayerController.Instance.HideSelectionHighlight();
-            PlayerController.Instance.ClearInteractionState();
-        }
-
-        if (deathEffectOverlay != null)
-        {
-            deathEffectOverlay.SetActive(false);
-        }
-
-        panelFadeCoroutine = StartCoroutine(AnimateDetailsPanel(false));
-    }
-
-    private IEnumerator AnimateDetailsPanel(bool fadeIn)
-    {
-        RectTransform panelRect = detailsPanel.GetComponent<RectTransform>();
-        float startAlpha = detailsPanelCanvasGroup.alpha;
-        float endAlpha = fadeIn ? 1f : 0f;
-
-        Vector2 startPosition = panelRect.anchoredPosition;
-        Vector2 endPosition;
-
-        if (fadeIn)
-        {
-            startPosition = panelOriginalPosition + new Vector2(panelSlideOffset, 0);
-            endPosition = panelOriginalPosition;
-        }
-        else
-        {
-            endPosition = panelOriginalPosition + new Vector2(panelSlideOffset, 0);
-        }
-
-        float elapsedTime = 0f;
-        while (elapsedTime < panelFadeDuration)
-        {
-            elapsedTime += Time.deltaTime;
-            float t = elapsedTime / panelFadeDuration;
-
-            detailsPanelCanvasGroup.alpha = Mathf.Lerp(startAlpha, endAlpha, t);
-            panelRect.anchoredPosition = Vector2.Lerp(startPosition, endPosition, t);
-
-            yield return null;
-        }
-
-        detailsPanelCanvasGroup.alpha = endAlpha;
-        panelRect.anchoredPosition = endPosition;
-
-        if (fadeIn)
-        {
-            detailsPanelCanvasGroup.interactable = true;
-            detailsPanelCanvasGroup.blocksRaycasts = true;
-        }
-        else
-        {
-            detailsPanelCanvasGroup.interactable = false;
-            detailsPanelCanvasGroup.blocksRaycasts = false;
-            HideSelectionHighlight();
-        }
-
-        panelFadeCoroutine = null;
-    }
-
-    public void ForceDetailsPanelUpdate(UnitController unit)
-    {
-        if (unit != null && selectedUnitForDetails == unit && IsDetailsPanelActive)
-        {
-            if (unit.CurrentHealth <= 0)
-            {
-                healthText.text = $"0 / {unit.MaxHealth}";
-            }
-            else if (unit.CurrentHealth < unit.MaxHealth)
-            {
-                healthText.text = $"{Mathf.CeilToInt(unit.CurrentHealth)} / {unit.MaxHealth}";
-            }
-            else
-            {
-                healthText.text = unit.MaxHealth.ToString();
-            }
-
-            if (unit.CurrentHealth <= 0)
-            {
-                healthText.text = $"0 / {unit.MaxHealth}";
-                if (deathEffectOverlay != null)
-                {
-                    deathEffectOverlay.SetActive(true);
-                }
-                if (healthBarSlider != null) healthBarSlider.value = 0;
-            }
-
-            attackDamageText.text = unit.CurrentAttackDamage.ToString();
-            attackSpeedText.text = unit.CurrentAttackSpeed.ToString("F0");
-            moveSpeedText.text = unit.CurrentMoveSpeed.ToString("F0");
-        }
-    }
-
+    
     void PopulateBench(Transform content, GameObject[] iconPrefabs)
     {
         if (content == null) return;
@@ -392,11 +63,7 @@ public class PlacementUIManager : MonoBehaviour
             if (iconPrefab != null) Instantiate(iconPrefab, content);
         }
     }
-
-    private void OnEnable(){}
-
-    private void OnDisable(){}
-
+    
     public void ShowAllyBench()
     {
         CurrentPlacementTeamID = 0;
@@ -492,86 +159,15 @@ public class PlacementUIManager : MonoBehaviour
 
         benchFadeCoroutine = null;
     }
-
+    
     public void ShowBenchesAfterDrag()
     {
         switch (lastActiveBench)
         {
-            case ActiveBench.Allies:
-                ShowAllyBench();
-                break;
-            case ActiveBench.Enemies:
-                ShowEnemyBench();
-                break;
-            case ActiveBench.Artifacts:
-                ShowArtifactsBench();
-                break;
-            default:
-                ShowAllyBench();
-                break;
-        }
-    }
-
-    private IEnumerator FadeCanvasGroup(CanvasGroup cg, float start, float end)
-    {
-        float counter = 0f;
-        if (end == 0)
-        {
-            cg.interactable = false;
-            cg.blocksRaycasts = false;
-        }
-
-        while (counter < fadeDuration)
-        {
-            counter += Time.deltaTime;
-            cg.alpha = Mathf.Lerp(start, end, counter / fadeDuration);
-            yield return null;
-        }
-
-        cg.alpha = end;
-        if (end == 1)
-        {
-            cg.interactable = true;
-            cg.blocksRaycasts = true;
-        }
-    }
-    public void SelectUnitForDetails(UnitController unit)
-    {
-        if (activeSelectionHighlight != null)
-        {
-            Destroy(activeSelectionHighlight);
-        }
-
-        ShowDetailsPanel(unit.unitStats);
-        this.selectedUnitForDetails = unit;
-
-        if (unit.CurrentHealth <= 0 && deathEffectOverlay != null)
-        {
-            deathEffectOverlay.SetActive(true);
-        }
-
-        if (selectionHighlightPrefab != null)
-        {
-            activeSelectionHighlight = Instantiate(selectionHighlightPrefab, unit.transform.position, Quaternion.identity);
-            HighlightFollower follower = activeSelectionHighlight.GetComponent<HighlightFollower>();
-            if (follower != null)
-            {
-                follower.targetToFollow = unit.transform;
-            }
-        }
-
-        if (unit.CurrentHealth <= 0 && deathEffectOverlay != null)
-        {
-            deathEffectOverlay.SetActive(true);
-        }
-
-    }
-    public void HideSelectionHighlight()
-    {
-        if (activeSelectionHighlight != null)
-        {
-            Destroy(activeSelectionHighlight);
-            activeSelectionHighlight = null;
+            case ActiveBench.Allies: ShowAllyBench(); break;
+            case ActiveBench.Enemies: ShowEnemyBench(); break;
+            case ActiveBench.Artifacts: ShowArtifactsBench(); break;
+            default: ShowAllyBench(); break;
         }
     }
 }

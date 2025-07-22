@@ -48,11 +48,11 @@ public class UnitIconController : MonoBehaviour, IPointerDownHandler, IDragHandl
         if (isDragging)
         {
             playerController.StopDraggingUnit();
-            PlacementUIManager.Instance.HideDetailsPanel();
+            PanelUnitDetails.Instance.HideDetailsPanel();
         }
         else
         {
-            PlacementUIManager.Instance.ShowDetailsPanel(characterData);
+            PanelUnitDetails.Instance.ShowDetailsForBenchUnit(characterData);
         }
         
         isDragging = false;
@@ -70,7 +70,7 @@ public class UnitIconController : MonoBehaviour, IPointerDownHandler, IDragHandl
             if (pointerDownTimer >= dragDelay)
             {
                 isDragging = true;
-                PlacementUIManager.Instance.ShowDetailsPanel(characterData);
+                PanelUnitDetails.Instance.ShowDetailsForBenchUnit(characterData);
                 playerController.StartDraggingUnit(this);
             }
         }

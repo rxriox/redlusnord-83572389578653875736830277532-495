@@ -73,11 +73,11 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         Vector2 pointerPosition = playerControls.Gameplay.PointerPosition.ReadValue<Vector2>();
-        if (PlacementUIManager.Instance.IsDetailsPanelActive && playerControls.Gameplay.Click.WasPressedThisFrame())
+        if (PanelUnitDetails.Instance.IsDetailsPanelActive && playerControls.Gameplay.Click.WasPressedThisFrame())
         {
             if (ShouldClosePanelOnClick(pointerPosition))
             {
-                PlacementUIManager.Instance.HideDetailsPanel();
+                PanelUnitDetails.Instance.HideDetailsPanel();
                 return;
             }
         }
@@ -125,7 +125,7 @@ public class PlayerController : MonoBehaviour
                 UnitController unit = hit.collider.GetComponent<UnitController>();
                 if (unit != null)
                 {
-                    PlacementUIManager.Instance.SelectUnitForDetails(unit);
+                    PanelUnitDetails.Instance.ShowDetailsForPlacedUnit(unit);
                 }
             }
         }
@@ -142,8 +142,8 @@ public class PlayerController : MonoBehaviour
         {
             foreach (var result in uiResults)
             {
-                if (result.gameObject.transform.IsChildOf(PlacementUIManager.Instance.detailsPanel.transform) ||
-                    result.gameObject == PlacementUIManager.Instance.detailsPanel)
+                if (result.gameObject.transform.IsChildOf(PanelUnitDetails.Instance.detailsPanel.transform) ||
+                result.gameObject == PanelUnitDetails.Instance.detailsPanel)
                 {
                     return false;
                 }
@@ -265,8 +265,7 @@ public class PlayerController : MonoBehaviour
         {
             if (potentialRepositionTarget != null && !isDraggingForReposition)
             {
-                ShowSelectionHighlight(potentialRepositionTarget.currentNode);
-                PlacementUIManager.Instance.SelectUnitForDetails(potentialRepositionTarget);
+                PanelUnitDetails.Instance.ShowDetailsForPlacedUnit(potentialRepositionTarget);
             }
             ResetInteractionState();
         }
@@ -280,8 +279,9 @@ public class PlayerController : MonoBehaviour
     void StartRepositioning(UnitController unit, Vector2 pointerPosition)
     {
         isDraggingForReposition = true;
-        PlacementUIManager.Instance.ShowDetailsPanel(unit.unitStats);
-        PlacementUIManager.Instance.HideSelectionHighlight();
+        PanelUnitDetails.Instance.ShowDetailsForPlacedUnit(unit);
+        PanelUnitDetails.Instance.HideSelectionHighlight();
+        HideSelectionHighlight();
 
         unitToReposition = unit;
         originalNodeOfRepositionedUnit = unit.currentNode;
@@ -330,7 +330,7 @@ public class PlayerController : MonoBehaviour
 
     void DropRepositionedUnit(Vector2 pointerPosition)
     {
-        PlacementUIManager.Instance.HideDetailsPanel();
+        PanelUnitDetails.Instance.HideDetailsPanel();
         PointerEventData pointerData = new PointerEventData(EventSystem.current) { position = pointerPosition };
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(pointerData, results);

@@ -831,6 +831,7 @@ GameObject:
   - component: {fileID: 59271377}
   - component: {fileID: 59271379}
   - component: {fileID: 59271378}
+  - component: {fileID: 59271380}
   m_Layer: 5
   m_Name: Emoji (6)
   m_TagString: Untagged
@@ -895,6 +896,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 59271376}
   m_CullTransparentMesh: 1
+--- !u!114 &59271380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 59271376}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 59271378}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &75365197
 GameObject:
   m_ObjectHideFlags: 0
@@ -2320,6 +2365,7 @@ GameObject:
   - component: {fileID: 169920092}
   - component: {fileID: 169920094}
   - component: {fileID: 169920093}
+  - component: {fileID: 169920095}
   m_Layer: 5
   m_Name: Emoji (4)
   m_TagString: Untagged
@@ -2384,6 +2430,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 169920091}
   m_CullTransparentMesh: 1
+--- !u!114 &169920095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 169920091}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 169920093}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &188722916
 GameObject:
   m_ObjectHideFlags: 0
@@ -2747,7 +2837,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 432829395}
+  m_Material: {fileID: 1383802976}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -4312,40 +4402,6 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!21 &432829395
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: UI/Custom/URP_GradientOverlay
-  m_Shader: {fileID: 4800000, guid: b9f47375efd67ed418fab52ea1eaa043, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _GradientDirection: 2
-    m_Colors:
-    - _GradientColor: {r: 0, g: 0, b: 0, a: 0.9019608}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &465360112
 GameObject:
   m_ObjectHideFlags: 0
@@ -4411,7 +4467,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 1651025107}
+  m_Material: {fileID: 1177799926}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -7750,7 +7806,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 834023104}
   m_CullTransparentMesh: 1
---- !u!21 &852755409
+--- !u!21 &866447795
 Material:
   serializedVersion: 8
   m_ObjectHideFlags: 0
@@ -8067,6 +8123,7 @@ GameObject:
   - component: {fileID: 891890027}
   - component: {fileID: 891890029}
   - component: {fileID: 891890028}
+  - component: {fileID: 891890030}
   m_Layer: 5
   m_Name: Emoji (3)
   m_TagString: Untagged
@@ -8131,6 +8188,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 891890026}
   m_CullTransparentMesh: 1
+--- !u!114 &891890030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 891890026}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 891890028}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &898190195
 GameObject:
   m_ObjectHideFlags: 0
@@ -10246,6 +10347,7 @@ GameObject:
   - component: {fileID: 1065471000}
   - component: {fileID: 1065471002}
   - component: {fileID: 1065471001}
+  - component: {fileID: 1065471003}
   m_Layer: 5
   m_Name: Emoji (1)
   m_TagString: Untagged
@@ -10310,6 +10412,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1065470999}
   m_CullTransparentMesh: 1
+--- !u!114 &1065471003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1065470999}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1065471001}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1088094621
 GameObject:
   m_ObjectHideFlags: 0
@@ -11185,6 +11331,40 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1170796729}
   m_CullTransparentMesh: 1
+--- !u!21 &1177799926
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UI/Custom/URP_GradientOverlay
+  m_Shader: {fileID: 4800000, guid: b9f47375efd67ed418fab52ea1eaa043, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _GradientDirection: 2
+    m_Colors:
+    - _GradientColor: {r: 0, g: 0, b: 0, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1188499465
 GameObject:
   m_ObjectHideFlags: 0
@@ -12536,6 +12716,40 @@ RectTransform:
   m_AnchoredPosition: {x: 104.93, y: 0.40112305}
   m_SizeDelta: {x: 209.86, y: -0.0678}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!21 &1383802976
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UI/Custom/URP_GradientOverlay
+  m_Shader: {fileID: 4800000, guid: b9f47375efd67ed418fab52ea1eaa043, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _GradientDirection: 2
+    m_Colors:
+    - _GradientColor: {r: 0, g: 0, b: 0, a: 0.9019608}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1397221036
 GameObject:
   m_ObjectHideFlags: 0
@@ -14139,40 +14353,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1611992673}
   m_CullTransparentMesh: 1
---- !u!21 &1651025107
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: UI/Custom/URP_GradientOverlay
-  m_Shader: {fileID: 4800000, guid: b9f47375efd67ed418fab52ea1eaa043, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _GradientDirection: 2
-    m_Colors:
-    - _GradientColor: {r: 0, g: 0, b: 0, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1001 &1651924349
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16404,7 +16584,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 852755409}
+  m_Material: {fileID: 866447795}
   m_Color: {r: 0.105882354, g: 0, b: 0, a: 0.72156864}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -17147,6 +17327,7 @@ GameObject:
   - component: {fileID: 1965496824}
   - component: {fileID: 1965496826}
   - component: {fileID: 1965496825}
+  - component: {fileID: 1965496827}
   m_Layer: 5
   m_Name: Emoji (2)
   m_TagString: Untagged
@@ -17211,6 +17392,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1965496823}
   m_CullTransparentMesh: 1
+--- !u!114 &1965496827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1965496823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1965496825}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1985997747
 GameObject:
   m_ObjectHideFlags: 0
@@ -17505,6 +17730,7 @@ GameObject:
   - component: {fileID: 2006429556}
   - component: {fileID: 2006429558}
   - component: {fileID: 2006429557}
+  - component: {fileID: 2006429559}
   m_Layer: 5
   m_Name: Emoji (5)
   m_TagString: Untagged
@@ -17569,6 +17795,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2006429555}
   m_CullTransparentMesh: 1
+--- !u!114 &2006429559
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2006429555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 2006429557}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &2024794850
 GameObject:
   m_ObjectHideFlags: 0
@@ -17633,6 +17903,88 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1 &2058057397
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2058057399}
+  - component: {fileID: 2058057398}
+  m_Layer: 0
+  m_Name: PanelUnitDetails
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2058057398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2058057397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5728d6c5fcc07a4a905f43a4f7e3500, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PanelUnitDetails
+  detailsPanel: {fileID: 1786596555}
+  deathEffectOverlay: {fileID: 1844376124}
+  unitNameText: {fileID: 1582174263}
+  portraitImage: {fileID: 1428673452}
+  backgroundImage: {fileID: 246151424}
+  levelText: {fileID: 291725337}
+  healthBarSlider: {fileID: 1693700498}
+  healthText: {fileID: 90171762}
+  attackDamageText: {fileID: 870271326}
+  attackSpeedText: {fileID: 44245666}
+  moveSpeedText: {fileID: 946186545}
+  abilityIconSlots:
+  - {fileID: 1098610319}
+  - {fileID: 523597639}
+  - {fileID: 1330761830}
+  - {fileID: 666195225}
+  spellCardIconSlots:
+  - {fileID: 1705423433}
+  - {fileID: 1877011872}
+  equippedArtifactImage: {fileID: 1875635095}
+  harmonyIconImages:
+  - {fileID: 1422942670}
+  - {fileID: 126744282}
+  - {fileID: 1322374139}
+  - {fileID: 1505959805}
+  defaultArtifactSprite: {fileID: 21300000, guid: 7992f2e12120c1b469017b186227e5af, type: 3}
+  closeDetailsButton: {fileID: 655488640}
+  detailsPanelGradient: {fileID: 1786596560}
+  detailsPanelCanvasGroup: {fileID: 1786596561}
+  fabulosaColorTop: {r: 0.1, g: 0.2, b: 0.6, a: 1}
+  fabulosaColorBottom: {r: 0, g: 0, b: 0.33333334, a: 1}
+  magnificaColorTop: {r: 0.4, g: 0.1, b: 0.6, a: 1}
+  magnificaColorBottom: {r: 0.15706383, g: 0, b: 0.33962262, a: 1}
+  supremaColorTop: {r: 0.7, g: 0.6, b: 0.1, a: 1}
+  supremaColorBottom: {r: 0.3301887, g: 0.29307488, b: 0, a: 1}
+  panelFadeDuration: 0.1
+  panelSlideOffset: 50
+  selectionHighlightPrefab: {fileID: 5090270939071943840, guid: c51d1aea6ca007a4c8e7ce2a016e225e, type: 3}
+--- !u!4 &2058057399
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2058057397}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 776.11346, y: 987.5515, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2071166980
 GameObject:
   m_ObjectHideFlags: 0
@@ -17715,45 +18067,7 @@ MonoBehaviour:
   - {fileID: 8209115074712782973, guid: 709482b01e6ae9440900f418609da39e, type: 3}
   - {fileID: 8209115074712782973, guid: dfbea9c05ccf417419963d09a6a08b65, type: 3}
   artifactsBenchCanvasGroup: {fileID: 1343948396}
-  detailsPanel: {fileID: 1786596555}
-  deathEffectOverlay: {fileID: 1844376124}
-  unitNameText: {fileID: 1582174263}
-  portraitImage: {fileID: 1428673452}
-  backgroundImage: {fileID: 246151424}
-  levelText: {fileID: 291725337}
-  healthBarSlider: {fileID: 1693700498}
-  healthText: {fileID: 90171762}
-  attackDamageText: {fileID: 870271326}
-  attackSpeedText: {fileID: 44245666}
-  moveSpeedText: {fileID: 946186545}
-  abilityIconSlots:
-  - {fileID: 1098610319}
-  - {fileID: 523597639}
-  - {fileID: 1330761830}
-  - {fileID: 666195225}
-  spellCardIconSlots:
-  - {fileID: 1705423433}
-  - {fileID: 1877011872}
-  equippedArtifactImage: {fileID: 1875635095}
-  harmonyIconImages:
-  - {fileID: 1422942670}
-  - {fileID: 126744282}
-  - {fileID: 1322374139}
-  - {fileID: 1505959805}
-  defaultArtifactSprite: {fileID: 21300000, guid: 0b5fe413506a0c046a65a388d3e85919, type: 3}
-  closeDetailsButton: {fileID: 655488640}
-  detailsPanelGradient: {fileID: 1786596560}
-  detailsPanelCanvasGroup: {fileID: 1786596561}
-  fabulosaColorTop: {r: 0.12224099, g: 0.22260205, b: 0.6320754, a: 1}
-  fabulosaColorBottom: {r: 0, g: 0, b: 0.2830189, a: 1}
-  magnificaColorTop: {r: 0.4, g: 0.1, b: 0.6, a: 1}
-  magnificaColorBottom: {r: 0.093980886, g: 0, b: 0.20754719, a: 1}
-  supremaColorTop: {r: 0.7, g: 0.6, b: 0.1, a: 1}
-  supremaColorBottom: {r: 0.2924528, g: 0.18635982, b: 0, a: 1}
   fadeDuration: 0.08
-  panelFadeDuration: 0.08
-  panelSlideOffset: 50
-  selectionHighlightPrefab: {fileID: 5090270939071943840, guid: c51d1aea6ca007a4c8e7ce2a016e225e, type: 3}
 --- !u!4 &2071166982
 Transform:
   m_ObjectHideFlags: 0
@@ -18122,3 +18436,4 @@ SceneRoots:
   - {fileID: 1657802332}
   - {fileID: 2127922317}
   - {fileID: 53949439}
+  - {fileID: 2058057399}

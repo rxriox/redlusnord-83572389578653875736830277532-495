@@ -310,7 +310,7 @@ public class GameManager : MonoBehaviour
         CurrentState = GameState.Placement;
         OnHarmoniesUpdated?.Invoke();
 
-        if (PlacementUIManager.Instance != null) PlacementUIManager.Instance.HideDetailsPanel();
+        if (PanelUnitDetails.Instance != null) PanelUnitDetails.Instance.HideDetailsPanel();
 
         if (ArtifactManager.Instance != null)
         {
@@ -556,7 +556,7 @@ public class GameManager : MonoBehaviour
         }
 
         OnHarmoniesUpdated?.Invoke();
-        if (PlacementUIManager.Instance != null) PlacementUIManager.Instance.HideDetailsPanel();
+        if (PanelUnitDetails.Instance != null) PanelUnitDetails.Instance.HideDetailsPanel();
         CurrentState = GameState.Placement;
         Debug.Log("Fase de colocación reanudada.");
     }

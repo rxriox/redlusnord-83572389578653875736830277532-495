@@ -307,12 +307,12 @@ public class UnitController : MonoBehaviour
         if (CurrentHealth <= 0)
         {
             CurrentHealth = 0;
-            PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
+            PanelUnitDetails.Instance.ForceDetailsPanelUpdate(this);
             Die(attacker);
         }
         else
         {
-            PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
+            PanelUnitDetails.Instance.ForceDetailsPanelUpdate(this);
         }
     }
 
@@ -356,10 +356,10 @@ public class UnitController : MonoBehaviour
             CurrentHealth += EquippedArtifact.healthBonus;
             if (PlacementUIManager.Instance != null)
             {
-                PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
+                PanelUnitDetails.Instance.ForceDetailsPanelUpdate(this);
             }
         }
-        PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
+        PanelUnitDetails.Instance.ForceDetailsPanelUpdate(this);
 
         Debug.Log($"{unitStats.unitName} ha equipado {artifact.artifactName}");
     }
@@ -375,14 +375,14 @@ public class UnitController : MonoBehaviour
                 CurrentHealth -= EquippedArtifact.healthBonus;
                 if (CurrentHealth <= 0) CurrentHealth = 1;
 
-                if (PlacementUIManager.Instance != null)
+                if (PanelUnitDetails.Instance != null)
                 {
-                    PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
+                    PanelUnitDetails.Instance.ForceDetailsPanelUpdate(this);
                 }
             }
 
             EquippedArtifact = null;
-            PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
+            PanelUnitDetails.Instance.ForceDetailsPanelUpdate(this);
         }
     }
 
@@ -428,6 +428,6 @@ public class UnitController : MonoBehaviour
 
         CurrentHealth = Mathf.Min(MaxHealth, CurrentHealth + amount);
         Debug.Log($"{unitStats.unitName} ha sido curado por {amount}.");
-        PlacementUIManager.Instance.ForceDetailsPanelUpdate(this);
+        PanelUnitDetails.Instance.ForceDetailsPanelUpdate(this);
     }
 }
