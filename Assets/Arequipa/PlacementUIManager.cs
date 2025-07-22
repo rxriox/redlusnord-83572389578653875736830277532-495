@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public class PlacementUIManager : MonoBehaviour
 {
@@ -58,7 +59,25 @@ public class PlacementUIManager : MonoBehaviour
     {
         if (content == null) return;
         foreach (Transform child in content) Destroy(child.gameObject);
-        foreach (GameObject iconPrefab in iconPrefabs)
+        var sortedPrefabs = iconPrefabs.OrderBy(prefab => {
+            if (prefab == null) return "zzzz";
+
+            UnitIconController unitIcon = prefab.GetComponent<UnitIconController>();
+            if (unitIcon != null && unitIcon.characterData != null)
+            {
+                return unitIcon.characterData.unitName;
+            }
+
+            ArtifactIconController artifactIcon = prefab.GetComponent<ArtifactIconController>();
+            if (artifactIcon != null && artifactIcon.artifactData != null)
+            {
+                return artifactIcon.artifactData.artifactName;
+            }
+
+            return prefab.name;
+        }).ToList();
+
+        foreach (GameObject iconPrefab in sortedPrefabs)
         {
             if (iconPrefab != null) Instantiate(iconPrefab, content);
         }
