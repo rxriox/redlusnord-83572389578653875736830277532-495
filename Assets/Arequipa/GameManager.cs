@@ -509,7 +509,7 @@ public class GameManager : MonoBehaviour
         if (CurrentState == GameState.Combat || CurrentState == GameState.Overtime)
         {
             Debug.Log("El jugador ha terminado el combate manualmente. Restaurando tablero...");
-            
+
             StopAllCoroutines();
             ResetBoardAfterCombat();
         }
@@ -679,5 +679,23 @@ public class GameManager : MonoBehaviour
             return limit;
         }
         return 0;
+    }
+    
+    public void ResetAllActiveArtifactsButton()
+    {
+        if (CurrentState == GameState.Combat || CurrentState == GameState.Overtime)
+        {
+            Debug.LogWarning("No se pueden limpiar los artefactos durante el combate o el tiempo extra.");
+            return;
+        }
+        
+        if (ArtifactManager.Instance != null)
+        {
+            ArtifactManager.Instance.ResetAllActiveArtifacts();
+        }
+        else
+        {
+            Debug.LogWarning("No se encontró una instancia de ArtifactManager para limpiar los artefactos.");
+        }
     }
 }

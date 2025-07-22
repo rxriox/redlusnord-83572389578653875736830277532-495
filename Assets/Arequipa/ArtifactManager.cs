@@ -8,13 +8,9 @@ public class ArtifactManager : MonoBehaviour
     public static ArtifactManager Instance { get; private set; }
 
     [Header("Referencias de UI por Equipo")]
-    [Tooltip("El objeto padre que contendrá los iconos de artefactos del jugador.")]
     public Transform playerArtifactsContainer;
-    [Tooltip("El objeto padre que contendrá los iconos de artefactos del enemigo.")]
     public Transform enemyArtifactsContainer;
-    [Tooltip("El mensaje que aparece cuando el jugador no tiene artefactos.")]
     public GameObject playerNoArtifactsMessage;
-    [Tooltip("El mensaje que aparece cuando el enemigo no tiene artefactos.")]
     public GameObject enemyNoArtifactsMessage;
 
     public GameObject activeArtifactIconPrefab;
@@ -23,7 +19,7 @@ public class ArtifactManager : MonoBehaviour
     private Dictionary<int, Dictionary<ArtifactCategory, int>> teamCategoryCounts = new Dictionary<int, Dictionary<ArtifactCategory, int>>();
 
     private int currentPerspectiveTeamID = 0;
-    private bool isArtifactTabActive = false; // NUEVA VARIABLE
+    private bool isArtifactTabActive = false;
 
     private void Awake()
     {
@@ -41,7 +37,7 @@ public class ArtifactManager : MonoBehaviour
     void Start()
     {
         SetPerspective(0);
-        // Asegúrate de que los contenedores estén ocultos al inicio, si la pestaña no está activa
+
         if (playerArtifactsContainer != null) playerArtifactsContainer.gameObject.SetActive(false);
         if (enemyArtifactsContainer != null) enemyArtifactsContainer.gameObject.SetActive(false);
         if (playerNoArtifactsMessage != null) playerNoArtifactsMessage.SetActive(false);
@@ -51,7 +47,6 @@ public class ArtifactManager : MonoBehaviour
     public void SetPerspective(int teamID)
     {
         currentPerspectiveTeamID = teamID;
-        // Solo activa los contenedores si la pestaña de artefactos está activa
         if (isArtifactTabActive)
         {
             if (playerArtifactsContainer != null) playerArtifactsContainer.gameObject.SetActive(teamID == 0);
@@ -109,7 +104,7 @@ public class ArtifactManager : MonoBehaviour
         teamCategoryCounts[teamID].TryGetValue(benchIcon.artifactData.category, out int count);
         teamCategoryCounts[teamID][benchIcon.artifactData.category] = count + 1;
 
-        benchIcon.SetAsPlaced(teamID); // ← Modificado aquí
+        benchIcon.SetAsPlaced(teamID);
         UpdateUI();
         GameManager.Instance.UpdateAllCountsUI();
     }
@@ -130,7 +125,6 @@ public class ArtifactManager : MonoBehaviour
 
         teamActiveArtifacts[teamID].Remove(activeIcon);
 
-        // Modificación: se pasa teamID como parámetro
         activeIcon.originatingBenchIcon.ResetIcon(teamID);
 
         Destroy(activeIcon.gameObject);
@@ -224,7 +218,7 @@ public class ArtifactManager : MonoBehaviour
 
     public void SetArtifactPanelActive(bool isActive)
     {
-        isArtifactTabActive = isActive; // ACTUALIZA LA NUEVA VARIABLE
+        isArtifactTabActive = isActive;
 
         if (isActive)
         {
@@ -256,16 +250,27 @@ public class ArtifactManager : MonoBehaviour
 
     public void ReEquipArtifactToUnit(UnitController unit, Artifact artifactToEquip)
     {
-        // Primero, equipa el artefacto en la unidad para aplicar sus efectos
         unit.EquipArtifact(artifactToEquip);
 
-        // Luego, encuentra el icono del artefacto activo correspondiente y lo vincula a la nueva unidad
         var activeIcon = teamActiveArtifacts[unit.teamID]
             .FirstOrDefault(icon => icon.originatingBenchIcon.artifactData == artifactToEquip);
 
         if (activeIcon != null)
         {
             activeIcon.LinkToUnit(unit);
+        }
+    }
+
+    public void ResetAllActiveArtifacts()
+    {
+        Debug.Log("Eliminando todos los artefactos activos de ambos equipos...");
+        
+        foreach (var teamID in teamActiveArtifacts.Keys)
+        {
+            foreach (var activeIcon in teamActiveArtifacts[teamID].ToList())
+            {
+                RemoveArtifact(activeIcon);
+            }
         }
     }
 
