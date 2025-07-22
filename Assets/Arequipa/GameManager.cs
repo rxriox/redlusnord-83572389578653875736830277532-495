@@ -307,6 +307,12 @@ public class GameManager : MonoBehaviour
             icon.ResetIcon();
         }
 
+        ArtifactIconController[] artifactIcons = FindObjectsByType<ArtifactIconController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var icon in artifactIcons)
+        {
+            icon.ResetForAllTeams();
+        }
+
         CurrentState = GameState.Placement;
         OnHarmoniesUpdated?.Invoke();
 

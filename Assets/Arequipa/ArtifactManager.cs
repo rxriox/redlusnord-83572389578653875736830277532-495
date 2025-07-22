@@ -109,7 +109,7 @@ public class ArtifactManager : MonoBehaviour
         teamCategoryCounts[teamID].TryGetValue(benchIcon.artifactData.category, out int count);
         teamCategoryCounts[teamID][benchIcon.artifactData.category] = count + 1;
 
-        benchIcon.SetAsPlaced();
+        benchIcon.SetAsPlaced(teamID); // ← Modificado aquí
         UpdateUI();
         GameManager.Instance.UpdateAllCountsUI();
     }
@@ -129,7 +129,10 @@ public class ArtifactManager : MonoBehaviour
         }
 
         teamActiveArtifacts[teamID].Remove(activeIcon);
-        activeIcon.originatingBenchIcon.ResetIcon();
+
+        // Modificación: se pasa teamID como parámetro
+        activeIcon.originatingBenchIcon.ResetIcon(teamID);
+
         Destroy(activeIcon.gameObject);
 
         UpdateUI();

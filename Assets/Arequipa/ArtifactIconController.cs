@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -15,28 +16,49 @@ public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHan
     {
         iconImage = GetComponent<Image>();
         canvasGroup = gameObject.AddComponent<CanvasGroup>();
-        ResetIcon();
+        UpdateIconVisual(0);
     }
 
-    public void SetAsPlaced()
+    public void SetAsPlaced(int teamID)
     {
-        isPlaced = true;
-        if (placedSprite != null) iconImage.sprite = placedSprite;
+        isPlacedByTeam[teamID] = true;
+        UpdateIconVisual(teamID);
     }
-    public void ResetIcon()
+    public void ResetIcon(int teamID)
     {
-        isPlaced = false;
-        if (availableSprite != null) iconImage.sprite = availableSprite;
+        isPlacedByTeam[teamID] = false;
+        UpdateIconVisual(teamID);
     }
+    public void ResetForAllTeams()
+    {
+        isPlacedByTeam[0] = false;
+        isPlacedByTeam[1] = false;
+        UpdateIconVisual(0); // Vuelve a la perspectiva del jugador por defecto
+    }
+
+    public void UpdateIconVisual(int teamID)
+    {
+        bool isPlaced = isPlacedByTeam.ContainsKey(teamID) && isPlacedByTeam[teamID];
+        if (iconImage != null)
+        {
+            iconImage.sprite = isPlaced ? placedSprite : availableSprite;
+        }
+    }
+
     public void OnBeginDrag(PointerEventData eventData)
     {
-
-        if (isPlaced) return;
-        
         if (artifactData == null) return;
         
+        // ===== MODIFICACIÓN #3: Comprueba el estado del equipo actual =====
+        int currentTeamID = UIPerspectiveManager.Instance.GetCurrentTeamPerspective();
+        if (isPlacedByTeam[currentTeamID])
+        {
+            eventData.pointerDrag = null; // Cancela el arrastre si ya fue colocado por este equipo
+            return;
+        }
+        // ===== FIN DE LA MODIFICACIÓN =====
+
         TabGroupManager.Instance.OnArtifactDragStart(this);
-        
         canvasGroup.alpha = 0.4f;
         canvasGroup.blocksRaycasts = false;
     }
@@ -57,5 +79,5 @@ public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHan
     [Header("Apariencia")]
     public Sprite availableSprite;
     public Sprite placedSprite;
-    private bool isPlaced = false;
+    private Dictionary<int, bool> isPlacedByTeam = new Dictionary<int, bool> { {0, false}, {1, false} };
 }

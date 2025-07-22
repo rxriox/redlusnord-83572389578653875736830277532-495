@@ -4,6 +4,9 @@ using TMPro;
 
 public class UIPerspectiveManager : MonoBehaviour
 {
+    public static UIPerspectiveManager Instance { get; private set; }
+    public int GetCurrentTeamPerspective() => harmonyUIManager.teamIdToShow;
+
     [Header("Referencias de UI")]
     [Tooltip("El botón que activa la perspectiva del jugador.")]
     public Button playerPerspectiveButton;
@@ -61,6 +64,18 @@ public class UIPerspectiveManager : MonoBehaviour
         ShowPlayerPerspective();
     }
 
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
+    }
+
     public void ShowPlayerPerspective()
     {
         if (harmonyUIManager != null)
@@ -69,6 +84,7 @@ public class UIPerspectiveManager : MonoBehaviour
             if (artifactManager != null) artifactManager.SetPerspective(0);
             UpdateButtonAppearance(true);
             UpdateUnitCountsUI(0);
+            UpdateArtifactBenchVisuals(0);
         }
     }
 
@@ -80,6 +96,17 @@ public class UIPerspectiveManager : MonoBehaviour
             if (artifactManager != null) artifactManager.SetPerspective(1);
             UpdateButtonAppearance(false);
             UpdateUnitCountsUI(1);
+            UpdateArtifactBenchVisuals(1);
+        }
+    }
+
+    private void UpdateArtifactBenchVisuals(int teamID)
+    {
+        // Busca todos los íconos de artefactos en el banquillo y actualiza su sprite
+        var artifactIcons = FindObjectsByType<ArtifactIconController>(FindObjectsSortMode.None);
+        foreach (var icon in artifactIcons)
+        {
+            icon.UpdateIconVisual(teamID);
         }
     }
 
