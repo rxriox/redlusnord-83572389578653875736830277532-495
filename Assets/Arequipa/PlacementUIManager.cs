@@ -40,6 +40,7 @@ public class PlacementUIManager : MonoBehaviour
     public Image portraitImage;
     public Image backgroundImage;
     public TextMeshProUGUI levelText;
+    public Slider healthBarSlider;
     public TextMeshProUGUI healthText;
     public TextMeshProUGUI attackDamageText;
     public TextMeshProUGUI attackSpeedText;
@@ -132,6 +133,14 @@ public class PlacementUIManager : MonoBehaviour
                 healthText.text = selectedUnitForDetails.MaxHealth.ToString();
             }
 
+            if (healthBarSlider != null)
+            {
+                if (selectedUnitForDetails.MaxHealth > 0)
+                {
+                    healthBarSlider.value = selectedUnitForDetails.CurrentHealth / selectedUnitForDetails.MaxHealth;
+                }
+            }
+
             attackDamageText.text = selectedUnitForDetails.CurrentAttackDamage.ToString();
             attackSpeedText.text = selectedUnitForDetails.CurrentAttackSpeed.ToString("F0");
             moveSpeedText.text = selectedUnitForDetails.CurrentMoveSpeed.ToString("F0");
@@ -151,6 +160,11 @@ public class PlacementUIManager : MonoBehaviour
     {
         if (stats == null || detailsPanelCanvasGroup == null) return;
 
+        if (healthBarSlider != null)
+        {
+            healthBarSlider.value = 1;
+        }
+        
         selectedUnitForDetails = null;
 
         if (panelFadeCoroutine != null)
@@ -360,6 +374,7 @@ public class PlacementUIManager : MonoBehaviour
                 {
                     deathEffectOverlay.SetActive(true);
                 }
+                if (healthBarSlider != null) healthBarSlider.value = 0;
             }
 
             attackDamageText.text = unit.CurrentAttackDamage.ToString();
@@ -534,7 +549,7 @@ public class PlacementUIManager : MonoBehaviour
         {
             deathEffectOverlay.SetActive(true);
         }
-        
+
         if (selectionHighlightPrefab != null)
         {
             activeSelectionHighlight = Instantiate(selectionHighlightPrefab, unit.transform.position, Quaternion.identity);
