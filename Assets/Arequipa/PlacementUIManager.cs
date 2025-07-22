@@ -35,6 +35,7 @@ public class PlacementUIManager : MonoBehaviour
 
     [Header("Panel de Detalles de Unidad")]
     public GameObject detailsPanel;
+    public GameObject deathEffectOverlay;
     public TextMeshProUGUI unitNameText;
     public Image portraitImage;
     public Image backgroundImage;
@@ -110,6 +111,10 @@ public class PlacementUIManager : MonoBehaviour
         if (detailsPanel != null)
         {
             panelOriginalPosition = detailsPanel.GetComponent<RectTransform>().anchoredPosition;
+        }
+        if (deathEffectOverlay != null)
+        {
+            deathEffectOverlay.SetActive(false);
         }
     }
 
@@ -244,6 +249,10 @@ public class PlacementUIManager : MonoBehaviour
                 }
             }
         }
+        if (deathEffectOverlay != null)
+        {
+            deathEffectOverlay.SetActive(false);
+        }
 
         panelFadeCoroutine = StartCoroutine(AnimateDetailsPanel(true));
     }
@@ -269,6 +278,12 @@ public class PlacementUIManager : MonoBehaviour
             PlayerController.Instance.HideSelectionHighlight();
             PlayerController.Instance.ClearInteractionState();
         }
+
+        if (deathEffectOverlay != null)
+        {
+            deathEffectOverlay.SetActive(false);
+        }
+
         panelFadeCoroutine = StartCoroutine(AnimateDetailsPanel(false));
     }
 
@@ -336,6 +351,15 @@ public class PlacementUIManager : MonoBehaviour
             else
             {
                 healthText.text = unit.MaxHealth.ToString();
+            }
+
+            if (unit.CurrentHealth <= 0)
+            {
+                healthText.text = $"0 / {unit.MaxHealth}";
+                if (deathEffectOverlay != null)
+                {
+                    deathEffectOverlay.SetActive(true);
+                }
             }
 
             attackDamageText.text = unit.CurrentAttackDamage.ToString();
@@ -505,6 +529,12 @@ public class PlacementUIManager : MonoBehaviour
 
         ShowDetailsPanel(unit.unitStats);
         this.selectedUnitForDetails = unit;
+
+        if (unit.CurrentHealth <= 0 && deathEffectOverlay != null)
+        {
+            deathEffectOverlay.SetActive(true);
+        }
+        
         if (selectionHighlightPrefab != null)
         {
             activeSelectionHighlight = Instantiate(selectionHighlightPrefab, unit.transform.position, Quaternion.identity);
@@ -514,6 +544,12 @@ public class PlacementUIManager : MonoBehaviour
                 follower.targetToFollow = unit.transform;
             }
         }
+
+        if (unit.CurrentHealth <= 0 && deathEffectOverlay != null)
+        {
+            deathEffectOverlay.SetActive(true);
+        }
+
     }
     public void HideSelectionHighlight()
     {
