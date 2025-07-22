@@ -138,7 +138,7 @@ public class TimerShowManager : MonoBehaviour
             {
                 overtimePulseEffect.PlayPulse();
             }
-            yield return new WaitForSeconds(1.5f);
+            yield return new WaitForSeconds(20.5f);
         }
     }
 

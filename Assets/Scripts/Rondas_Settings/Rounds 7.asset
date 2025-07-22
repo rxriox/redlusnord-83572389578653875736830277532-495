@@ -20,3 +20,8 @@ MonoBehaviour:
   fabulosaLevel: 2
   magnificaLevel: 2
   supremaLevel: 1
+  maxArtifacts: 6
+  artifactCat1Limit: 2
+  artifactCat2Limit: 2
+  artifactCat3Limit: 2
+  artifactCat4Limit: 0
