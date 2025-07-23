@@ -427,33 +427,7 @@ public class GameManager : MonoBehaviour
                 });
             }
         }
-
-        // Paso 1: Activa el teletransporte de las unidades Defiant y espera a que terminen
-        HarmonyType defiantHarmony = FindHarmonyByName("Defiant");
-        List<Coroutine> defiantTeleports = new List<Coroutine>();
-        if (defiantHarmony != null)
-        {
-            foreach (var unit in allUnits)
-            {
-                if (unit != null && IsHarmonyActiveForTeam(defiantHarmony, unit.teamID))
-                {
-                    var defiantComponent = unit.GetComponent<Harmony_Defiant>();
-                    if (defiantComponent != null)
-                    {
-                        // Inicia la corrutina en el componente y guarda su referencia
-                        defiantTeleports.Add(StartCoroutine(defiantComponent.ActivateInitialTeleport()));
-                    }
-                }
-            }
-        }
         
-        // Espera a que todas las corrutinas de teletransporte finalicen
-        foreach (var teleport in defiantTeleports)
-        {
-            yield return teleport;
-        }
-
-        // Paso 2: Ahora que los teletransportes terminaron, quita el estado de "deshabilitado" a TODAS las unidades
         foreach (var unit in allUnits)
         {
             if (unit != null)
@@ -465,6 +439,8 @@ public class GameManager : MonoBehaviour
         // Paso 3: Inicia oficialmente el combate
         CurrentState = GameState.Combat;
         StartCoroutine(CombatLoop());
+        
+        yield return null;
     }
 
     private IEnumerator CombatLoop()
@@ -495,16 +471,20 @@ public class GameManager : MonoBehaviour
 
             if (team0Count > 0 && team1Count > 0)
             {
-                Debug.Log("El tiempo de batalla ha terminado. ¡Comienza el tiempo extra!");
-
+                // ===== MODIFICACIÓN AQUÍ: Saca a las unidades de Vanish =====
                 foreach (var unit in allUnits)
                 {
                     if (unit != null)
                     {
+                        if (unit.HasStatus(StatusEffect.Vanish))
+                        {
+                            unit.RemoveStatus(StatusEffect.Vanish);
+                        }
                         unit.ApplyStatus(StatusEffect.Environment_Disabled, Mathf.Infinity);
                     }
                 }
-
+                // ===== FIN DE LA MODIFICACIÓN =====
+                
                 CurrentState = GameState.Overtime;
                 StartCoroutine(OvertimeLoop());
             }

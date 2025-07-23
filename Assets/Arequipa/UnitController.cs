@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-public enum StatusEffect { Dazed, Immobilized, Sealed, Fear, Incurable, Environment_Disabled }
+public enum StatusEffect { Dazed, Immobilized, Sealed, Fear, Incurable, Environment_Disabled, Vanish }
 
 public class UnitController : MonoBehaviour
 {
@@ -78,15 +78,15 @@ public class UnitController : MonoBehaviour
     private enum State { IDLE, MOVING, ATTACKING }
     private State currentState = State.IDLE;
 
+    private Coroutine movementCoroutine;
     private UnitController currentTarget;
     private List<Node> currentPath;
     private float attackCooldown = 0f;
     private GridManager gridManager;
 
-    void Start()
+    private void Awake() // <- Cambia Start por Awake si es necesario para asegurar el orden
     {
         gridManager = FindFirstObjectByType<GridManager>();
-
         defiantLogic = GetComponent<Harmony_Defiant>();
         allRenderers = GetComponentsInChildren<Renderer>();
         unitCollider = GetComponent<Collider>();
@@ -100,17 +100,15 @@ public class UnitController : MonoBehaviour
 
     public void EvaluateAction()
     {
-        if (defiantLogic != null && defiantLogic.IsTeleportReady())
+        if (defiantLogic != null && GameManager.Instance.IsHarmonyActiveForTeam(GameManager.Instance.FindHarmonyByName("Defiant"), teamID))
         {
-            // ...y la armonía está activa para su equipo...
-            if (GameManager.Instance.IsHarmonyActiveForTeam(GameManager.Instance.FindHarmonyByName("Defiant"), teamID))
-            {
-                defiantLogic.TriggerTeleport();
-                return; // Se teletransporta en lugar de hacer otra acción
-            }
+            defiantLogic.EvaluateBlink();
         }
 
-        if (HasStatus(StatusEffect.Dazed) || HasStatus(StatusEffect.Environment_Disabled)) return;
+        if (HasStatus(StatusEffect.Dazed) || HasStatus(StatusEffect.Environment_Disabled) || HasStatus(StatusEffect.Vanish))
+        {
+            return;
+        }
 
         if (currentState == State.MOVING || currentState == State.ATTACKING) return;
         if (attackCooldown > 0)
@@ -244,6 +242,7 @@ public class UnitController : MonoBehaviour
 
                 Node previousNode = currentNode;
                 currentNode = nextNodeInPath;
+                movementCoroutine = StartCoroutine(AnimateMove(previousNode, nextNodeInPath));
 
                 StartCoroutine(AnimateMove(previousNode, nextNodeInPath));
             }
@@ -256,6 +255,35 @@ public class UnitController : MonoBehaviour
         {
             currentState = State.IDLE;
         }
+    }
+
+    public void ResetActionState()
+    {
+        // Detiene cualquier corrutina de movimiento que se esté ejecutando.
+        if (movementCoroutine != null)
+        {
+            StopCoroutine(movementCoroutine);
+            movementCoroutine = null;
+        }
+
+        // ===== MODIFICACIÓN AQUÍ: Limpieza completa del estado de la IA =====
+        
+        // 1. Resetea el estado para que pueda tomar una nueva decisión.
+        currentState = State.IDLE;
+
+        // 2. ¡La clave! Olvida a quién estaba persiguiendo.
+        currentTarget = null;
+
+        // 3. Olvida el camino que estaba siguiendo.
+        if (currentPath != null)
+        {
+            currentPath.Clear();
+        }
+
+        // 4. Un pequeño reseteo del cooldown para evitar acciones instantáneas raras.
+        attackCooldown = 0.2f;
+        
+        // ===== FIN DE LA MODIFICACIÓN =====
     }
 
     private IEnumerator AnimateMove(Node from, Node to)
@@ -281,6 +309,8 @@ public class UnitController : MonoBehaviour
 
         transform.position = endPosition;
         currentState = State.IDLE;
+
+        movementCoroutine = null;
     }
 
     private IEnumerator ResetStateAfterAction(float delay)
@@ -409,6 +439,14 @@ public class UnitController : MonoBehaviour
         }
     }
 
+    public bool IsUnitWithinDistance(UnitController otherUnit, int distance)
+    {
+        if (otherUnit == null || otherUnit.currentNode == null || this.currentNode == null) return false;
+        int dist_x = Mathf.Abs(currentNode.gridX - otherUnit.currentNode.gridX);
+        int dist_z = Mathf.Abs(currentNode.gridZ - otherUnit.currentNode.gridZ);
+        return Mathf.Max(dist_x, dist_z) <= distance;
+    }
+
     public bool HasStatus(StatusEffect effect)
     {
         return activeStatusEffects.ContainsKey(effect);
@@ -419,6 +457,11 @@ public class UnitController : MonoBehaviour
         if (HasStatus(effect))
         {
             StopCoroutine(activeStatusEffects[effect]);
+        }
+
+        if (effect == StatusEffect.Vanish)
+        {
+            SetVisibility(false);
         }
 
         Coroutine statusCoroutine = StartCoroutine(StatusCoroutine(effect, duration));
@@ -438,6 +481,12 @@ public class UnitController : MonoBehaviour
         {
             activeStatusEffects.Remove(effect);
             Debug.Log($"{unitStats.unitName} ya no está afectado por {effect}.");
+
+            // Si el efecto es Vanish, vuelve a hacer visible la unidad
+            if (effect == StatusEffect.Vanish)
+            {
+                SetVisibility(true);
+            }
         }
     }
 

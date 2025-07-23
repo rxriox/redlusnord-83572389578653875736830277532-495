@@ -225,7 +225,7 @@ public class GridManager : MonoBehaviour
         return closestNode;
     }
 
-private List<Node> RetracePath(Node startNode, Node endNode)
+    private List<Node> RetracePath(Node startNode, Node endNode)
     {
         List<Node> path = new List<Node>();
         Node currentNode = endNode;
@@ -237,5 +237,32 @@ private List<Node> RetracePath(Node startNode, Node endNode)
         }
         path.Reverse();
         return path;
+    }
+    
+    public Node FindNearestWalkableNode(Node originNode)
+    {
+        Queue<Node> queue = new Queue<Node>();
+        queue.Enqueue(originNode);
+        HashSet<Node> visitedNodes = new HashSet<Node> { originNode };
+
+        while (queue.Count > 0)
+        {
+            Node currentNode = queue.Dequeue();
+
+            if (currentNode.isWalkable)
+            {
+                return currentNode; // Encontrado
+            }
+
+            foreach (Node neighbour in GetNeighbours(currentNode))
+            {
+                if (!visitedNodes.Contains(neighbour))
+                {
+                    visitedNodes.Add(neighbour);
+                    queue.Enqueue(neighbour);
+                }
+            }
+        }
+        return null; // No se encontró ninguna casilla vacía en todo el tablero
     }
 }

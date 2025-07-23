@@ -6,69 +6,70 @@ using System.Linq;
 public class Harmony_Defiant : MonoBehaviour
 {
     private UnitController unitController;
-    private float teleportCooldown = 6.0f;
-    private float lastTeleportTime = -10.0f; // Permite el teletransporte inicial
     private int attackCounter = 0;
     private const int ATTACKS_FOR_CRIT = 3;
-    private const float CRIT_MULTIPLIER = 1.8f; // 180%
+    private const float CRIT_MULTIPLIER = 1.45f; // 145%
 
     private void Awake()
     {
         unitController = GetComponent<UnitController>();
     }
 
-    // El GameManager llamará a esto para el teletransporte inicial
-    public IEnumerator ActivateInitialTeleport()
+    // El UnitController llamará a este método en cada ciclo de evaluación.
+    public void EvaluateBlink()
     {
-        // Devuelve la corrutina para que el GameManager pueda esperar a que termine
-        yield return StartCoroutine(TeleportSequence(0.8f));
-    }
-
-    // Comprueba si el teletransporte está listo y si la unidad no está ya en combate
-    public bool IsTeleportReady()
-    {
-        if (Time.time >= lastTeleportTime + teleportCooldown && !unitController.IsTargetInAttackRange())
+        // No hacer nada si la unidad ya está desaparecida o no puede actuar.
+        if (unitController.HasStatus(StatusEffect.Vanish) || unitController.HasStatus(StatusEffect.Dazed) || unitController.HasStatus(StatusEffect.Immobilized))
         {
-            return true;
-        }
-        return false;
-    }
-
-    // Inicia el teletransporte de re-posicionamiento
-    public void TriggerTeleport()
-    {
-        StartCoroutine(TeleportSequence(0.8f)); // Sin retardo de desaparición
-    }
-
-    private IEnumerator TeleportSequence(float disappearDuration)
-    {
-        lastTeleportTime = Time.time;
-        
-        // 1. Desaparecer
-        if (disappearDuration > 0)
-        {
-            unitController.SetVisibility(false);
-            yield return new WaitForSeconds(disappearDuration);
+            return;
         }
 
-        // 2. Encontrar el nuevo destino
-        Node targetNode = FindTeleportDestination();
+        // Comprueba si hay enemigos dentro del rango de 3 casillas.
+        bool enemyNearby = GameManager.Instance.GetAllUnits()
+            .Any(u => u != null && u.teamID != unitController.teamID && unitController.IsUnitWithinDistance(u, 3));
+
+        // Si no hay enemigos cerca, inicia el blink.
+        if (!enemyNearby)
+        {
+            StartCoroutine(BlinkSequence());
+        }
+    }
+
+    private IEnumerator BlinkSequence()
+    {
+        // 1. Aplicar estado "Vanish" y desaparecer.
+        unitController.ApplyStatus(StatusEffect.Vanish, 1.0f); // Duración un poco mayor por seguridad
+
+        // 2. Esperar 0.8 segundos.
+        yield return new WaitForSeconds(0.8f);
         
-        // 3. Reaparecer en la nueva posición
-        if (targetNode != null)
+        // Si el estado fue removido por el Overtime, aborta el resto de la secuencia.
+        if (!unitController.HasStatus(StatusEffect.Vanish))
+        {
+            yield break;
+        }
+
+        // 3. Encontrar el destino.
+        Node destinationNode = FindBlinkDestination();
+        
+        // 4. Moverse y reaparecer.
+        if (destinationNode != null)
         {
             unitController.currentNode.isWalkable = true; // Liberar la casilla vieja
-            unitController.transform.position = targetNode.worldPosition;
-            unitController.currentNode = targetNode;
-            targetNode.isWalkable = false; // Ocupar la nueva
+            unitController.transform.position = destinationNode.worldPosition;
+            unitController.currentNode = destinationNode;
+            destinationNode.isWalkable = false; // Ocupar la nueva
         }
         
-        unitController.SetVisibility(true);
+        // 5. Quitar el estado "Vanish".
+        unitController.RemoveStatus(StatusEffect.Vanish);
     }
 
-    private Node FindTeleportDestination()
+    private Node FindBlinkDestination()
     {
-        // Encuentra el enemigo más lejano
+        GridManager gridManager = FindFirstObjectByType<GridManager>();
+
+        // Encuentra el enemigo más lejano.
         UnitController farthestEnemy = GameManager.Instance.GetAllUnits()
             .Where(u => u != null && u.teamID != unitController.teamID)
             .OrderByDescending(u => Vector3.Distance(transform.position, u.transform.position))
@@ -76,36 +77,31 @@ public class Harmony_Defiant : MonoBehaviour
 
         if (farthestEnemy == null) return null;
 
-        // Encuentra las casillas vecinas disponibles alrededor del enemigo
-        GridManager gridManager = FindAnyObjectByType<GridManager>();
+        // Busca casillas adyacentes y vacías.
         var availableNodes = gridManager.GetNeighbours(farthestEnemy.currentNode)
             .Where(n => n.isWalkable)
             .ToList();
 
-        // Devuelve una casilla aleatoria de las disponibles
+        // Si hay casillas adyacentes, elige una.
         if (availableNodes.Count > 0)
         {
             return availableNodes[Random.Range(0, availableNodes.Count)];
         }
-
-        return null; // No se encontró ninguna casilla
+        else // Si no, busca la casilla vacía más cercana al enemigo.
+        {
+            return gridManager.FindNearestWalkableNode(farthestEnemy.currentNode);
+        }
     }
-    
-    // El UnitController llamará a esto antes de cada ataque
+
+    // El UnitController llamará a esto para saber si el ataque es crítico.
     public float GetDamageMultiplier()
     {
-        // Incrementa el contador ANTES de la comprobación.
         attackCounter++;
-
-        // Comprueba si este ataque es el cuarto.
-        if (attackCounter == ATTACKS_FOR_CRIT + 1) // Es decir, si es el ataque número 4
+        if (attackCounter > ATTACKS_FOR_CRIT)
         {
-            Debug.Log($"{unitController.unitStats.unitName} asesta un GOLPE CRÍTICO!");
-            attackCounter = 0; // Reinicia el contador para el siguiente ciclo
+            attackCounter = 0; // Reinicia para el siguiente ciclo
             return CRIT_MULTIPLIER;
         }
-        
-        // Si no es el cuarto, devuelve el daño normal.
-        return 1.0f;
+        return 1.0f; // Daño normal
     }
 }
