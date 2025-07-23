@@ -86,7 +86,31 @@ public class HarmonyUIManager : MonoBehaviour
             Text iconText = iconGO.GetComponentInChildren<Text>();
 
             if (iconImage != null)
-                iconImage.sprite = isHarmonyActive ? type.activeIcon : type.inactiveIcon;
+            {
+                if (isHarmonyActive)
+                {
+                    iconImage.sprite = type.activeIcon;
+                }
+                else // La armonía está inactiva
+                {
+                    // Comprueba si hay un ícono específico para el número actual de unidades.
+                    // El índice es 'count - 1' (1 unidad -> índice 0, 2 unidades -> índice 1, etc.)
+                    if (type.inactiveIcons != null && count > 0 && count <= type.inactiveIcons.Count)
+                    {
+                        iconImage.sprite = type.inactiveIcons[count - 1];
+                    }
+                    else
+                    {
+                        // Si no hay un ícono específico, puedes decidir qué mostrar.
+                        // Por ejemplo, el último de la lista o simplemente desactivarlo.
+                        // Aquí usamos el último disponible como respaldo.
+                        if(type.inactiveIcons != null && type.inactiveIcons.Count > 0)
+                        {
+                            iconImage.sprite = type.inactiveIcons[type.inactiveIcons.Count - 1];
+                        }
+                    }
+                }
+            }
 
             if (iconText != null)
             {

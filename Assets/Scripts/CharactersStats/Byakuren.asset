@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
   category: 2
   unitType: 0
-  naturalHarmonies: []
+  naturalHarmonies:
+  - {fileID: 11400000, guid: 02b484b16826b88479fb058bec8ab49e, type: 2}
+  - {fileID: 11400000, guid: b336725a5b2c6c144934f3dc7d91625e, type: 2}
   unitIcon: {fileID: 21300000, guid: c91b9cf695ea5e44f901ab2261a5521b, type: 3}
   portrait: {fileID: 0}
   backgroundImage: {fileID: 0}

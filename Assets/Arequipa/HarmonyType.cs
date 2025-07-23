@@ -8,10 +8,8 @@ public class HarmonyType : ScriptableObject
     [TextArea(3, 5)]
     public string description;
     [Header("UI Display")]
-    [Tooltip("Icono que se muestra cuando la armonía está activa.")]
     public Sprite activeIcon;
-    [Tooltip("Icono que se muestra cuando la armonía está inactiva (en progreso).")]
-    public Sprite inactiveIcon;
+    public List<Sprite> inactiveIcons = new List<Sprite>();
 
     [System.Serializable]
     public class HarmonyTier

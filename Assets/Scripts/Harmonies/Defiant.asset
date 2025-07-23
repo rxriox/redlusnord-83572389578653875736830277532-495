@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Defiant
   m_EditorClassIdentifier: Assembly-CSharp::HarmonyType
   harmonyName: Defiant
-  icon: {fileID: 0}
   description: 
-  bonusTiers:
-  - unitsRequired: 2
-    bonusDescription: 
+  activeIcon: {fileID: 0}
+  inactiveIcon: {fileID: 0}
+  tiers:
+  - unitsRequired: 0
+    tierDescription: 
