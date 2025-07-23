@@ -46,6 +46,7 @@ public class PlacementUIManager : MonoBehaviour
 
     [Header("Buscador")]
     public TMP_InputField searchInputField;
+    public Button searchClearButton;
 
     private void Awake()
     {
@@ -59,12 +60,19 @@ public class PlacementUIManager : MonoBehaviour
         StartCoroutine(PopulateBench(enemyBenchContent, enemyIconPrefabs));
         StartCoroutine(PopulateBench(artifactsBenchContent, artifactIconPrefabs));
         ShowAllyBench();
+
         if (searchInputField != null)
         {
-            // Cada vez que el texto cambie, se llamará a la función de filtrado.
-            searchInputField.onValueChanged.AddListener(FilterActiveBench);
+            searchInputField.onValueChanged.AddListener(OnSearchTextChanged);
+        }
+        if (searchClearButton != null)
+        {
+            // El botón debe estar oculto al inicio.
+            searchClearButton.gameObject.SetActive(false);
+            searchClearButton.onClick.AddListener(ClearSearchField);
         }
     }
+
 
     IEnumerator PopulateBench(Transform content, GameObject[] iconPrefabs)
     {
@@ -238,6 +246,24 @@ public class PlacementUIManager : MonoBehaviour
             searchInputField.text = ""; // Limpia el texto del buscador
         }
         FilterActiveBench(""); // Muestra todos los íconos
+    }
+
+    private void OnSearchTextChanged(string text)
+    {
+        FilterActiveBench(text);
+        
+        if (searchClearButton != null)
+        {
+            searchClearButton.gameObject.SetActive(!string.IsNullOrEmpty(text));
+        }
+    }
+
+    private void ClearSearchField()
+    {
+        if (searchInputField != null)
+        {
+            searchInputField.text = "";
+        }
     }
 
     private void FilterActiveBench(string searchText)
