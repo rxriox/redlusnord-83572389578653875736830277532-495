@@ -190,32 +190,34 @@ public class GameManager : MonoBehaviour
     }
 
     public void RegisterUnit(UnitController unit)
+{
+    if (allUnits.Contains(unit)) return;
+    allUnits.Add(unit);
+
+    int team = unit.teamID;
+    UnitStats.UnitCategory category = unit.unitStats.category;
+
+    if (!teamUnitCount.ContainsKey(team)) teamUnitCount[team] = 0;
+    teamUnitCount[team]++;
+
+    if (!teamCategoryCounts.ContainsKey(team))
     {
-        if (allUnits.Contains(unit)) return;
-        allUnits.Add(unit);
-
-        int team = unit.teamID;
-        UnitStats.UnitCategory category = unit.unitStats.category;
-
-        if (!teamUnitCount.ContainsKey(team)) teamUnitCount[team] = 0;
-        teamUnitCount[team]++;
-
-        if (!teamCategoryCounts.ContainsKey(team))
-        {
-            teamCategoryCounts[team] = new Dictionary<UnitStats.UnitCategory, int>();
-        }
-        if (!teamCategoryCounts[team].ContainsKey(category))
-        {
-            teamCategoryCounts[team][category] = 0;
-        }
-        teamCategoryCounts[team][category]++;
-
-        UpdateHarmonyBonuses(unit, true);
-        OnHarmoniesUpdated?.Invoke();
-
-        UpdateAllCountsUI();
-        OnUnitCountChanged?.Invoke();
+        teamCategoryCounts[team] = new Dictionary<UnitStats.UnitCategory, int>();
     }
+    if (!teamCategoryCounts[team].ContainsKey(category))
+    {
+        teamCategoryCounts[team][category] = 0;
+    }
+    teamCategoryCounts[team][category]++;
+
+    unit.ApplyStatus(StatusEffect.Environment_Disabled, Mathf.Infinity);
+
+    UpdateHarmonyBonuses(unit, true);
+    OnHarmoniesUpdated?.Invoke();
+
+    UpdateAllCountsUI();
+    OnUnitCountChanged?.Invoke();
+}
 
     public void UnregisterUnit(UnitController unit)
     {
@@ -394,6 +396,7 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
     public void StartCombatButton()
     {
         if (CurrentState == GameState.Placement)
@@ -404,6 +407,8 @@ public class GameManager : MonoBehaviour
             {
                 if (unit != null)
                 {
+                    unit.RemoveStatus(StatusEffect.Environment_Disabled);
+
                     unitsAtCombatStart.Add(new CombatStartInfo
                     {
                         stats = unit.unitStats,
@@ -419,6 +424,7 @@ public class GameManager : MonoBehaviour
             StartCoroutine(CombatLoop());
         }
     }
+
     private IEnumerator CombatLoop()
     {
         yield return new WaitForSeconds(1.0f);
@@ -437,7 +443,6 @@ public class GameManager : MonoBehaviour
 
         if (CurrentState == GameState.Combat)
         {
-            Debug.Log("Limpiando proyectiles del tablero antes del tiempo extra.");
             if (ObjectPooler.Instance != null)
             {
                 ObjectPooler.Instance.ResetAllPools();
@@ -449,6 +454,15 @@ public class GameManager : MonoBehaviour
             if (team0Count > 0 && team1Count > 0)
             {
                 Debug.Log("El tiempo de batalla ha terminado. ¡Comienza el tiempo extra!");
+
+                foreach (var unit in allUnits)
+                {
+                    if (unit != null)
+                    {
+                        unit.ApplyStatus(StatusEffect.Environment_Disabled, Mathf.Infinity);
+                    }
+                }
+
                 CurrentState = GameState.Overtime;
                 StartCoroutine(OvertimeLoop());
             }
@@ -522,7 +536,6 @@ public class GameManager : MonoBehaviour
     private void ResetBoardAfterCombat()
     {
         CurrentState = GameState.Result;
-        Debug.Log("Reconstruyendo tablero para la siguiente ronda...");
         teamUnitCount.Clear();
         if (teamCategoryCounts != null) teamCategoryCounts.Clear();
         harmonyCounts.Clear();
@@ -542,7 +555,6 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Para q ArtifactManager desconecte los iconos de las unidades que seran borradas
         if (ArtifactManager.Instance != null)
         {
             ArtifactManager.Instance.DetachAllIconsFromUnits();
@@ -552,11 +564,15 @@ public class GameManager : MonoBehaviour
         {
             if (gridManager != null && unitInfo.startingNode != null)
             {
-                // si la unidad tenia un artefacto lo vuelve a conectar.
                 UnitController newUnit = gridManager.SpawnUnit(unitInfo.stats, unitInfo.teamID, unitInfo.startingNode, unitInfo.originatingIcon);
-                if (newUnit != null && unitInfo.EquippedArtifact != null && ArtifactManager.Instance != null)
+                if (newUnit != null)
                 {
-                    ArtifactManager.Instance.ReEquipArtifactToUnit(newUnit, unitInfo.EquippedArtifact);
+                    newUnit.ApplyStatus(StatusEffect.Environment_Disabled, Mathf.Infinity);
+
+                    if (unitInfo.EquippedArtifact != null && ArtifactManager.Instance != null)
+                    {
+                        ArtifactManager.Instance.ReEquipArtifactToUnit(newUnit, unitInfo.EquippedArtifact);
+                    }
                 }
             }
         }
@@ -566,7 +582,6 @@ public class GameManager : MonoBehaviour
         CurrentState = GameState.Placement;
         Debug.Log("Fase de colocación reanudada.");
     }
-
 
     public UnitController GetUnitAtNode(Node node)
     {

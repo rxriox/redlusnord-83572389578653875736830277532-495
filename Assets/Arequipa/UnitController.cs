@@ -2,7 +2,8 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-public enum StatusEffect { Dazed, Immobilized, Sealed, Fear, Incurable }
+
+public enum StatusEffect { Dazed, Immobilized, Sealed, Fear, Incurable, Environment_Disabled }
 
 public class UnitController : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class UnitController : MonoBehaviour
     public UnitIconController originatingIcon;
     public Artifact EquippedArtifact { get; private set; }
     public int CurrentLevel { get; private set; }
+
     public int MaxHealth
     {
         get
@@ -28,6 +30,7 @@ public class UnitController : MonoBehaviour
     }
 
     public float CurrentHealth { get; private set; }
+
     public int CurrentAttackDamage
     {
         get
@@ -40,6 +43,7 @@ public class UnitController : MonoBehaviour
             return baseDamage;
         }
     }
+
     public float CurrentAttackSpeed
     {
         get
@@ -52,6 +56,7 @@ public class UnitController : MonoBehaviour
             return baseAttackSpeed;
         }
     }
+
     public float CurrentMoveSpeed
     {
         get
@@ -76,7 +81,6 @@ public class UnitController : MonoBehaviour
     void Start()
     {
         gridManager = FindFirstObjectByType<GridManager>();
-
     }
 
     public void Initialize(int level)
@@ -87,15 +91,8 @@ public class UnitController : MonoBehaviour
 
     public void EvaluateAction()
     {
-        
-// En caso no funcione el overtime       
-//         if (GameManager.Instance.CurrentState == GameManager.GameState.Overtime)
-//        {
-//            currentState = State.IDLE;
-//            return;
-//        }
+        if (HasStatus(StatusEffect.Dazed) || HasStatus(StatusEffect.Environment_Disabled)) return;
 
-        if (HasStatus(StatusEffect.Dazed)) return;
         if (currentState == State.MOVING || currentState == State.ATTACKING) return;
         if (attackCooldown > 0)
         {
@@ -188,7 +185,7 @@ public class UnitController : MonoBehaviour
             GameObject projGO = ObjectPooler.Instance.SpawnFromPool("Proyectil", transform.position + Vector3.up * 0.5f, Quaternion.identity);
             Projectile projectile = projGO.GetComponent<Projectile>();
             if (projectile != null)
-            projectile.Initialize(this, currentTarget, CurrentAttackDamage, DamageType.Material);
+                projectile.Initialize(this, currentTarget, CurrentAttackDamage, DamageType.Material);
         }
         else
         {
@@ -234,6 +231,7 @@ public class UnitController : MonoBehaviour
             currentState = State.IDLE;
         }
     }
+
     private IEnumerator AnimateMove(Node from, Node to)
     {
         currentState = State.MOVING;
@@ -264,7 +262,6 @@ public class UnitController : MonoBehaviour
         yield return new WaitForSeconds(delay);
         currentState = State.IDLE;
     }
-
 
     private IEnumerator AnimateMoveToPosition(Vector3 targetPosition)
     {
@@ -334,14 +331,14 @@ public class UnitController : MonoBehaviour
         GameManager.Instance.CheckForCombatEnd();
         Destroy(gameObject);
     }
+
     public static string GetTeamTag(int teamID)
     {
-        if (teamID == 0) return "<color=#42A5F5>[Aliada]</color>";   // BLUE = ALLIES
-        if (teamID == 1) return "<color=#EF5350>[Enemiga]</color>";   // RED = ENEMIES
+        if (teamID == 0) return "<color=#42A5F5>[Aliada]</color>";
+        if (teamID == 1) return "<color=#EF5350>[Enemiga]</color>";
         return "[Equipo ?]";
     }
 
-    //LOGICA PARA EQUIPAR ARTEFACTOS
     public void EquipArtifact(Artifact artifact)
     {
         if (EquippedArtifact != null)
