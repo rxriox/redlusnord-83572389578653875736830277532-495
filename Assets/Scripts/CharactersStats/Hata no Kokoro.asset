@@ -16,11 +16,26 @@ MonoBehaviour:
   unitType: 1
   naturalHarmonies: []
   unitIcon: {fileID: 21300000, guid: c91b9cf695ea5e44f901ab2261a5521b, type: 3}
+  portrait: {fileID: 0}
+  backgroundImage: {fileID: 0}
   characterPrefab: {fileID: 3805343749917133435, guid: 5d5f0de713f75ed4ab782a810bfdc244, type: 3}
   projectilePrefab: {fileID: 4570334888300365644, guid: e0775eba1bb45214f9851bad6110993a, type: 3}
-  unitName: Hata no Kokoro
+  unitName:
+    m_TableReference:
+      m_TableCollectionName: GUID:152a1b89f2aa40c42b797f2c81fd9a72
+    m_TableEntryReference:
+      m_KeyId: 1087006445568
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   maxHealthByLevel: 6400000096000000e1000000
   attackDamageByLevel: 0a0000000f00000019000000
   attackSpeed: 1
   attackRange: 1.5
   moveSpeed: 3
+  abilities: []
+  spellCards: []
+  references:
+    version: 2
+    RefIds: []

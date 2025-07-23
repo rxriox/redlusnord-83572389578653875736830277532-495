@@ -13,10 +13,21 @@ MonoBehaviour:
   m_Name: Vitality Charm
   m_EditorClassIdentifier: Assembly-CSharp::Artifact
   category: 0
-  artifactName: Vitality Charm
+  artifactName:
+    m_TableReference:
+      m_TableCollectionName: GUID:4bc5009a58bae9f4786c52b67d0f9939
+    m_TableEntryReference:
+      m_KeyId: 466756964352
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   description: 
   icon: {fileID: 21300000, guid: 11987a22bba3d404ba6e7194fba8a3e9, type: 3}
   healthBonus: 5000
   attackDamageBonus: 0
   moveSpeedBonus: 0
   attackSpeedBonus: 0
+  references:
+    version: 2
+    RefIds: []

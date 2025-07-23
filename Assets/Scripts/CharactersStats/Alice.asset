@@ -22,7 +22,15 @@ MonoBehaviour:
   backgroundImage: {fileID: 21300000, guid: 11987a22bba3d404ba6e7194fba8a3e9, type: 3}
   characterPrefab: {fileID: 3805343749917133435, guid: eae740a1567c01e4a838dad85c2657e6, type: 3}
   projectilePrefab: {fileID: 4570334888300365644, guid: e0775eba1bb45214f9851bad6110993a, type: 3}
-  unitName: Alice Margatroid
+  unitName:
+    m_TableReference:
+      m_TableCollectionName: GUID:152a1b89f2aa40c42b797f2c81fd9a72
+    m_TableEntryReference:
+      m_KeyId: 472595435520
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   maxHealthByLevel: 6400000096000000e1000000
   attackDamageByLevel: 0a0000000f00000019000000
   attackSpeed: 1
@@ -49,3 +57,6 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: 98a8bbcdc59fb5b468e966c9df79ab83, type: 3}
     description: Alice's attacks deal additional immaterial damage, increasing by
       the number of dolls on the field.
+  references:
+    version: 2
+    RefIds: []

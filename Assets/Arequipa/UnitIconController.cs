@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 [RequireComponent(typeof(Image))]
 public class UnitIconController : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
@@ -23,22 +24,25 @@ public class UnitIconController : MonoBehaviour, IPointerDownHandler, IDragHandl
     private PlayerController playerController;
     private bool isPlaced = false;
 
+    public string cachedLocalizedName = "";
+
     void Start()
     {
         iconImage = GetComponent<Image>();
         playerController = FindFirstObjectByType<PlayerController>();
         ResetIcon();
+        CacheLocalizedName();
     }
-    
+
     public void OnPointerDown(PointerEventData eventData)
     {
         if (isPlaced || eventData.button != PointerEventData.InputButton.Left) return;
-        
+
         isPointerDown = true;
         pointerDownTimer = 0f;
         isDragging = false;
     }
-    
+
     public void OnPointerUp(PointerEventData eventData)
     {
         if (!isPointerDown || eventData.button != PointerEventData.InputButton.Left) return;
@@ -54,12 +58,12 @@ public class UnitIconController : MonoBehaviour, IPointerDownHandler, IDragHandl
         {
             PanelUnitDetails.Instance.ShowDetailsForBenchUnit(characterData);
         }
-        
+
         isDragging = false;
         pointerDownTimer = 0f;
     }
 
-    
+
 
     public void OnDrag(PointerEventData eventData)
     {
@@ -76,8 +80,8 @@ public class UnitIconController : MonoBehaviour, IPointerDownHandler, IDragHandl
         }
     }
 
-    
-    
+
+
     public void SetSpriteToPlacedState()
     {
         if (placedIconSprite != null)
@@ -94,7 +98,7 @@ public class UnitIconController : MonoBehaviour, IPointerDownHandler, IDragHandl
             iconImage.sprite = placedIconSprite;
         }
     }
-    
+
     public void ResetIcon()
     {
         isPlaced = false;
@@ -103,7 +107,21 @@ public class UnitIconController : MonoBehaviour, IPointerDownHandler, IDragHandl
             iconImage.sprite = availableIconSprite;
         }
     }
-    
+
     public UnitStats GetUnitStats() { return characterData; }
     public Sprite GetDragCursorSprite() { return dragCursorSprite; }
+    
+    private void CacheLocalizedName()
+    {
+        if (characterData == null || characterData.unitName.IsEmpty) return;
+
+        var handle = characterData.unitName.GetLocalizedStringAsync();
+        handle.Completed += (op) =>
+        {
+            if (op.Status == AsyncOperationStatus.Succeeded)
+            {
+                cachedLocalizedName = op.Result;
+            }
+        };
+    }
 }

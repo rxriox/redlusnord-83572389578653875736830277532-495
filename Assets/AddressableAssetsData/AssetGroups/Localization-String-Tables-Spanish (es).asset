@@ -15,6 +15,18 @@ MonoBehaviour:
   m_GroupName: Localization-String-Tables-Spanish (es)
   m_GUID: 667453025dfb95b4a9ce88562c79b700
   m_SerializeEntries:
+  - m_GUID: 9adc657cf39ccaa47b2574efd91d7a34
+    m_Address: CharacterNames_es
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-es
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e7612f583d70c4b45a850c12e9a8890d
+    m_Address: ArtifactNames_es
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-es
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e8dbb77363a76c843b451809655dc541
     m_Address: FirstTable_es
     m_ReadOnly: 1

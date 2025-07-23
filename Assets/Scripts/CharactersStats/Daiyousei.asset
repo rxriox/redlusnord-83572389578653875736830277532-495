@@ -20,7 +20,15 @@ MonoBehaviour:
   backgroundImage: {fileID: 0}
   characterPrefab: {fileID: 3805343749917133435, guid: 9b31249760abec74086cd7005a754a49, type: 3}
   projectilePrefab: {fileID: 4570334888300365644, guid: e0775eba1bb45214f9851bad6110993a, type: 3}
-  unitName: Daiyousei
+  unitName:
+    m_TableReference:
+      m_TableCollectionName: GUID:152a1b89f2aa40c42b797f2c81fd9a72
+    m_TableEntryReference:
+      m_KeyId: 950368604160
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   maxHealthByLevel: 6400000096000000e1000000
   attackDamageByLevel: 0a0000000f00000019000000
   attackSpeed: 1
@@ -28,3 +36,6 @@ MonoBehaviour:
   moveSpeed: 3
   abilities: []
   spellCards: []
+  references:
+    version: 2
+    RefIds: []

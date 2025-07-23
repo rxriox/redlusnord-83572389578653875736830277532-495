@@ -13,6 +13,21 @@ MonoBehaviour:
   m_Name: CAT2 ITEM
   m_EditorClassIdentifier: Assembly-CSharp::Artifact
   category: 1
-  artifactName: CAT2 ITEM
+  artifactName:
+    m_TableReference:
+      m_TableCollectionName: GUID:4bc5009a58bae9f4786c52b67d0f9939
+    m_TableEntryReference:
+      m_KeyId: 10517352448
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   description: 
   icon: {fileID: 21300000, guid: 643daf7f13dc9364fa18748f63b299b2, type: 3}
+  healthBonus: 0
+  attackDamageBonus: 0
+  moveSpeedBonus: 0
+  attackSpeedBonus: 0
+  references:
+    version: 2
+    RefIds: []

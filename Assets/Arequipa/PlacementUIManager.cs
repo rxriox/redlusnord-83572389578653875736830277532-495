@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.Localization;
+using TMPro;
 
 public class PlacementUIManager : MonoBehaviour
 {
@@ -37,11 +38,14 @@ public class PlacementUIManager : MonoBehaviour
 
     [Header("Animación")]
     public float fadeDuration = 0.1f;
-    
+
     private Coroutine benchFadeCoroutine;
     private enum ActiveBench { Allies, Enemies, Artifacts }
     private ActiveBench lastActiveBench;
     public int CurrentPlacementTeamID { get; private set; }
+
+    [Header("Buscador")]
+    public TMP_InputField searchInputField;
 
     private void Awake()
     {
@@ -55,8 +59,13 @@ public class PlacementUIManager : MonoBehaviour
         StartCoroutine(PopulateBench(enemyBenchContent, enemyIconPrefabs));
         StartCoroutine(PopulateBench(artifactsBenchContent, artifactIconPrefabs));
         ShowAllyBench();
+        if (searchInputField != null)
+        {
+            // Cada vez que el texto cambie, se llamará a la función de filtrado.
+            searchInputField.onValueChanged.AddListener(FilterActiveBench);
+        }
     }
-    
+
     IEnumerator PopulateBench(Transform content, GameObject[] iconPrefabs)
     {
         if (content == null) yield break;
@@ -67,7 +76,7 @@ public class PlacementUIManager : MonoBehaviour
         foreach (var prefab in iconPrefabs)
         {
             if (prefab == null) continue;
-            
+
             LocalizedString locString = null;
             UnitIconController unitIcon = prefab.GetComponent<UnitIconController>();
             if (unitIcon != null && unitIcon.characterData != null)
@@ -82,7 +91,7 @@ public class PlacementUIManager : MonoBehaviour
                     locString = artifactIcon.artifactData.artifactName;
                 }
             }
-            
+
             if (locString != null && !locString.IsEmpty)
             {
                 var handle = locString.GetLocalizedStringAsync();
@@ -91,7 +100,7 @@ public class PlacementUIManager : MonoBehaviour
         }
 
         yield return new WaitUntil(() => itemsToLoad.All(item => item.handle.IsDone));
-        
+
         var itemsToSort = new List<(GameObject prefab, string translatedName)>();
         foreach (var item in itemsToLoad)
         {
@@ -100,7 +109,7 @@ public class PlacementUIManager : MonoBehaviour
                 itemsToSort.Add((item.prefab, item.handle.Result));
             }
         }
-        
+
         var sortedItems = itemsToSort.OrderBy(item => item.translatedName, System.StringComparer.CurrentCulture).ToList();
 
         foreach (var item in sortedItems)
@@ -108,7 +117,7 @@ public class PlacementUIManager : MonoBehaviour
             Instantiate(item.prefab, content);
         }
     }
-    
+
     public void ShowAllyBench()
     {
         CurrentPlacementTeamID = 0;
@@ -118,6 +127,8 @@ public class PlacementUIManager : MonoBehaviour
         if (allyBenchButton != null) allyBenchButton.GetComponent<Image>().color = activeTabColor;
         if (enemyBenchButton != null) enemyBenchButton.GetComponent<Image>().color = inactiveTabColor;
         if (ArtifactsBenchButton != null) ArtifactsBenchButton.GetComponent<Image>().color = inactiveTabColor;
+
+        ClearAndFilter();
     }
 
     public void ShowEnemyBench()
@@ -129,6 +140,8 @@ public class PlacementUIManager : MonoBehaviour
         if (allyBenchButton != null) allyBenchButton.GetComponent<Image>().color = inactiveTabColor;
         if (enemyBenchButton != null) enemyBenchButton.GetComponent<Image>().color = activeTabColor;
         if (ArtifactsBenchButton != null) ArtifactsBenchButton.GetComponent<Image>().color = inactiveTabColor;
+
+        ClearAndFilter();
     }
 
     public void ShowArtifactsBench()
@@ -138,6 +151,8 @@ public class PlacementUIManager : MonoBehaviour
         if (allyBenchButton != null) allyBenchButton.GetComponent<Image>().color = inactiveTabColor;
         if (enemyBenchButton != null) enemyBenchButton.GetComponent<Image>().color = inactiveTabColor;
         if (ArtifactsBenchButton != null) ArtifactsBenchButton.GetComponent<Image>().color = activeTabColor;
+
+        ClearAndFilter();
     }
     private void SetBenchVisibility(CanvasGroup toShow, params CanvasGroup[] toHide)
     {
@@ -204,7 +219,7 @@ public class PlacementUIManager : MonoBehaviour
 
         benchFadeCoroutine = null;
     }
-    
+
     public void ShowBenchesAfterDrag()
     {
         switch (lastActiveBench)
@@ -213,6 +228,49 @@ public class PlacementUIManager : MonoBehaviour
             case ActiveBench.Enemies: ShowEnemyBench(); break;
             case ActiveBench.Artifacts: ShowArtifactsBench(); break;
             default: ShowAllyBench(); break;
+        }
+    }
+    
+    private void ClearAndFilter()
+    {
+        if (searchInputField != null)
+        {
+            searchInputField.text = ""; // Limpia el texto del buscador
+        }
+        FilterActiveBench(""); // Muestra todos los íconos
+    }
+
+    private void FilterActiveBench(string searchText)
+    {
+        Transform activeContent = null;
+        switch (lastActiveBench)
+        {
+            case ActiveBench.Allies: activeContent = allyBenchContent; break;
+            case ActiveBench.Enemies: activeContent = enemyBenchContent; break;
+            case ActiveBench.Artifacts: activeContent = artifactsBenchContent; break;
+        }
+
+        if (activeContent == null) return;
+
+        string lowerSearchText = searchText.ToLower();
+
+        foreach (Transform child in activeContent)
+        {
+            bool found = false;
+            UnitIconController unitIcon = child.GetComponent<UnitIconController>();
+            if (unitIcon != null)
+            {
+                found = unitIcon.cachedLocalizedName.ToLower().Contains(lowerSearchText);
+            }
+            else
+            {
+                ArtifactIconController artifactIcon = child.GetComponent<ArtifactIconController>();
+                if (artifactIcon != null)
+                {
+                    found = artifactIcon.cachedLocalizedName.ToLower().Contains(lowerSearchText);
+                }
+            }
+            child.gameObject.SetActive(found);
         }
     }
 }

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -12,11 +13,14 @@ public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHan
     private Transform originalParent;
     private Vector3 startPosition;
 
+    public string cachedLocalizedName = "";
+
     void Awake()
     {
         iconImage = GetComponent<Image>();
         canvasGroup = gameObject.AddComponent<CanvasGroup>();
         UpdateIconVisual(0);
+        CacheLocalizedName();
     }
 
     public void SetAsPlaced(int teamID)
@@ -74,6 +78,20 @@ public class ArtifactIconController : MonoBehaviour, IBeginDragHandler, IDragHan
         
         canvasGroup.alpha = 1f;
         canvasGroup.blocksRaycasts = true;
+    }
+
+    private void CacheLocalizedName()
+    {
+        if (artifactData == null || artifactData.artifactName.IsEmpty) return;
+
+        var handle = artifactData.artifactName.GetLocalizedStringAsync();
+        handle.Completed += (op) =>
+        {
+            if (op.Status == AsyncOperationStatus.Succeeded)
+            {
+                cachedLocalizedName = op.Result;
+            }
+        };
     }
     
     [Header("Apariencia")]
