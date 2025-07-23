@@ -3,6 +3,8 @@ using UnityEngine.UI;
 using System.Collections;
 using TMPro;
 using System.Collections.Generic;
+using UnityEngine.Localization;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class PanelUnitDetails : MonoBehaviour
 {
@@ -162,7 +164,21 @@ public class PanelUnitDetails : MonoBehaviour
         if (equippedArtifactImage != null) equippedArtifactImage.sprite = defaultArtifactSprite;
 
         int currentLevel = GameManager.Instance.GetCurrentLevelForUnit(stats);
-        unitNameText.text = stats.unitName;
+        unitNameText.text = "Loading...";
+        var nameHandle = stats.unitName.GetLocalizedStringAsync();
+        nameHandle.Completed += (handle) =>
+        {
+            if (handle.Status == AsyncOperationStatus.Succeeded)
+            {
+                // Cuando la carga termina, actualiza el texto.
+                unitNameText.text = handle.Result;
+            }
+            else
+            {
+                unitNameText.text = "Error";
+            }
+            // Addressables.Release(handle); // Opcional: Descomenta si gestionas la memoria manualmente.
+        };
         levelText.text = $"{currentLevel}";
 
         // Stats

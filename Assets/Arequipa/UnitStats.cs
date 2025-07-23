@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.Localization;
 
 [CreateAssetMenu(fileName = "New Unit Stats", menuName = "Autobattler/Unit Stats")]
 public class UnitStats : ScriptableObject
@@ -53,7 +54,7 @@ public class UnitStats : ScriptableObject
     public GameObject projectilePrefab;
 
     [Header("Combat Statistics")]
-    public string unitName = "New Unit";
+    public LocalizedString unitName;
     [Tooltip("Vida máxima de la unidad para los niveles 1, 2 y 3.")]
     public List<int> maxHealthByLevel = new List<int> { 100, 150, 225 };
     [Tooltip("Daño de ataque de la unidad para los niveles 1, 2 y 3.")]

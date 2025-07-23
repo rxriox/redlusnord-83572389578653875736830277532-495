@@ -3,6 +3,8 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.Localization;
 
 public class PlacementUIManager : MonoBehaviour
 {
@@ -49,37 +51,61 @@ public class PlacementUIManager : MonoBehaviour
 
     private void Start()
     {
-        PopulateBench(allyBenchContent, allyIconPrefabs);
-        PopulateBench(enemyBenchContent, enemyIconPrefabs);
-        PopulateBench(artifactsBenchContent, artifactIconPrefabs);
+        StartCoroutine(PopulateBench(allyBenchContent, allyIconPrefabs));
+        StartCoroutine(PopulateBench(enemyBenchContent, enemyIconPrefabs));
+        StartCoroutine(PopulateBench(artifactsBenchContent, artifactIconPrefabs));
         ShowAllyBench();
     }
     
-    void PopulateBench(Transform content, GameObject[] iconPrefabs)
+    IEnumerator PopulateBench(Transform content, GameObject[] iconPrefabs)
     {
-        if (content == null) return;
+        if (content == null) yield break;
         foreach (Transform child in content) Destroy(child.gameObject);
-        var sortedPrefabs = iconPrefabs.OrderBy(prefab => {
-            if (prefab == null) return "zzzz";
 
+        var itemsToLoad = new List<(GameObject prefab, LocalizedString localizedString, AsyncOperationHandle<string> handle)>();
+
+        foreach (var prefab in iconPrefabs)
+        {
+            if (prefab == null) continue;
+            
+            LocalizedString locString = null;
             UnitIconController unitIcon = prefab.GetComponent<UnitIconController>();
             if (unitIcon != null && unitIcon.characterData != null)
             {
-                return unitIcon.characterData.unitName;
+                locString = unitIcon.characterData.unitName;
             }
-
-            ArtifactIconController artifactIcon = prefab.GetComponent<ArtifactIconController>();
-            if (artifactIcon != null && artifactIcon.artifactData != null)
+            else
             {
-                return artifactIcon.artifactData.artifactName;
+                ArtifactIconController artifactIcon = prefab.GetComponent<ArtifactIconController>();
+                if (artifactIcon != null && artifactIcon.artifactData != null)
+                {
+                    locString = artifactIcon.artifactData.artifactName;
+                }
             }
+            
+            if (locString != null && !locString.IsEmpty)
+            {
+                var handle = locString.GetLocalizedStringAsync();
+                itemsToLoad.Add((prefab, locString, handle));
+            }
+        }
 
-            return prefab.name;
-        }).ToList();
-
-        foreach (GameObject iconPrefab in sortedPrefabs)
+        yield return new WaitUntil(() => itemsToLoad.All(item => item.handle.IsDone));
+        
+        var itemsToSort = new List<(GameObject prefab, string translatedName)>();
+        foreach (var item in itemsToLoad)
         {
-            if (iconPrefab != null) Instantiate(iconPrefab, content);
+            if (item.handle.Status == AsyncOperationStatus.Succeeded)
+            {
+                itemsToSort.Add((item.prefab, item.handle.Result));
+            }
+        }
+        
+        var sortedItems = itemsToSort.OrderBy(item => item.translatedName, System.StringComparer.CurrentCulture).ToList();
+
+        foreach (var item in sortedItems)
+        {
+            Instantiate(item.prefab, content);
         }
     }
     
