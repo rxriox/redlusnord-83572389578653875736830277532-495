@@ -16,6 +16,11 @@ public class UnitController : MonoBehaviour
     public Artifact EquippedArtifact { get; private set; }
     public int CurrentLevel { get; private set; }
 
+    private Harmony_Defiant defiantLogic;
+    private Renderer[] allRenderers;
+    private Collider unitCollider;
+
+
     public int MaxHealth
     {
         get
@@ -81,6 +86,10 @@ public class UnitController : MonoBehaviour
     void Start()
     {
         gridManager = FindFirstObjectByType<GridManager>();
+
+        defiantLogic = GetComponent<Harmony_Defiant>();
+        allRenderers = GetComponentsInChildren<Renderer>();
+        unitCollider = GetComponent<Collider>();
     }
 
     public void Initialize(int level)
@@ -91,6 +100,16 @@ public class UnitController : MonoBehaviour
 
     public void EvaluateAction()
     {
+        if (defiantLogic != null && defiantLogic.IsTeleportReady())
+        {
+            // ...y la armonía está activa para su equipo...
+            if (GameManager.Instance.IsHarmonyActiveForTeam(GameManager.Instance.FindHarmonyByName("Defiant"), teamID))
+            {
+                defiantLogic.TriggerTeleport();
+                return; // Se teletransporta en lugar de hacer otra acción
+            }
+        }
+
         if (HasStatus(StatusEffect.Dazed) || HasStatus(StatusEffect.Environment_Disabled)) return;
 
         if (currentState == State.MOVING || currentState == State.ATTACKING) return;
@@ -164,13 +183,20 @@ public class UnitController : MonoBehaviour
             .FirstOrDefault();
     }
 
-    private bool IsTargetInAttackRange()
+    public bool IsTargetInAttackRange()
     {
         return IsUnitWithinAttackRange(currentTarget);
     }
 
     private void PerformAttack()
     {
+        float damageMultiplier = 1.0f;
+        if (defiantLogic != null && GameManager.Instance.IsHarmonyActiveForTeam(GameManager.Instance.FindHarmonyByName("Defiant"), teamID))
+        {
+            damageMultiplier = defiantLogic.GetDamageMultiplier();
+        }
+        int finalDamage = Mathf.RoundToInt(CurrentAttackDamage * damageMultiplier);
+
         if (GameManager.Instance.CurrentState != GameManager.GameState.Combat)
         {
             currentState = State.IDLE;
@@ -185,12 +211,12 @@ public class UnitController : MonoBehaviour
             GameObject projGO = ObjectPooler.Instance.SpawnFromPool("Proyectil", transform.position + Vector3.up * 0.5f, Quaternion.identity);
             Projectile projectile = projGO.GetComponent<Projectile>();
             if (projectile != null)
-                projectile.Initialize(this, currentTarget, CurrentAttackDamage, DamageType.Material);
+                projectile.Initialize(this, currentTarget, finalDamage, DamageType.Material);
         }
         else
         {
             Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ataca a {GetTeamTag(currentTarget.teamID)} {currentTarget.unitStats.unitName}");
-            currentTarget.TakeDamage(CurrentAttackDamage, this, DamageType.Material);
+            currentTarget.TakeDamage(finalDamage, this, DamageType.Material);
         }
 
         attackCooldown = 1f / CurrentAttackSpeed;
@@ -412,6 +438,15 @@ public class UnitController : MonoBehaviour
         {
             activeStatusEffects.Remove(effect);
             Debug.Log($"{unitStats.unitName} ya no está afectado por {effect}.");
+        }
+    }
+
+    public void SetVisibility(bool isVisible)
+    {
+        if (unitCollider != null) unitCollider.enabled = isVisible;
+        foreach (var rend in allRenderers)
+        {
+            rend.enabled = isVisible;
         }
     }
 

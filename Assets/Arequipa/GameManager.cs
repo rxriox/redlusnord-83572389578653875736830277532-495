@@ -50,6 +50,9 @@ public class GameManager : MonoBehaviour
     public GameObject victoryPanel;
     public TextMeshProUGUI victoryText;
 
+    [Header("Referencias del Juego")]
+    public List<HarmonyType> allHarmonyTypes;
+
 
     private Coroutine hideErrorCoroutine;
     private Coroutine fadeErrorCoroutine;
@@ -190,34 +193,34 @@ public class GameManager : MonoBehaviour
     }
 
     public void RegisterUnit(UnitController unit)
-{
-    if (allUnits.Contains(unit)) return;
-    allUnits.Add(unit);
-
-    int team = unit.teamID;
-    UnitStats.UnitCategory category = unit.unitStats.category;
-
-    if (!teamUnitCount.ContainsKey(team)) teamUnitCount[team] = 0;
-    teamUnitCount[team]++;
-
-    if (!teamCategoryCounts.ContainsKey(team))
     {
-        teamCategoryCounts[team] = new Dictionary<UnitStats.UnitCategory, int>();
+        if (allUnits.Contains(unit)) return;
+        allUnits.Add(unit);
+
+        int team = unit.teamID;
+        UnitStats.UnitCategory category = unit.unitStats.category;
+
+        if (!teamUnitCount.ContainsKey(team)) teamUnitCount[team] = 0;
+        teamUnitCount[team]++;
+
+        if (!teamCategoryCounts.ContainsKey(team))
+        {
+            teamCategoryCounts[team] = new Dictionary<UnitStats.UnitCategory, int>();
+        }
+        if (!teamCategoryCounts[team].ContainsKey(category))
+        {
+            teamCategoryCounts[team][category] = 0;
+        }
+        teamCategoryCounts[team][category]++;
+
+        unit.ApplyStatus(StatusEffect.Environment_Disabled, Mathf.Infinity);
+
+        UpdateHarmonyBonuses(unit, true);
+        OnHarmoniesUpdated?.Invoke();
+
+        UpdateAllCountsUI();
+        OnUnitCountChanged?.Invoke();
     }
-    if (!teamCategoryCounts[team].ContainsKey(category))
-    {
-        teamCategoryCounts[team][category] = 0;
-    }
-    teamCategoryCounts[team][category]++;
-
-    unit.ApplyStatus(StatusEffect.Environment_Disabled, Mathf.Infinity);
-
-    UpdateHarmonyBonuses(unit, true);
-    OnHarmoniesUpdated?.Invoke();
-
-    UpdateAllCountsUI();
-    OnUnitCountChanged?.Invoke();
-}
 
     public void UnregisterUnit(UnitController unit)
     {
@@ -401,28 +404,67 @@ public class GameManager : MonoBehaviour
     {
         if (CurrentState == GameState.Placement)
         {
-            unitsAtCombatStart.Clear();
-            battleTimer = 0f;
+            StartCoroutine(StartCombatSequence());
+        }
+    }
+
+    private IEnumerator StartCombatSequence()
+    {
+        // Guarda el estado inicial del tablero
+        unitsAtCombatStart.Clear();
+        battleTimer = 0f;
+        foreach (var unit in allUnits)
+        {
+            if (unit != null)
+            {
+                unitsAtCombatStart.Add(new CombatStartInfo
+                {
+                    stats = unit.unitStats,
+                    teamID = unit.teamID,
+                    startingNode = unit.currentNode,
+                    originatingIcon = unit.originatingIcon,
+                    EquippedArtifact = unit.EquippedArtifact
+                });
+            }
+        }
+
+        // Paso 1: Activa el teletransporte de las unidades Defiant y espera a que terminen
+        HarmonyType defiantHarmony = FindHarmonyByName("Defiant");
+        List<Coroutine> defiantTeleports = new List<Coroutine>();
+        if (defiantHarmony != null)
+        {
             foreach (var unit in allUnits)
             {
-                if (unit != null)
+                if (unit != null && IsHarmonyActiveForTeam(defiantHarmony, unit.teamID))
                 {
-                    unit.RemoveStatus(StatusEffect.Environment_Disabled);
-
-                    unitsAtCombatStart.Add(new CombatStartInfo
+                    var defiantComponent = unit.GetComponent<Harmony_Defiant>();
+                    if (defiantComponent != null)
                     {
-                        stats = unit.unitStats,
-                        teamID = unit.teamID,
-                        startingNode = unit.currentNode,
-                        originatingIcon = unit.originatingIcon,
-                        EquippedArtifact = unit.EquippedArtifact
-                    });
+                        // Inicia la corrutina en el componente y guarda su referencia
+                        defiantTeleports.Add(StartCoroutine(defiantComponent.ActivateInitialTeleport()));
+                    }
                 }
             }
-
-            CurrentState = GameState.Combat;
-            StartCoroutine(CombatLoop());
         }
+        
+        // Espera a que todas las corrutinas de teletransporte finalicen
+        foreach (var teleport in defiantTeleports)
+        {
+            yield return teleport;
+        }
+
+        // Paso 2: Ahora que los teletransportes terminaron, quita el estado de "deshabilitado" a TODAS las unidades
+        foreach (var unit in allUnits)
+        {
+            if (unit != null)
+            {
+                unit.RemoveStatus(StatusEffect.Environment_Disabled);
+            }
+        }
+
+        // Paso 3: Inicia oficialmente el combate
+        CurrentState = GameState.Combat;
+        StartCoroutine(CombatLoop());
     }
 
     private IEnumerator CombatLoop()
@@ -695,7 +737,7 @@ public class GameManager : MonoBehaviour
         }
         return 0;
     }
-    
+
     public void ResetAllActiveArtifactsButton()
     {
         if (CurrentState == GameState.Combat || CurrentState == GameState.Overtime)
@@ -703,7 +745,7 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("No se pueden limpiar los artefactos durante el combate o el tiempo extra.");
             return;
         }
-        
+
         if (ArtifactManager.Instance != null)
         {
             ArtifactManager.Instance.ResetAllActiveArtifacts();
@@ -713,4 +755,10 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("No se encontró una instancia de ArtifactManager para limpiar los artefactos.");
         }
     }
+
+    public HarmonyType FindHarmonyByName(string harmonyName)
+    {
+        return allHarmonyTypes.FirstOrDefault(h => h.harmonyName == harmonyName);
+    }
+    
 }
