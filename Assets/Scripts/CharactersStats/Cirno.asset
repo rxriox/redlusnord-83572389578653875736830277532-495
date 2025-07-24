@@ -34,7 +34,7 @@ MonoBehaviour:
   attackDamageByLevel: 0a0000000f00000019000000
   attackSpeed: 1
   attackRange: 1
-  moveSpeed: 3
+  moveSpeed: 1
   abilities: []
   spellCards: []
   references:

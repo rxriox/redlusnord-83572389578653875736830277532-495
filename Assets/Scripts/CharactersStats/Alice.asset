@@ -35,7 +35,7 @@ MonoBehaviour:
   attackDamageByLevel: 0a0000000f00000019000000
   attackSpeed: 5
   attackRange: 9
-  moveSpeed: 3
+  moveSpeed: 10
   abilities:
   - title: March of the marionettes
     icon: {fileID: 21300000, guid: 7992f2e12120c1b469017b186227e5af, type: 3}
