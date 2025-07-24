@@ -27,7 +27,7 @@ MonoBehaviour:
   healthBonus: 0
   attackDamageBonus: 0
   moveSpeedBonus: 0
-  attackSpeedBonus: 8
+  attackSpeedBonus: 1.5
   references:
     version: 2
     RefIds: []

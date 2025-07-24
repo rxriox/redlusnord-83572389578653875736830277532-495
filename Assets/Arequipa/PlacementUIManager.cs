@@ -18,16 +18,18 @@ public class PlacementUIManager : MonoBehaviour
     public Color activeTabColor = Color.black;
     public Color inactiveTabColor = Color.white;
 
+    [Header("Bancas de Unidades")]
+    [Tooltip("La lista única de prefabs de unidades que se usará para ambos equipos.")]
+    public GameObject[] unitIconPrefabs;
+    
     [Header("Banca Aliada")]
     public GameObject allyBenchScrollView;
     public Transform allyBenchContent;
-    public GameObject[] allyIconPrefabs;
     public CanvasGroup allyBenchCanvasGroup;
 
     [Header("Banca Enemiga")]
     public GameObject enemyBenchScrollView;
     public Transform enemyBenchContent;
-    public GameObject[] enemyIconPrefabs;
     public CanvasGroup enemyBenchCanvasGroup;
 
     [Header("Banca de Artefactos")]
@@ -56,8 +58,8 @@ public class PlacementUIManager : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(PopulateBench(allyBenchContent, allyIconPrefabs));
-        StartCoroutine(PopulateBench(enemyBenchContent, enemyIconPrefabs));
+        StartCoroutine(PopulateBench(allyBenchContent, unitIconPrefabs));
+        StartCoroutine(PopulateBench(enemyBenchContent, unitIconPrefabs));
         StartCoroutine(PopulateBench(artifactsBenchContent, artifactIconPrefabs));
         ShowAllyBench();
 
@@ -80,26 +82,25 @@ public class PlacementUIManager : MonoBehaviour
         foreach (Transform child in content) Destroy(child.gameObject);
 
         var itemsToLoad = new List<(GameObject prefab, LocalizedString localizedString, AsyncOperationHandle<string> handle)>();
-
         foreach (var prefab in iconPrefabs)
         {
             if (prefab == null) continue;
-
+            
             LocalizedString locString = null;
-            UnitIconController unitIcon = prefab.GetComponent<UnitIconController>();
+            var unitIcon = prefab.GetComponent<UnitIconController>();
             if (unitIcon != null && unitIcon.characterData != null)
             {
                 locString = unitIcon.characterData.unitName;
             }
             else
             {
-                ArtifactIconController artifactIcon = prefab.GetComponent<ArtifactIconController>();
+                var artifactIcon = prefab.GetComponent<ArtifactIconController>();
                 if (artifactIcon != null && artifactIcon.artifactData != null)
                 {
                     locString = artifactIcon.artifactData.artifactName;
                 }
             }
-
+            
             if (locString != null && !locString.IsEmpty)
             {
                 var handle = locString.GetLocalizedStringAsync();
@@ -108,17 +109,25 @@ public class PlacementUIManager : MonoBehaviour
         }
 
         yield return new WaitUntil(() => itemsToLoad.All(item => item.handle.IsDone));
-
-        var itemsToSort = new List<(GameObject prefab, string translatedName)>();
+        var itemsToSort = new List<(GameObject prefab, string translatedName, int category)>();
         foreach (var item in itemsToLoad)
         {
             if (item.handle.Status == AsyncOperationStatus.Succeeded)
             {
-                itemsToSort.Add((item.prefab, item.handle.Result));
+                int categoryValue = 0; // Por defecto para las unidades
+                var artifactIcon = item.prefab.GetComponent<ArtifactIconController>();
+                if (artifactIcon != null && artifactIcon.artifactData != null)
+                {
+                    categoryValue = (int)artifactIcon.artifactData.category;
+                }
+                itemsToSort.Add((item.prefab, item.handle.Result, categoryValue));
             }
         }
-
-        var sortedItems = itemsToSort.OrderBy(item => item.translatedName, System.StringComparer.CurrentCulture).ToList();
+        
+        var sortedItems = itemsToSort
+            .OrderBy(item => item.category)
+            .ThenBy(item => item.translatedName, System.StringComparer.CurrentCulture)
+            .ToList();
 
         foreach (var item in sortedItems)
         {

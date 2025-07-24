@@ -59,7 +59,9 @@ public class UnitStats : ScriptableObject
     public List<int> maxHealthByLevel = new List<int> { 100, 150, 225 };
     [Tooltip("Daño de ataque de la unidad para los niveles 1, 2 y 3.")]
     public List<int> attackDamageByLevel = new List<int> { 10, 15, 25 };
-    public float attackSpeed = 1.0f;
+    
+    [Range(1, 10)]
+    public float attackSpeed = 4f;
     public float attackRange = 1.5f;
 
     [Header("Movement Statistics")]

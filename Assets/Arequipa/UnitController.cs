@@ -55,18 +55,17 @@ public class UnitController : MonoBehaviour
     {
         get
         {
-            float baseAttackSpeed = unitStats.attackSpeed;
+            float finalAttackSpeed = unitStats.attackSpeed;
             if (EquippedArtifact != null)
             {
-                baseAttackSpeed += EquippedArtifact.attackSpeedBonus;
+                finalAttackSpeed += EquippedArtifact.attackSpeedBonus;
             }
-
             if (humanLogic != null)
             {
-                baseAttackSpeed += humanLogic.GetAttackSpeedBonus();
+                finalAttackSpeed += humanLogic.GetAttackSpeedBonus();
             }
 
-            return baseAttackSpeed;
+            return Mathf.Clamp(finalAttackSpeed, 1f, 10f);
         }
     }
 
@@ -226,7 +225,14 @@ public class UnitController : MonoBehaviour
             currentTarget.TakeDamage(finalDamage, this, DamageType.Material);
         }
 
-        attackCooldown = 1f / CurrentAttackSpeed;
+        const float maxCooldown = 2.0f; // Cooldown para velocidad de ataque 1 (lento)
+        const float minCooldown = 0.3f; // Cooldown para velocidad de ataque 10 (rápido)
+
+        // Convierte la escala 1-10 a un valor entre 0 y 1.
+        float normalizedSpeed = (CurrentAttackSpeed - 1f) / 9f;
+
+        // Interpola linealmente para encontrar el cooldown exacto.
+        attackCooldown = Mathf.Lerp(maxCooldown, minCooldown, normalizedSpeed);
         StartCoroutine(ResetStateAfterAction(0.1f));
     }
 

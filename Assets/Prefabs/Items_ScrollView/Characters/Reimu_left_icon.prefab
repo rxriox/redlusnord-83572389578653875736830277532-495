@@ -92,5 +92,5 @@ MonoBehaviour:
   availableIconSprite: {fileID: 21300000, guid: c19c15e8f9f35aa4383a8b8f413ae4c5, type: 3}
   placedIconSprite: {fileID: 21300000, guid: 81891ae7ee0aee5409608485aa468a93, type: 3}
   dragCursorSprite: {fileID: 21300000, guid: da1a024e742615f4bb9d765d107b8742, type: 3}
-  dragDelay: 0.2
+  dragDelay: 0.01
   cachedLocalizedName: 
