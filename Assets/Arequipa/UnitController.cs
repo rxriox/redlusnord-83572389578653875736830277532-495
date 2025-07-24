@@ -158,7 +158,7 @@ public class UnitController : MonoBehaviour
     private UnitController FindEnemyInAttackRange()
     {
         return GameManager.Instance.GetAllUnits()
-            .Where(unit => unit != null && unit.teamID != this.teamID && unit.CurrentHealth > 0 && IsUnitWithinAttackRange(unit))
+            .Where(unit => unit != null && unit.teamID != this.teamID && unit.CurrentHealth > 0 && !unit.HasStatus(StatusEffect.Vanish) && IsUnitWithinAttackRange(unit))
             .OrderBy(unit => Vector3.Distance(transform.position, unit.transform.position))
             .FirstOrDefault();
     }
@@ -176,7 +176,7 @@ public class UnitController : MonoBehaviour
     private void FindClosestEnemy()
     {
         currentTarget = GameManager.Instance.GetAllUnits()
-            .Where(unit => unit != null && unit != this && unit.teamID != this.teamID && unit.CurrentHealth > 0)
+            .Where(unit => unit != null && unit != this && unit.teamID != this.teamID && unit.CurrentHealth > 0 && !unit.HasStatus(StatusEffect.Vanish))
             .OrderBy(unit => Vector3.Distance(transform.position, unit.transform.position))
             .FirstOrDefault();
     }
@@ -463,6 +463,16 @@ public class UnitController : MonoBehaviour
         {
             SetVisibility(false);
         }
+
+        foreach (var enemy in GameManager.Instance.GetAllUnits())
+            {
+                // Si una unidad enemiga me tenía como objetivo...
+                if (enemy != null && enemy.teamID != this.teamID && enemy.currentTarget == this)
+                {
+                    // ...le ordeno que resetee su estado y busque un nuevo objetivo.
+                    enemy.ResetActionState();
+                }
+            }
 
         Coroutine statusCoroutine = StartCoroutine(StatusCoroutine(effect, duration));
         activeStatusEffects[effect] = statusCoroutine;

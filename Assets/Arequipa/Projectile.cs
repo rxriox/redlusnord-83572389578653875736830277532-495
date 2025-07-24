@@ -22,7 +22,7 @@ public class Projectile : MonoBehaviour
 
     void Update()
     {
-        if (target == null || target.CurrentHealth <= 0)
+        if (target == null || target.CurrentHealth <= 0 || target.HasStatus(StatusEffect.Vanish))
         {
             gameObject.SetActive(false);
             return;
