@@ -17,6 +17,8 @@ public class UnitController : MonoBehaviour
     public int CurrentLevel { get; private set; }
 
     private Harmony_Defiant defiantLogic;
+    private Harmony_Human humanLogic;
+
     private Renderer[] allRenderers;
     private Collider unitCollider;
 
@@ -59,35 +61,10 @@ public class UnitController : MonoBehaviour
                 baseAttackSpeed += EquippedArtifact.attackSpeedBonus;
             }
 
-            // ===== MODIFICACIÓN AQUÍ: Añade la lógica de la armonía "Human" =====
-            // Comprueba si esta unidad tiene la armonía "Human"
-            HarmonyType humanHarmony = GameManager.Instance.FindHarmonyByName("Human");
-            if (humanHarmony != null && unitStats.naturalHarmonies.Contains(humanHarmony))
+            if (humanLogic != null)
             {
-                // Comprueba si la armonía está activa para el equipo de esta unidad
-                if (GameManager.Instance.IsHarmonyActiveForTeam(humanHarmony, teamID))
-                {
-                    // Obtiene el número de unidades Humanas en el tablero
-                    var harmonyCounts = GameManager.Instance.GetHarmonyCountsForTeam(teamID);
-                    if (harmonyCounts.TryGetValue(humanHarmony, out int unitCount))
-                    {
-                        // --- Lógica de la bonificación ---
-                        // Bonificación base al activar la armonía (4 unidades)
-                        float bonus = 0.25f; // Ejemplo: +25% de velocidad de ataque
-
-                        // Bonificación adicional por cada unidad por encima de 4
-                        if (unitCount > 4)
-                        {
-                            int extraUnits = unitCount - 4;
-                            bonus += extraUnits * 0.10f; // Ejemplo: +10% por cada unidad extra
-                        }
-                        
-                        Debug.Log($"{unitStats.unitName} recibe +{bonus * 100}% de velocidad de ataque de la armonía Human.");
-                        baseAttackSpeed += bonus;
-                    }
-                }
+                baseAttackSpeed += humanLogic.GetAttackSpeedBonus();
             }
-            // ===== FIN DE LA MODIFICACIÓN =====
 
             return baseAttackSpeed;
         }
@@ -119,6 +96,7 @@ public class UnitController : MonoBehaviour
     {
         gridManager = FindFirstObjectByType<GridManager>();
         defiantLogic = GetComponent<Harmony_Defiant>();
+        humanLogic = GetComponent<Harmony_Human>();
         allRenderers = GetComponentsInChildren<Renderer>();
         unitCollider = GetComponent<Collider>();
     }

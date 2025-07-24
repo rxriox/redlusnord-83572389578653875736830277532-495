@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3379765443286635406}
   - component: {fileID: 1210026274917409516}
   - component: {fileID: 8760188244958653844}
+  - component: {fileID: 3629474939581132985}
   m_Layer: 0
   m_Name: marisa kirisame
   m_TagString: Untagged
@@ -129,3 +130,15 @@ MonoBehaviour:
   unitStats: {fileID: 0}
   teamID: 0
   originatingIcon: {fileID: 0}
+--- !u!114 &3629474939581132985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3805343749917133435}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16ac44e3ecaffa54c9d444c2a753e6c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Harmony_Human
