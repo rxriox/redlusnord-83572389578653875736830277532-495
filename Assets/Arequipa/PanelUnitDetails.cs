@@ -110,7 +110,7 @@ public class PanelUnitDetails : MonoBehaviour
 
             attackDamageText.text = selectedUnitForDetails.CurrentAttackDamage.ToString();
             attackSpeedText.text = selectedUnitForDetails.CurrentAttackSpeed.ToString("F1");
-            moveSpeedText.text = selectedUnitForDetails.CurrentMoveSpeed.ToString("F0");
+            moveSpeedText.text = selectedUnitForDetails.CurrentMoveSpeed.ToString(); //f0
 
             if (selectedUnitForDetails.EquippedArtifact != null)
             {
@@ -196,7 +196,7 @@ public class PanelUnitDetails : MonoBehaviour
         }
 
         attackSpeedText.text = stats.attackSpeed.ToString("F1");
-        moveSpeedText.text = stats.moveSpeed.ToString("F1");
+        moveSpeedText.text = stats.moveSpeed.ToString();
 
         // Habilidades y Hechizos
         for (int i = 0; i < abilityIconSlots.Count; i++)

@@ -69,16 +69,21 @@ public class UnitController : MonoBehaviour
         }
     }
 
-    public float CurrentMoveSpeed
+    public int CurrentMoveSpeed
     {
         get
         {
-            float baseMoveSpeed = unitStats.moveSpeed;
+            // Los bonus de artefactos ahora deberían ser enteros también para mantener la consistencia.
+            // Si son flotantes, se redondearán al sumarse.
+            int finalMoveSpeed = unitStats.moveSpeed;
             if (EquippedArtifact != null)
             {
-                baseMoveSpeed += EquippedArtifact.moveSpeedBonus;
+                // Asumimos que moveSpeedBonus ahora es un entero o se convierte a uno.
+                finalMoveSpeed += Mathf.RoundToInt(EquippedArtifact.moveSpeedBonus);
             }
-            return baseMoveSpeed;
+            
+            // Asegura que el valor final esté siempre entre 1 y 10.
+            return Mathf.Clamp(finalMoveSpeed, 1, 10);
         }
     }
 
@@ -313,8 +318,14 @@ public class UnitController : MonoBehaviour
             transform.rotation = Quaternion.LookRotation(endPosition - startPosition);
         }
 
+        const float maxMoveDuration = 0.45f; // Duración para velocidad 1 (lento)
+        const float minMoveDuration = 0.2f; // Duración para velocidad 10 (rápido)
+
+        float normalizedSpeed = (CurrentMoveSpeed - 1f) / 9f;
+
+        float moveDuration = Mathf.Lerp(maxMoveDuration, minMoveDuration, normalizedSpeed);
+
         float time = 0f;
-        float moveDuration = 1f / CurrentMoveSpeed;
         while (time < moveDuration)
         {
             transform.position = Vector3.Lerp(startPosition, endPosition, time / moveDuration);
@@ -324,7 +335,6 @@ public class UnitController : MonoBehaviour
 
         transform.position = endPosition;
         currentState = State.IDLE;
-
         movementCoroutine = null;
     }
 

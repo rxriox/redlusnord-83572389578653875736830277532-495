@@ -65,7 +65,8 @@ public class UnitStats : ScriptableObject
     public float attackRange = 1.5f;
 
     [Header("Movement Statistics")]
-    public float moveSpeed = 3f;
+    [Range(1, 10)]
+    public int moveSpeed = 5;
 
     [Header("Unit Abilities")]
     [Tooltip("Lista de habilidades del personaje. Máximo 4.")]
