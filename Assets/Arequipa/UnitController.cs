@@ -58,6 +58,37 @@ public class UnitController : MonoBehaviour
             {
                 baseAttackSpeed += EquippedArtifact.attackSpeedBonus;
             }
+
+            // ===== MODIFICACIÓN AQUÍ: Añade la lógica de la armonía "Human" =====
+            // Comprueba si esta unidad tiene la armonía "Human"
+            HarmonyType humanHarmony = GameManager.Instance.FindHarmonyByName("Human");
+            if (humanHarmony != null && unitStats.naturalHarmonies.Contains(humanHarmony))
+            {
+                // Comprueba si la armonía está activa para el equipo de esta unidad
+                if (GameManager.Instance.IsHarmonyActiveForTeam(humanHarmony, teamID))
+                {
+                    // Obtiene el número de unidades Humanas en el tablero
+                    var harmonyCounts = GameManager.Instance.GetHarmonyCountsForTeam(teamID);
+                    if (harmonyCounts.TryGetValue(humanHarmony, out int unitCount))
+                    {
+                        // --- Lógica de la bonificación ---
+                        // Bonificación base al activar la armonía (4 unidades)
+                        float bonus = 0.25f; // Ejemplo: +25% de velocidad de ataque
+
+                        // Bonificación adicional por cada unidad por encima de 4
+                        if (unitCount > 4)
+                        {
+                            int extraUnits = unitCount - 4;
+                            bonus += extraUnits * 0.10f; // Ejemplo: +10% por cada unidad extra
+                        }
+                        
+                        Debug.Log($"{unitStats.unitName} recibe +{bonus * 100}% de velocidad de ataque de la armonía Human.");
+                        baseAttackSpeed += bonus;
+                    }
+                }
+            }
+            // ===== FIN DE LA MODIFICACIÓN =====
+
             return baseAttackSpeed;
         }
     }

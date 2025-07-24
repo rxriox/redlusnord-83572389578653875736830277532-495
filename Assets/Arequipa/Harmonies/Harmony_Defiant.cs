@@ -97,11 +97,39 @@ public class Harmony_Defiant : MonoBehaviour
     public float GetDamageMultiplier()
     {
         attackCounter++;
-        if (attackCounter > ATTACKS_FOR_CRIT)
+        if (attackCounter <= ATTACKS_FOR_CRIT)
         {
-            attackCounter = 0; // Reinicia para el siguiente ciclo
-            return CRIT_MULTIPLIER;
+            return 1.0f; // No es un golpe crítico todavía, daño normal.
         }
-        return 1.0f; // Daño normal
+
+        // Es el cuarto golpe, resetea y calcula el daño crítico.
+        attackCounter = 0;
+
+        if (GameManager.Instance == null) return 1.0f;
+
+        // 1. Encuentra el ScriptableObject de la armonía Defiant.
+        HarmonyType defiantHarmony = GameManager.Instance.FindHarmonyByName("Defiant");
+        if (defiantHarmony == null) return 1.0f;
+
+        // 2. Obtén el número de unidades Defiant que tiene el equipo.
+        var harmonyCounts = GameManager.Instance.GetHarmonyCountsForTeam(unitController.teamID);
+        if (harmonyCounts.TryGetValue(defiantHarmony, out int unitCount))
+        {
+            // 3. Calcula el multiplicador de daño basado en el número de unidades.
+            if (unitCount >= 3)
+            {
+                // Calcula cuántas unidades adicionales hay por encima del mínimo.
+                int extraUnits = unitCount - 3;
+                
+                // El daño base es 145%, y se añade un 16% por cada unidad extra.
+                float critMultiplier = 1.45f + (extraUnits * 0.16f);
+
+                Debug.Log($"{unitController.unitStats.unitName} asesta un GOLPE CRÍTICO con {unitCount} unidades Defiant! Multiplicador: {critMultiplier * 100}%");
+                return critMultiplier;
+            }
+        }
+
+        // Si algo falla, devuelve el daño normal como respaldo.
+        return 1.0f;
     }
 }

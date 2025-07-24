@@ -10,21 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8d9402cbfb4a5f042bc4ebdc07da06fe, type: 3}
-  m_Name: Sakuya Izayoi
+  m_Name: ReimuHakurei
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
-  category: 2
+  category: 1
   unitType: 0
-  naturalHarmonies: []
+  naturalHarmonies:
+  - {fileID: 11400000, guid: 92eacd9ac2661e948897ffa2001dfeef, type: 2}
   unitIcon: {fileID: 21300000, guid: c91b9cf695ea5e44f901ab2261a5521b, type: 3}
   portrait: {fileID: 0}
   backgroundImage: {fileID: 0}
-  characterPrefab: {fileID: 3805343749917133435, guid: 5bac1cf8d166fd64e8a7561c615b7677, type: 3}
+  characterPrefab: {fileID: 3805343749917133435, guid: d599e359301bbcc45b1e1708f332b1dc, type: 3}
   projectilePrefab: {fileID: 0}
   unitName:
     m_TableReference:
       m_TableCollectionName: GUID:152a1b89f2aa40c42b797f2c81fd9a72
     m_TableEntryReference:
-      m_KeyId: 1723164921856
+      m_KeyId: 1066131394560
       m_Key: 
     m_FallbackState: 0
     m_WaitForCompletion: 0

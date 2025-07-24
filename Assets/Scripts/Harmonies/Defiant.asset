@@ -13,9 +13,23 @@ MonoBehaviour:
   m_Name: Defiant
   m_EditorClassIdentifier: Assembly-CSharp::HarmonyType
   harmonyName: Defiant
-  description: 
+  description: "Activaci\xF3n: Requiere la presencia de 3 personajes aliados en el
+    campo.\nTipo: Habilidad pasiva grupal con efecto de movilidad y potenciador de
+    da\xF1o.\n\nDescripci\xF3n:\n\nCuando tres aliados est\xE1n presentes simult\xE1neamente,
+    las unidades afectadas por Sincron\xEDa Carmes\xED desbloquean una t\xE9cnica
+    de movilidad avanzada similar a un \u201Cteletransporte rel\xE1mpago\u201D (blink),
+    que les permite reposicionarse instant\xE1neamente junto a un personaje aliado
+    distante. Este salto t\xE1ctico no puede activarse si hay enemigos a una distancia
+    de 3 casillas o menos, garantizando que solo pueda usarse como maniobra estrat\xE9gica
+    fuera de combate cercano.\n\nAdem\xE1s, cada cuatro ataques consecutivos, la
+    unidad ejecuta autom\xE1ticamente un golpe cr\xEDtico que inflige un 145\u202F%
+    del da\xF1o base actual. Este golpe se vuelve m\xE1s letal por cada unidad aliada
+    adicional activa en el campo, aumentando el da\xF1o cr\xEDtico en un 8\u202F%
+    por unidad extra."
   activeIcon: {fileID: 21300000, guid: 7992f2e12120c1b469017b186227e5af, type: 3}
-  inactiveIcons: []
+  inactiveIcons:
+  - {fileID: 0}
+  - {fileID: 0}
   tiers:
-  - unitsRequired: 1
+  - unitsRequired: 3
     tierDescription: 
