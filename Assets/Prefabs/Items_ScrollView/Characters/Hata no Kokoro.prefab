@@ -89,7 +89,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitIconController
   characterData: {fileID: 11400000, guid: 14d5384d88a59c14191dcb72e9cf2018, type: 2}
-  availableIconSprite: {fileID: 21300000, guid: 920de3a7ca1baa946a78b5f716690d88, type: 3}
+  availableIconSprite: {fileID: 21300000, guid: a06ed733ea987e4448a3d26929a9f1ce, type: 3}
   placedIconSprite: {fileID: 21300000, guid: 81891ae7ee0aee5409608485aa468a93, type: 3}
   dragCursorSprite: {fileID: 21300000, guid: da1a024e742615f4bb9d765d107b8742, type: 3}
   dragDelay: 0.01

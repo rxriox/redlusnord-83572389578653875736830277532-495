@@ -96,40 +96,36 @@ public class Harmony_Defiant : MonoBehaviour
     // El UnitController llamará a esto para saber si el ataque es crítico.
     public float GetDamageMultiplier()
     {
+        // Incrementa el contador ANTES de la comprobación.
         attackCounter++;
+
+        // Comprueba si este ataque NO es el cuarto golpe.
         if (attackCounter <= ATTACKS_FOR_CRIT)
         {
-            return 1.0f; // No es un golpe crítico todavía, daño normal.
+            return 1.0f; // Si no lo es, devuelve daño normal.
         }
 
-        // Es el cuarto golpe, resetea y calcula el daño crítico.
+        // Si hemos llegado aquí, significa que ES el cuarto golpe.
+        // Resetea el contador para el siguiente ciclo.
         attackCounter = 0;
 
-        if (GameManager.Instance == null) return 1.0f;
+        // --- Lógica para calcular el multiplicador escalado ---
+        if (GameManager.Instance == null) return 1.45f; // Devuelve el base como mínimo
 
-        // 1. Encuentra el ScriptableObject de la armonía Defiant.
         HarmonyType defiantHarmony = GameManager.Instance.FindHarmonyByName("Defiant");
-        if (defiantHarmony == null) return 1.0f;
+        if (defiantHarmony == null) return 1.45f;
 
-        // 2. Obtén el número de unidades Defiant que tiene el equipo.
         var harmonyCounts = GameManager.Instance.GetHarmonyCountsForTeam(unitController.teamID);
-        if (harmonyCounts.TryGetValue(defiantHarmony, out int unitCount))
+        if (harmonyCounts.TryGetValue(defiantHarmony, out int unitCount) && unitCount >= 3)
         {
-            // 3. Calcula el multiplicador de daño basado en el número de unidades.
-            if (unitCount >= 3)
-            {
-                // Calcula cuántas unidades adicionales hay por encima del mínimo.
-                int extraUnits = unitCount - 3;
-                
-                // El daño base es 145%, y se añade un 16% por cada unidad extra.
-                float critMultiplier = 1.45f + (extraUnits * 0.16f);
+            int extraUnits = unitCount - 3;
+            float critMultiplier = 1.45f + (extraUnits * 0.08f);
 
-                Debug.Log($"{unitController.unitStats.unitName} asesta un GOLPE CRÍTICO con {unitCount} unidades Defiant! Multiplicador: {critMultiplier * 100}%");
-                return critMultiplier;
-            }
+            Debug.Log($"{unitController.unitStats.unitName} asesta un GOLPE CRÍTICO con {unitCount} unidades Defiant! Multiplicador: {critMultiplier * 100}%");
+            return critMultiplier;
         }
 
-        // Si algo falla, devuelve el daño normal como respaldo.
-        return 1.0f;
+        // Si algo falla, devuelve al menos el multiplicador base.
+        return 1.45f;
     }
 }

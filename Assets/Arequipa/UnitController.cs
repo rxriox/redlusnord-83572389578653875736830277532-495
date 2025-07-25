@@ -18,6 +18,7 @@ public class UnitController : MonoBehaviour
 
     private Harmony_Defiant defiantLogic;
     private Harmony_Human humanLogic;
+    private Harmony_Guardian guardianLogic;
 
     private Renderer[] allRenderers;
     private Collider unitCollider;
@@ -101,6 +102,7 @@ public class UnitController : MonoBehaviour
         gridManager = FindFirstObjectByType<GridManager>();
         defiantLogic = GetComponent<Harmony_Defiant>();
         humanLogic = GetComponent<Harmony_Human>();
+        guardianLogic = GetComponent<Harmony_Guardian>();
         allRenderers = GetComponentsInChildren<Renderer>();
         unitCollider = GetComponent<Collider>();
     }
@@ -201,13 +203,6 @@ public class UnitController : MonoBehaviour
 
     private void PerformAttack()
     {
-        float damageMultiplier = 1.0f;
-        if (defiantLogic != null && GameManager.Instance.IsHarmonyActiveForTeam(GameManager.Instance.FindHarmonyByName("Defiant"), teamID))
-        {
-            damageMultiplier = defiantLogic.GetDamageMultiplier();
-        }
-        int finalDamage = Mathf.RoundToInt(CurrentAttackDamage * damageMultiplier);
-
         if (GameManager.Instance.CurrentState != GameManager.GameState.Combat)
         {
             currentState = State.IDLE;
@@ -216,28 +211,32 @@ public class UnitController : MonoBehaviour
 
         currentState = State.ATTACKING;
         transform.LookAt(new Vector3(currentTarget.transform.position.x, transform.position.y, currentTarget.transform.position.z));
+        
+        // 1. Obtiene el multiplicador (será 1.0 para golpes normales o >1.0 para críticos).
+        float damageMultiplier = 1.0f;
+        if (defiantLogic != null && GameManager.Instance.IsHarmonyActiveForTeam(GameManager.Instance.FindHarmonyByName("Defiant"), teamID))
+        {
+            damageMultiplier = defiantLogic.GetDamageMultiplier();
+        }
+        
+        // 2. Calcula el daño final usando el multiplicador.
+        int finalDamage = Mathf.RoundToInt(CurrentAttackDamage * damageMultiplier);
 
+        // 3. Usa SIEMPRE la variable 'finalDamage' para el ataque.
         if (unitStats.unitType == UnitStats.UnitType.Ranged && unitStats.projectilePrefab != null)
         {
             GameObject projGO = ObjectPooler.Instance.SpawnFromPool("Proyectil", transform.position + Vector3.up * 0.5f, Quaternion.identity);
             Projectile projectile = projGO.GetComponent<Projectile>();
             if (projectile != null)
-                projectile.Initialize(this, currentTarget, finalDamage, DamageType.Material);
+                projectile.Initialize(this, currentTarget, finalDamage, DamageType.Material); // <-- Usa finalDamage
         }
         else
         {
             Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ataca a {GetTeamTag(currentTarget.teamID)} {currentTarget.unitStats.unitName}");
-            currentTarget.TakeDamage(finalDamage, this, DamageType.Material);
+            currentTarget.TakeDamage(finalDamage, this, DamageType.Material); // <-- Usa finalDamage
         }
 
-        const float maxCooldown = 2.0f; // Cooldown para velocidad de ataque 1 (lento)
-        const float minCooldown = 0.3f; // Cooldown para velocidad de ataque 10 (rápido)
-
-        // Convierte la escala 1-10 a un valor entre 0 y 1.
-        float normalizedSpeed = (CurrentAttackSpeed - 1f) / 9f;
-
-        // Interpola linealmente para encontrar el cooldown exacto.
-        attackCooldown = Mathf.Lerp(maxCooldown, minCooldown, normalizedSpeed);
+        attackCooldown = 1f / CurrentAttackSpeed;
         StartCoroutine(ResetStateAfterAction(0.1f));
     }
 
@@ -285,9 +284,7 @@ public class UnitController : MonoBehaviour
             StopCoroutine(movementCoroutine);
             movementCoroutine = null;
         }
-
-        // ===== MODIFICACIÓN AQUÍ: Limpieza completa del estado de la IA =====
-        
+       
         // 1. Resetea el estado para que pueda tomar una nueva decisión.
         currentState = State.IDLE;
 
@@ -303,7 +300,6 @@ public class UnitController : MonoBehaviour
         // 4. Un pequeño reseteo del cooldown para evitar acciones instantáneas raras.
         attackCooldown = 0.2f;
         
-        // ===== FIN DE LA MODIFICACIÓN =====
     }
 
     private IEnumerator AnimateMove(Node from, Node to)
@@ -318,8 +314,8 @@ public class UnitController : MonoBehaviour
             transform.rotation = Quaternion.LookRotation(endPosition - startPosition);
         }
 
-        const float maxMoveDuration = 0.45f; // Duración para velocidad 1 (lento)
-        const float minMoveDuration = 0.2f; // Duración para velocidad 10 (rápido)
+        const float maxMoveDuration = 0.55f; // Duración para velocidad 1 (lento)
+        const float minMoveDuration = 0.35f; // Duración para velocidad 10 (rápido)
 
         float normalizedSpeed = (CurrentMoveSpeed - 1f) / 9f;
 
@@ -344,6 +340,7 @@ public class UnitController : MonoBehaviour
         currentState = State.IDLE;
     }
 
+//para evaluar su remocion
     private IEnumerator AnimateMoveToPosition(Vector3 targetPosition)
     {
         currentState = State.MOVING;
@@ -371,17 +368,28 @@ public class UnitController : MonoBehaviour
     public void TakeDamage(float damage, UnitController attacker, DamageType damageType)
     {
         Debug.Log($"Tipo de daño recibido: {damageType}");
+        float finalDamage = damage; // Inicia con el daño base
+
+        // Aplica la reducción de daño si es de tipo Material
+        if (damageType == DamageType.Material && guardianLogic != null)
+        {
+            float reductionPercentage = guardianLogic.GetMaterialDamageReduction();
+            if (reductionPercentage > 0)
+            {
+                finalDamage *= (1.0f - reductionPercentage); // Aplica la reducción
+            }
+        }
 
         if (attacker != null)
         {
-            Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha recibido {damage:F1} de daño de {GetTeamTag(attacker.teamID)} {attacker.unitStats.unitName}.");
+            Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha recibido {finalDamage:F1} de daño de {GetTeamTag(attacker.teamID)} {attacker.unitStats.unitName}.");
         }
         else
         {
-            Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha recibido {damage:F1} de daño ambiental (tiempo extra).");
+            Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha recibido {finalDamage:F1} de daño ambiental (tiempo extra).");
         }
 
-        CurrentHealth -= damage;
+        CurrentHealth -= finalDamage; // Usa el daño final calculado
         if (CurrentHealth <= 0)
         {
             CurrentHealth = 0;

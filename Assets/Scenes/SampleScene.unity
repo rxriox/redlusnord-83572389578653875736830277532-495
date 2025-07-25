@@ -1222,6 +1222,40 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!21 &85307014
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UI/Custom/URP_GradientOverlay
+  m_Shader: {fileID: 4800000, guid: b9f47375efd67ed418fab52ea1eaa043, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _GradientDirection: 0
+    m_Colors:
+    - _GradientColor: {r: 1, g: 0, b: 0, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &86787062
 GameObject:
   m_ObjectHideFlags: 0
@@ -1473,6 +1507,7 @@ MonoBehaviour:
   victoryText: {fileID: 486971911}
   allHarmonyTypes:
   - {fileID: 11400000, guid: b336725a5b2c6c144934f3dc7d91625e, type: 2}
+  - {fileID: 11400000, guid: 2da3bd5ea8bc44d4489b8ea1bcd80d8f, type: 2}
   - {fileID: 11400000, guid: 92eacd9ac2661e948897ffa2001dfeef, type: 2}
   maxArtifacts: 0
 --- !u!4 &112722421
@@ -2865,7 +2900,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 1564227023}
+  m_Material: {fileID: 1977917341}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -4364,7 +4399,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 784226118}
+  m_Material: {fileID: 1454935365}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -7069,40 +7104,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
---- !u!21 &784226118
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: UI/Custom/URP_GradientOverlay
-  m_Shader: {fileID: 4800000, guid: b9f47375efd67ed418fab52ea1eaa043, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _GradientDirection: 2
-    m_Colors:
-    - _GradientColor: {r: 0, g: 0, b: 0, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &790990469
 GameObject:
   m_ObjectHideFlags: 0
@@ -13851,6 +13852,40 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!21 &1454935365
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UI/Custom/URP_GradientOverlay
+  m_Shader: {fileID: 4800000, guid: b9f47375efd67ed418fab52ea1eaa043, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _GradientDirection: 2
+    m_Colors:
+    - _GradientColor: {r: 0, g: 0, b: 0, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1462262321
 GameObject:
   m_ObjectHideFlags: 0
@@ -14190,40 +14225,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
   m_HorizontalFit: 0
   m_VerticalFit: 2
---- !u!21 &1564227023
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: UI/Custom/URP_GradientOverlay
-  m_Shader: {fileID: 4800000, guid: b9f47375efd67ed418fab52ea1eaa043, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _GradientDirection: 2
-    m_Colors:
-    - _GradientColor: {r: 0, g: 0, b: 0, a: 0.9019608}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &1582174261
 GameObject:
   m_ObjectHideFlags: 0
@@ -17017,7 +17018,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 1978881293}
+  m_Material: {fileID: 85307014}
   m_Color: {r: 0.105882354, g: 0, b: 0, a: 0.72156864}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -18005,7 +18006,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!21 &1978881293
+--- !u!21 &1977917341
 Material:
   serializedVersion: 8
   m_ObjectHideFlags: 0
@@ -18034,9 +18035,9 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _GradientDirection: 0
+    - _GradientDirection: 2
     m_Colors:
-    - _GradientColor: {r: 1, g: 0, b: 0, a: 1}
+    - _GradientColor: {r: 0, g: 0, b: 0, a: 0.9019608}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!1 &1985997747
@@ -18703,6 +18704,7 @@ MonoBehaviour:
   - {fileID: 8209115074712782973, guid: 6ff60c203cfb2dd40b74d6ce2c997a7c, type: 3}
   - {fileID: 8209115074712782973, guid: 2b21c8d2a89bda347a98beda5cc8f10f, type: 3}
   - {fileID: 8209115074712782973, guid: 44315b92fe900ec438c74854faf91b8e, type: 3}
+  - {fileID: 8209115074712782973, guid: 33a109ee505151442bd7cdc46872994d, type: 3}
   allyBenchScrollView: {fileID: 1688085835}
   allyBenchContent: {fileID: 1537807774}
   allyBenchCanvasGroup: {fileID: 1688085840}

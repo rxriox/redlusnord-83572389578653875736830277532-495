@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Guardian
   m_EditorClassIdentifier: Assembly-CSharp::HarmonyType
   harmonyName: Guardian
-  icon: {fileID: 0}
   description: 
-  bonusTiers:
-  - unitsRequired: 2
-    bonusDescription: 
+  activeIcon: {fileID: 21300000, guid: 03c5b07aefab78c438a21325f723b6b5, type: 3}
+  inactiveIcons: []
+  tiers:
+  - unitsRequired: 3
+    tierDescription: 

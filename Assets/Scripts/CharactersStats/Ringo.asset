@@ -10,22 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8d9402cbfb4a5f042bc4ebdc07da06fe, type: 3}
-  m_Name: Sanae
+  m_Name: Ringo
   m_EditorClassIdentifier: Assembly-CSharp::UnitStats
-  category: 1
+  category: 0
   unitType: 0
   naturalHarmonies:
-  - {fileID: 11400000, guid: 92eacd9ac2661e948897ffa2001dfeef, type: 2}
+  - {fileID: 11400000, guid: 2da3bd5ea8bc44d4489b8ea1bcd80d8f, type: 2}
   unitIcon: {fileID: 21300000, guid: c91b9cf695ea5e44f901ab2261a5521b, type: 3}
-  portrait: {fileID: 0}
-  backgroundImage: {fileID: 0}
-  characterPrefab: {fileID: 3805343749917133435, guid: 36bb16bec75f2d046a77d072567bdda6, type: 3}
+  portrait: {fileID: 21300000, guid: 220dce6999aaff84484ecc36870572d1, type: 3}
+  backgroundImage: {fileID: 21300000, guid: d84673b222b7d3040a6c588e88b5b254, type: 3}
+  characterPrefab: {fileID: 3805343749917133435, guid: f465228926be1f64ea88450487ab5d5a, type: 3}
   projectilePrefab: {fileID: 0}
   unitName:
     m_TableReference:
       m_TableCollectionName: GUID:152a1b89f2aa40c42b797f2c81fd9a72
     m_TableEntryReference:
-      m_KeyId: 1757189115904
+      m_KeyId: 1680148140032
       m_Key: 
     m_FallbackState: 0
     m_WaitForCompletion: 0
@@ -34,7 +34,7 @@ MonoBehaviour:
   attackDamageByLevel: 0a0000000f00000019000000
   attackSpeed: 1
   attackRange: 1.5
-  moveSpeed: 3
+  moveSpeed: 1
   abilities: []
   spellCards: []
   references:

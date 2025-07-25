@@ -19,6 +19,6 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   tiers:
-  - unitsRequired: 3
+  - unitsRequired: 1
     tierDescription: "Ganan velocidad de ataque. La bonificaci\xF3n aumenta por cada
       Humana adicional."

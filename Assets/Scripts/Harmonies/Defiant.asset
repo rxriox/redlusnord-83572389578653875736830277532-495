@@ -31,5 +31,5 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   tiers:
-  - unitsRequired: 3
+  - unitsRequired: 1
     tierDescription: 
