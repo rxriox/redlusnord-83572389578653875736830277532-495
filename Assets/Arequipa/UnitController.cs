@@ -236,7 +236,15 @@ public class UnitController : MonoBehaviour
             currentTarget.TakeDamage(finalDamage, this, DamageType.Material); // <-- Usa finalDamage
         }
 
-        attackCooldown = 1f / CurrentAttackSpeed;
+        const float maxCooldown = 1.2f; // <-- VELOCIDAD MÍNIMA (cuando la escala es 1)
+        const float minCooldown = 0.37f; // <-- VELOCIDAD MÁXIMA (cuando la escala es 10)
+
+        // Convierte la escala 1-10 a un valor entre 0 y 1.
+        float normalizedSpeed = (CurrentAttackSpeed - 1f) / 9f;
+
+        // Interpola linealmente para encontrar el cooldown exacto.
+        attackCooldown = Mathf.Lerp(maxCooldown, minCooldown, normalizedSpeed);
+
         StartCoroutine(ResetStateAfterAction(0.1f));
     }
 
