@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Fatebender
   m_EditorClassIdentifier: Assembly-CSharp::HarmonyType
   harmonyName: Fatebender
-  icon: {fileID: 0}
   description: 
-  bonusTiers:
+  activeIcon: {fileID: 21300000, guid: 4da58ef62ee26724a884ca72dbdc4247, type: 3}
+  inactiveIcons: []
+  tiers:
   - unitsRequired: 2
-    bonusDescription: 
+    tierDescription: 

@@ -19,6 +19,7 @@ public class UnitController : MonoBehaviour
     private Harmony_Defiant defiantLogic;
     private Harmony_Human humanLogic;
     private Harmony_Guardian guardianLogic;
+    private Harmony_Fatebender fatebenderLogic;
 
     private Renderer[] allRenderers;
     private Collider unitCollider;
@@ -103,6 +104,8 @@ public class UnitController : MonoBehaviour
         defiantLogic = GetComponent<Harmony_Defiant>();
         humanLogic = GetComponent<Harmony_Human>();
         guardianLogic = GetComponent<Harmony_Guardian>();
+        fatebenderLogic = GetComponent<Harmony_Fatebender>();
+
         allRenderers = GetComponentsInChildren<Renderer>();
         unitCollider = GetComponent<Collider>();
     }
@@ -349,45 +352,35 @@ public class UnitController : MonoBehaviour
     }
 
 //para evaluar su remocion
-    private IEnumerator AnimateMoveToPosition(Vector3 targetPosition)
+   
+
+    public void TakeDamage(float damage, UnitController attacker, DamageType damageType, bool bypassHarmony = false)
     {
-        currentState = State.MOVING;
-
-        Vector3 startPosition = transform.position;
-
-        if (targetPosition - startPosition != Vector3.zero)
+        // Si no se debe saltar la lógica y las condiciones se cumplen, retrasa el daño.
+        if (!bypassHarmony && fatebenderLogic != null && attacker != null) // attacker != null para ignorar daño de Overtime
         {
-            transform.rotation = Quaternion.LookRotation(targetPosition - startPosition);
+            HarmonyType fatebenderHarmony = GameManager.Instance.FindHarmonyByName("Fatebender");
+            if (fatebenderHarmony != null && GameManager.Instance.IsHarmonyActiveForTeam(fatebenderHarmony, teamID))
+            {
+                fatebenderLogic.DelayDamage(damage, attacker, damageType);
+                return; // ¡Importante! Detiene la ejecución para no aplicar el daño ahora.
+            }
         }
-
-        float time = 0f;
-        float moveDuration = 1f / CurrentMoveSpeed;
-        while (time < moveDuration)
-        {
-            transform.position = Vector3.Lerp(startPosition, targetPosition, time / moveDuration);
-            time += Time.deltaTime;
-            yield return null;
-        }
-
-        transform.position = targetPosition;
-        currentState = State.IDLE;
-    }
-
-    public void TakeDamage(float damage, UnitController attacker, DamageType damageType)
-    {
+        
+        // --- El resto del método se ejecuta si el daño no es retrasado ---
         Debug.Log($"Tipo de daño recibido: {damageType}");
-        float finalDamage = damage; // Inicia con el daño base
+        float finalDamage = damage;
 
-        // Aplica la reducción de daño si es de tipo Material
+        // Aplica la reducción de daño de Guardian si es de tipo Material
         if (damageType == DamageType.Material && guardianLogic != null)
         {
             float reductionPercentage = guardianLogic.GetMaterialDamageReduction();
             if (reductionPercentage > 0)
             {
-                finalDamage *= (1.0f - reductionPercentage); // Aplica la reducción
+                finalDamage *= (1.0f - reductionPercentage);
             }
         }
-
+        
         if (attacker != null)
         {
             Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha recibido {finalDamage:F1} de daño de {GetTeamTag(attacker.teamID)} {attacker.unitStats.unitName}.");
@@ -397,7 +390,7 @@ public class UnitController : MonoBehaviour
             Debug.Log($"{GetTeamTag(this.teamID)} {this.unitStats.unitName} ha recibido {finalDamage:F1} de daño ambiental (tiempo extra).");
         }
 
-        CurrentHealth -= finalDamage; // Usa el daño final calculado
+        CurrentHealth -= finalDamage;
         if (CurrentHealth <= 0)
         {
             CurrentHealth = 0;
